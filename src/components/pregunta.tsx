@@ -3,38 +3,41 @@
 import { useRef, useState } from "react";
 import type { EjercicioGenerado } from "@/lib/ejercicios/generador";
 import { digitoEn, marcasEsperadas, numColumnas } from "@/lib/ejercicios/vertical";
-import type { Json } from "@/lib/supabase/database.types";
+import {
+  BOTON_RESPONDER,
+  CAJA_DIGITO,
+  CAJA_MARCA,
+  CELDA_DIGITO,
+  soloDigitos,
+  type PropsComunes,
+  type RespuestaPregunta,
+} from "./tipos-pregunta";
+import VerticalMultiplicacion from "./vertical-multiplicacion";
+import VerticalDivision from "./vertical-division";
 
-export interface RespuestaPregunta {
-  respuestaDada: string;
-  valor: number;
-  pasos: Json | null;
-}
+export type { RespuestaPregunta };
 
-interface Props {
+interface Props extends PropsComunes {
   ejercicio: EjercicioGenerado;
-  bloqueado: boolean;
-  enviando: boolean;
-  onResponder: (respuesta: RespuestaPregunta) => void;
 }
 
 export default function Pregunta(props: Props) {
-  const { ejercicio } = props;
-  if (ejercicio.operacion && ejercicio.operandos) {
-    return (
-      <Vertical
-        {...props}
-        operacion={ejercicio.operacion}
-        a={ejercicio.operandos[0]}
-        b={ejercicio.operandos[1]}
-      />
-    );
+  const { ejercicio, ...comunes } = props;
+  const operandos = ejercicio.operandos;
+
+  if (ejercicio.operacion && operandos) {
+    switch (ejercicio.operacion) {
+      case "suma":
+      case "resta":
+        return <VerticalAditiva {...comunes} operacion={ejercicio.operacion} a={operandos[0]} b={operandos[1]} />;
+      case "multiplicacion":
+        return <VerticalMultiplicacion {...comunes} a={operandos[0]} b={operandos[1]} />;
+      case "division":
+        return <VerticalDivision {...comunes} dividendo={operandos[0]} divisor={operandos[1]} />;
+    }
   }
   return <Simple {...props} />;
 }
-
-const BOTON =
-  "rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300";
 
 function Simple({ ejercicio, bloqueado, enviando, onResponder }: Props) {
   const [respuesta, setRespuesta] = useState("");
@@ -64,7 +67,7 @@ function Simple({ ejercicio, bloqueado, enviando, onResponder }: Props) {
             onChange={(e) => setRespuesta(e.target.value)}
             className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-center text-xl outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
           />
-          <button type="submit" disabled={enviando || respuesta === ""} className={BOTON}>
+          <button type="submit" disabled={enviando || respuesta === ""} className={BOTON_RESPONDER}>
             Responder
           </button>
         </form>
@@ -73,16 +76,14 @@ function Simple({ ejercicio, bloqueado, enviando, onResponder }: Props) {
   );
 }
 
-const CELDA = "flex h-12 w-11 items-center justify-center font-mono text-3xl text-zinc-900 dark:text-zinc-50";
-
-function Vertical({
+function VerticalAditiva({
   operacion,
   a,
   b,
   bloqueado,
   enviando,
   onResponder,
-}: Props & { operacion: "suma" | "resta"; a: number; b: number }) {
+}: PropsComunes & { operacion: "suma" | "resta"; a: number; b: number }) {
   const n = numColumnas(operacion, a, b);
   // resultado[c] = casilla de la columna c (0 = derecha); marcas[k] = casilla sobre la columna k+1
   const [resultado, setResultado] = useState<string[]>(() => Array(n).fill(""));
@@ -95,7 +96,7 @@ function Vertical({
   const valido = altoLleno >= 0 && resultado.slice(0, altoLleno + 1).every((d) => d !== "");
 
   function cambiarResultado(c: number, valor: string) {
-    const digito = valor.replace(/\D/g, "").slice(-1);
+    const digito = soloDigitos(valor);
     setResultado((prev) => prev.map((d, i) => (i === c ? digito : d)));
     if (digito && c + 1 < n) refsResultado.current[c + 1]?.focus();
   }
@@ -107,7 +108,7 @@ function Vertical({
   }
 
   function cambiarMarca(k: number, valor: string) {
-    const digito = valor.replace(/\D/g, "").slice(-1);
+    const digito = soloDigitos(valor);
     setMarcas((prev) => prev.map((m, i) => (i === k ? digito : m)));
   }
 
@@ -150,7 +151,7 @@ function Vertical({
               value={marcas[c - 1]}
               onChange={(e) => cambiarMarca(c - 1, e.target.value)}
               aria-label={operacion === "suma" ? "Llevada" : "Prestada"}
-              className="mx-auto h-7 w-8 rounded border border-dashed border-zinc-300 text-center text-sm outline-none focus:border-zinc-500 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800"
+              className={CAJA_MARCA}
             />
           ) : (
             <div key="m0" />
@@ -159,14 +160,14 @@ function Vertical({
 
         <div />
         {columnas.map((c) => (
-          <div key={`a${c}`} className={CELDA}>
+          <div key={`a${c}`} className={CELDA_DIGITO}>
             {digitoEn(a, c)}
           </div>
         ))}
 
         <div className="text-center font-mono text-3xl text-zinc-500">{operacion === "suma" ? "+" : "−"}</div>
         {columnas.map((c) => (
-          <div key={`b${c}`} className={CELDA}>
+          <div key={`b${c}`} className={CELDA_DIGITO}>
             {digitoEn(b, c)}
           </div>
         ))}
@@ -188,7 +189,7 @@ function Vertical({
             onChange={(e) => cambiarResultado(c, e.target.value)}
             onKeyDown={(e) => teclaResultado(c, e)}
             aria-label={`Resultado, columna ${c + 1}`}
-            className="mx-auto h-12 w-10 rounded-lg border border-zinc-300 text-center font-mono text-2xl outline-none focus:border-zinc-500 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-800"
+            className={CAJA_DIGITO}
           />
         ))}
       </div>
@@ -200,7 +201,7 @@ function Vertical({
       </p>
 
       {!bloqueado && (
-        <button type="submit" disabled={enviando || !valido} className={BOTON}>
+        <button type="submit" disabled={enviando || !valido} className={BOTON_RESPONDER}>
           Responder
         </button>
       )}

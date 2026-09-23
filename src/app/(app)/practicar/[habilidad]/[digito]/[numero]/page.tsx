@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import type { HabilidadBasica } from "@/lib/ejercicios/generador";
-import { NOMBRES_HABILIDAD_BASICA, descripcionDigito } from "@/lib/ejercicios/generador";
+import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
+import { NOMBRES_HABILIDAD, descripcionDigito, esHabilidadPracticable } from "@/lib/ejercicios/generador";
 import SetPracticaClient from "./set-client";
 
-const HABILIDADES_VALIDAS = new Set<HabilidadBasica>(["suma", "resta", "tabla_multiplicacion"]);
 
 export default async function SetPracticaPage({
   params,
@@ -16,7 +15,7 @@ export default async function SetPracticaPage({
   const numero = Number(numeroStr);
 
   if (
-    !HABILIDADES_VALIDAS.has(habilidad as HabilidadBasica) ||
+    !esHabilidadPracticable(habilidad) ||
     !Number.isInteger(digito) ||
     digito < 1 ||
     digito > 5 ||
@@ -26,7 +25,7 @@ export default async function SetPracticaPage({
   ) {
     return <MensajeCentrado titulo="No encontrado" mensaje="Este ejercicio no existe." habilidad={habilidad} />;
   }
-  const nombreHabilidad = habilidad as HabilidadBasica;
+  const nombreHabilidad = habilidad as HabilidadPracticable;
 
   const supabase = await crearClienteServidor();
   const {
@@ -67,7 +66,7 @@ export default async function SetPracticaPage({
     <SetPracticaClient
       habilidadId={habilidadFila.id}
       nombreHabilidad={nombreHabilidad}
-      tituloHabilidad={NOMBRES_HABILIDAD_BASICA[nombreHabilidad]}
+      tituloHabilidad={NOMBRES_HABILIDAD[nombreHabilidad]}
       estudianteId={user.id}
       digito={digito}
       numeroEjercicio={numero}

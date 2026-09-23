@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import type { HabilidadBasica } from "@/lib/ejercicios/generador";
-import { NOMBRES_HABILIDAD_BASICA } from "@/lib/ejercicios/generador";
-import ExamenClient from "./examen-client";
-
-const HABILIDADES_VALIDAS = new Set<HabilidadBasica>(["suma", "resta", "tabla_multiplicacion"]);
+import { esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
+import ExamenClient from "@/components/examen-client";
 
 export default async function ExamenPage({
   params,
@@ -13,10 +10,9 @@ export default async function ExamenPage({
 }) {
   const { habilidad } = await params;
 
-  if (!HABILIDADES_VALIDAS.has(habilidad as HabilidadBasica)) {
+  if (!esHabilidadPracticable(habilidad)) {
     return <MensajeCentrado titulo="No disponible" mensaje="Esta habilidad no existe." habilidad={habilidad} />;
   }
-  const nombreHabilidad = habilidad as HabilidadBasica;
 
   const supabase = await crearClienteServidor();
   const {
@@ -27,7 +23,7 @@ export default async function ExamenPage({
   const { data: habilidadFila } = await supabase
     .from("habilidades")
     .select("id, nota_aprobacion")
-    .eq("nombre", nombreHabilidad)
+    .eq("nombre", habilidad)
     .single();
 
   if (!habilidadFila) {
@@ -72,12 +68,17 @@ export default async function ExamenPage({
 
   return (
     <ExamenClient
+      titulo={`Examen final de ${NOMBRES_HABILIDAD[habilidad]}`}
+      tipoSesion="evaluacion_habilidad"
       habilidadId={habilidadFila.id}
-      nombreHabilidad={nombreHabilidad}
-      tituloHabilidad={NOMBRES_HABILIDAD_BASICA[nombreHabilidad]}
       estudianteId={user.id}
+      habilidades={[habilidad]}
+      idsHabilidad={{ [habilidad]: habilidadFila.id }}
       notaAprobacion={habilidadFila.nota_aprobacion}
       meetUrl={autorizacion.meet_url}
+      volverHref={`/practicar/${habilidad}`}
+      volverTexto="Volver al mapa"
+      mensajeAprobado="Se desbloqueó la siguiente habilidad."
     />
   );
 }

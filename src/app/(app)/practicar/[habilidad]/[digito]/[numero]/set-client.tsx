@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
-import { generarEjercicio, type EjercicioGenerado, type HabilidadBasica } from "@/lib/ejercicios/generador";
+import { generarEjercicio, type EjercicioGenerado, type HabilidadPracticable } from "@/lib/ejercicios/generador";
 import Pregunta, { type RespuestaPregunta } from "@/components/pregunta";
 
 const TOTAL_EJERCICIOS = 10;
 
 interface Props {
   habilidadId: string;
-  nombreHabilidad: HabilidadBasica;
+  nombreHabilidad: HabilidadPracticable;
   tituloHabilidad: string;
   estudianteId: string;
   digito: number;

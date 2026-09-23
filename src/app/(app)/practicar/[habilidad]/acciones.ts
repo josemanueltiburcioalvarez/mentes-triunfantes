@@ -1,13 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { esHabilidadPracticable } from "@/lib/ejercicios/generador";
 import { crearClienteServidor } from "@/lib/supabase/server";
-
-const HABILIDADES_CON_EXAMEN = ["suma", "resta", "tabla_multiplicacion"] as const;
 
 export async function solicitarExamen(formData: FormData) {
   const habilidad = String(formData.get("habilidad") ?? "");
-  if (!(HABILIDADES_CON_EXAMEN as readonly string[]).includes(habilidad)) return;
+  if (!esHabilidadPracticable(habilidad)) return;
 
   const supabase = await crearClienteServidor();
   const {
@@ -18,7 +17,7 @@ export async function solicitarExamen(formData: FormData) {
   const { data: habilidadFila } = await supabase
     .from("habilidades")
     .select("id")
-    .eq("nombre", habilidad as (typeof HABILIDADES_CON_EXAMEN)[number])
+    .eq("nombre", habilidad)
     .single();
   if (!habilidadFila) return;
 

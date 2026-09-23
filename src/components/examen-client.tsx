@@ -5,34 +5,49 @@ import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import {
   generarExamenHabilidad,
+  generarExamenNivel,
   type EjercicioConDigito,
-  type HabilidadBasica,
+  type HabilidadPracticable,
 } from "@/lib/ejercicios/generador";
 import Pregunta, { type RespuestaPregunta } from "@/components/pregunta";
+import { BOTON_RESPONDER } from "@/components/tipos-pregunta";
 
 interface Props {
-  habilidadId: string;
-  nombreHabilidad: HabilidadBasica;
-  tituloHabilidad: string;
+  titulo: string;
+  tipoSesion: "evaluacion_habilidad" | "evaluacion";
+  habilidadId?: string;
+  nivelId?: string;
   estudianteId: string;
+  habilidades: HabilidadPracticable[];
+  idsHabilidad: Record<string, string>;
   notaAprobacion: number;
   meetUrl: string;
+  volverHref: string;
+  volverTexto: string;
+  mensajeAprobado: string;
 }
 
-const BOTON =
-  "rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300";
-
 export default function ExamenClient({
+  titulo,
+  tipoSesion,
   habilidadId,
-  nombreHabilidad,
-  tituloHabilidad,
+  nivelId,
   estudianteId,
+  habilidades,
+  idsHabilidad,
   notaAprobacion,
   meetUrl,
+  volverHref,
+  volverTexto,
+  mensajeAprobado,
 }: Props) {
   const supabase = crearClienteNavegador();
 
-  const [preguntas] = useState<EjercicioConDigito[]>(() => generarExamenHabilidad(nombreHabilidad));
+  const [preguntas] = useState<EjercicioConDigito[]>(() =>
+    tipoSesion === "evaluacion_habilidad"
+      ? generarExamenHabilidad(habilidades[0])
+      : generarExamenNivel(habilidades)
+  );
   const [sesionId, setSesionId] = useState<string | null>(null);
   const [iniciando, setIniciando] = useState(false);
   const [errorSesion, setErrorSesion] = useState<string | null>(null);
@@ -55,8 +70,9 @@ export default function ExamenClient({
       .from("sesiones")
       .insert({
         estudiante_id: estudianteId,
-        habilidad_id: habilidadId,
-        tipo: "evaluacion_habilidad",
+        tipo: tipoSesion,
+        habilidad_id: habilidadId ?? null,
+        nivel_id: nivelId ?? null,
       })
       .select("id")
       .single();
@@ -83,7 +99,7 @@ export default function ExamenClient({
     const { error } = await supabase.from("intentos").insert({
       sesion_id: sesionId,
       estudiante_id: estudianteId,
-      habilidad_id: habilidadId,
+      habilidad_id: idsHabilidad[preguntaActual.habilidad],
       dificultad: preguntaActual.digito,
       enunciado: preguntaActual.enunciado,
       respuesta_correcta: String(preguntaActual.respuesta),
@@ -121,7 +137,7 @@ export default function ExamenClient({
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="max-w-sm text-sm text-red-600">{errorSesion}</p>
         <Link
-          href={`/practicar/${nombreHabilidad}`}
+          href={volverHref}
           className="text-sm text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
         >
           Volver
@@ -143,18 +159,18 @@ export default function ExamenClient({
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {aprobado
-            ? "Se desbloqueó la siguiente habilidad."
+            ? mensajeAprobado
             : `Necesitas ${notaAprobacion}% para aprobar. Solicita otro examen a tu profesor cuando quieras volver a intentarlo.`}
         </p>
         <div className="mt-2 flex gap-3">
-          <Link href="/dashboard" className={BOTON}>
+          <Link href="/dashboard" className={BOTON_RESPONDER}>
             Ir al panel
           </Link>
           <Link
-            href={`/practicar/${nombreHabilidad}`}
+            href={volverHref}
             className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
-            Volver al mapa
+            {volverTexto}
           </Link>
         </div>
       </div>
@@ -164,9 +180,7 @@ export default function ExamenClient({
   if (!sesionId) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Examen final de {tituloHabilidad}
-        </h1>
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{titulo}</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {preguntas.length} preguntas · {notaAprobacion}% para aprobar. Resuélvelas a mano, en papel, con la
           cámara encendida en la reunión de Meet.
@@ -182,7 +196,7 @@ export default function ExamenClient({
         <p className="text-xs text-zinc-400 dark:text-zinc-500">
           Al comenzar se usa tu autorización: no se puede reiniciar sin pedir otra.
         </p>
-        <button onClick={comenzar} disabled={iniciando} className={BOTON}>
+        <button onClick={comenzar} disabled={iniciando} className={BOTON_RESPONDER}>
           {iniciando ? "Iniciando..." : "Comenzar examen"}
         </button>
       </div>
@@ -192,7 +206,7 @@ export default function ExamenClient({
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-8">
       <div className="mb-6 flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
-        <span>Examen final de {tituloHabilidad}</span>
+        <span>{titulo}</span>
         <span>
           {indice + 1} / {preguntas.length}
         </span>
@@ -218,7 +232,7 @@ export default function ExamenClient({
                 ? "¡Correcto!"
                 : `Incorrecto. Era ${retroalimentacion.respuestaCorrecta}`}
             </p>
-            <button onClick={siguiente} className={BOTON}>
+            <button onClick={siguiente} className={BOTON_RESPONDER}>
               {indice >= preguntas.length - 1 ? "Ver resultado" : "Siguiente"}
             </button>
           </div>

@@ -19,9 +19,10 @@ export type Database = {
           created_at: string
           estado: Database["public"]["Enums"]["estado_autorizacion_examen"]
           estudiante_id: string
-          habilidad_id: string
+          habilidad_id: string | null
           id: string
           meet_url: string | null
+          nivel_id: string | null
           usado_at: string | null
         }
         Insert: {
@@ -30,9 +31,10 @@ export type Database = {
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_autorizacion_examen"]
           estudiante_id: string
-          habilidad_id: string
+          habilidad_id?: string | null
           id?: string
           meet_url?: string | null
+          nivel_id?: string | null
           usado_at?: string | null
         }
         Update: {
@@ -41,12 +43,20 @@ export type Database = {
           created_at?: string
           estado?: Database["public"]["Enums"]["estado_autorizacion_examen"]
           estudiante_id?: string
-          habilidad_id?: string
+          habilidad_id?: string | null
           id?: string
           meet_url?: string | null
+          nivel_id?: string | null
           usado_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "autorizaciones_examen_nivel_id_fkey"
+            columns: ["nivel_id"]
+            isOneToOne: false
+            referencedRelation: "niveles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "autorizaciones_examen_autorizado_por_fkey"
             columns: ["autorizado_por"]
@@ -500,9 +510,10 @@ export type Database = {
           digito: number | null
           estudiante_id: string
           fin: string | null
-          habilidad_id: string
+          habilidad_id: string | null
           id: string
           inicio: string
+          nivel_id: string | null
           numero_ejercicio: number | null
           tipo: Database["public"]["Enums"]["tipo_sesion"]
           total_ejercicios: number
@@ -512,9 +523,10 @@ export type Database = {
           digito?: number | null
           estudiante_id: string
           fin?: string | null
-          habilidad_id: string
+          habilidad_id?: string | null
           id?: string
           inicio?: string
+          nivel_id?: string | null
           numero_ejercicio?: number | null
           tipo?: Database["public"]["Enums"]["tipo_sesion"]
           total_ejercicios?: number
@@ -524,14 +536,22 @@ export type Database = {
           digito?: number | null
           estudiante_id?: string
           fin?: string | null
-          habilidad_id?: string
+          habilidad_id?: string | null
           id?: string
           inicio?: string
+          nivel_id?: string | null
           numero_ejercicio?: number | null
           tipo?: Database["public"]["Enums"]["tipo_sesion"]
           total_ejercicios?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "sesiones_nivel_id_fkey"
+            columns: ["nivel_id"]
+            isOneToOne: false
+            referencedRelation: "niveles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sesiones_estudiante_id_fkey"
             columns: ["estudiante_id"]
@@ -630,6 +650,7 @@ export type Database = {
           fin: string | null
           habilidad_nombre: Database["public"]["Enums"]["nombre_habilidad"] | null
           inicio: string | null
+          nivel_nombre: string | null
           requerian_marcas: number | null
           respuestas_rapidas: number | null
           segundos_promedio: number | null

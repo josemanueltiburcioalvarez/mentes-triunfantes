@@ -39,7 +39,7 @@ export default async function AdminPage() {
   const { data: solicitudes } = await supabase
     .from("autorizaciones_examen")
     .select(
-      "id, estado, meet_url, created_at, estudiante:perfiles!autorizaciones_examen_estudiante_id_fkey(nombre), habilidad:habilidades(nombre)"
+      "id, estado, meet_url, created_at, estudiante:perfiles!autorizaciones_examen_estudiante_id_fkey(nombre), habilidad:habilidades(nombre), nivel:niveles(nombre)"
     )
     .in("estado", ["solicitado", "autorizado"])
     .order("created_at", { ascending: true });
@@ -71,7 +71,9 @@ export default async function AdminPage() {
                 <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
                   <span className="font-medium text-zinc-900 dark:text-zinc-50">
                     {s.estudiante?.nombre ?? "Estudiante"} ·{" "}
-                    {NOMBRES_HABILIDAD[s.habilidad?.nombre ?? ""] ?? s.habilidad?.nombre}
+                    {s.nivel
+                      ? `Evaluación del nivel ${s.nivel.nombre}`
+                      : (NOMBRES_HABILIDAD[s.habilidad?.nombre ?? ""] ?? s.habilidad?.nombre)}
                   </span>
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
                     Solicitado {formatearFecha(s.created_at)}
@@ -162,7 +164,9 @@ export default async function AdminPage() {
                   <tr key={s.sesion_id} className="border-t border-zinc-200 dark:border-zinc-800">
                     <td className="px-3 py-2">{s.estudiante_nombre}</td>
                     <td className="px-3 py-2">
-                      {NOMBRES_HABILIDAD[s.habilidad_nombre ?? ""] ?? s.habilidad_nombre}
+                      {s.habilidad_nombre
+                        ? (NOMBRES_HABILIDAD[s.habilidad_nombre] ?? s.habilidad_nombre)
+                        : `Nivel ${s.nivel_nombre ?? ""}`}
                     </td>
                     <td className="px-3 py-2">{TIPOS_SESION[s.tipo ?? ""] ?? s.tipo}</td>
                     <td className="px-3 py-2">{formatearFecha(s.inicio)}</td>

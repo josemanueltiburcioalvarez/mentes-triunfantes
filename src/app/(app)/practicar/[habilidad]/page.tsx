@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import type { HabilidadBasica } from "@/lib/ejercicios/generador";
-import { descripcionDigito, NOMBRES_HABILIDAD_BASICA } from "@/lib/ejercicios/generador";
+import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
+import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
 import { solicitarExamen } from "./acciones";
 
-const HABILIDADES_VALIDAS = new Set<HabilidadBasica>(["suma", "resta", "tabla_multiplicacion"]);
 const DIGITOS = [1, 2, 3, 4, 5] as const;
 const EJERCICIOS = [1, 2, 3] as const;
 
@@ -15,7 +14,7 @@ export default async function PracticarPage({
 }) {
   const { habilidad } = await params;
 
-  if (!HABILIDADES_VALIDAS.has(habilidad as HabilidadBasica)) {
+  if (!esHabilidadPracticable(habilidad)) {
     return (
       <MensajeCentrado
         titulo="Habilidad no disponible"
@@ -23,7 +22,7 @@ export default async function PracticarPage({
       />
     );
   }
-  const nombreHabilidad = habilidad as HabilidadBasica;
+  const nombreHabilidad = habilidad as HabilidadPracticable;
 
   const supabase = await crearClienteServidor();
   const {
@@ -90,7 +89,7 @@ export default async function PracticarPage({
     <div className="mx-auto w-full max-w-2xl flex-1 px-6 py-8">
       <div className="mb-2 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          {NOMBRES_HABILIDAD_BASICA[nombreHabilidad]}
+          {NOMBRES_HABILIDAD[nombreHabilidad]}
         </h1>
         <Link href="/dashboard" className="text-sm text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400">
           Volver al panel
@@ -157,7 +156,7 @@ export default async function PracticarPage({
             }`}
           >
             <h2 className="mb-1 text-base font-semibold text-zinc-800 dark:text-zinc-200">
-              Examen final de {NOMBRES_HABILIDAD_BASICA[nombreHabilidad]}
+              Examen final de {NOMBRES_HABILIDAD[nombreHabilidad]}
             </h2>
             <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
               20 preguntas mezclando los 5 dígitos · {habilidadFila.nota_aprobacion}% para aprobar
