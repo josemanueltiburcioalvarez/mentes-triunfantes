@@ -170,7 +170,7 @@ export default function SetPracticaClient({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-8">
+    <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-8 sm:px-6">
       <div className="mb-6 flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
         <span>
           {tituloHabilidad} · Dígito {digito} · Ejercicio {numeroEjercicio}
@@ -181,7 +181,7 @@ export default function SetPracticaClient({
       </div>
       <p className="mb-4 text-center text-xs text-zinc-400 dark:text-zinc-500">{descripcionDigito}</p>
 
-      <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-4 text-center sm:p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <Pregunta
           key={numeroPregunta}
           ejercicio={ejercicio}
