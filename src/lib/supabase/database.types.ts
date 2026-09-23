@@ -50,6 +50,58 @@ export type Database = {
           },
         ]
       }
+      evaluaciones_habilidad: {
+        Row: {
+          aprobado: boolean
+          created_at: string
+          estudiante_id: string
+          habilidad_id: string
+          id: string
+          puntaje: number
+          sesion_id: string | null
+        }
+        Insert: {
+          aprobado: boolean
+          created_at?: string
+          estudiante_id: string
+          habilidad_id: string
+          id?: string
+          puntaje: number
+          sesion_id?: string | null
+        }
+        Update: {
+          aprobado?: boolean
+          created_at?: string
+          estudiante_id?: string
+          habilidad_id?: string
+          id?: string
+          puntaje?: number
+          sesion_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluaciones_habilidad_estudiante_id_fkey"
+            columns: ["estudiante_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluaciones_habilidad_habilidad_id_fkey"
+            columns: ["habilidad_id"]
+            isOneToOne: false
+            referencedRelation: "habilidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluaciones_habilidad_sesion_id_fkey"
+            columns: ["sesion_id"]
+            isOneToOne: false
+            referencedRelation: "sesiones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       evaluaciones_nivel: {
         Row: {
           aprobado: boolean
@@ -107,22 +159,22 @@ export type Database = {
           id: string
           nivel_id: string
           nombre: Database["public"]["Enums"]["nombre_habilidad"]
+          nota_aprobacion: number
           orden: number
-          umbral_desbloqueo: number
         }
         Insert: {
           id?: string
           nivel_id: string
           nombre: Database["public"]["Enums"]["nombre_habilidad"]
+          nota_aprobacion?: number
           orden: number
-          umbral_desbloqueo?: number
         }
         Update: {
           id?: string
           nivel_id?: string
           nombre?: Database["public"]["Enums"]["nombre_habilidad"]
+          nota_aprobacion?: number
           orden?: number
-          umbral_desbloqueo?: number
         }
         Relationships: [
           {
@@ -288,10 +340,60 @@ export type Database = {
           },
         ]
       }
+      progreso_ejercicio: {
+        Row: {
+          aprobado: boolean
+          desbloqueado: boolean
+          digito: number
+          estudiante_id: string
+          habilidad_id: string
+          intentos: number
+          mejor_puntaje: number
+          numero_ejercicio: number
+          ultima_practica: string | null
+        }
+        Insert: {
+          aprobado?: boolean
+          desbloqueado?: boolean
+          digito: number
+          estudiante_id: string
+          habilidad_id: string
+          intentos?: number
+          mejor_puntaje?: number
+          numero_ejercicio: number
+          ultima_practica?: string | null
+        }
+        Update: {
+          aprobado?: boolean
+          desbloqueado?: boolean
+          digito?: number
+          estudiante_id?: string
+          habilidad_id?: string
+          intentos?: number
+          mejor_puntaje?: number
+          numero_ejercicio?: number
+          ultima_practica?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progreso_ejercicio_estudiante_id_fkey"
+            columns: ["estudiante_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progreso_ejercicio_habilidad_id_fkey"
+            columns: ["habilidad_id"]
+            isOneToOne: false
+            referencedRelation: "habilidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       progreso_habilidad: {
         Row: {
           desbloqueada: boolean
-          dificultad_actual: number
           estudiante_id: string
           habilidad_id: string
           porcentaje_dominio: number
@@ -300,7 +402,6 @@ export type Database = {
         }
         Insert: {
           desbloqueada?: boolean
-          dificultad_actual?: number
           estudiante_id: string
           habilidad_id: string
           porcentaje_dominio?: number
@@ -309,7 +410,6 @@ export type Database = {
         }
         Update: {
           desbloqueada?: boolean
-          dificultad_actual?: number
           estudiante_id?: string
           habilidad_id?: string
           porcentaje_dominio?: number
@@ -336,31 +436,37 @@ export type Database = {
       sesiones: {
         Row: {
           correctos: number
+          digito: number | null
           estudiante_id: string
           fin: string | null
           habilidad_id: string
           id: string
           inicio: string
+          numero_ejercicio: number | null
           tipo: Database["public"]["Enums"]["tipo_sesion"]
           total_ejercicios: number
         }
         Insert: {
           correctos?: number
+          digito?: number | null
           estudiante_id: string
           fin?: string | null
           habilidad_id: string
           id?: string
           inicio?: string
+          numero_ejercicio?: number | null
           tipo?: Database["public"]["Enums"]["tipo_sesion"]
           total_ejercicios?: number
         }
         Update: {
           correctos?: number
+          digito?: number | null
           estudiante_id?: string
           fin?: string | null
           habilidad_id?: string
           id?: string
           inicio?: string
+          numero_ejercicio?: number | null
           tipo?: Database["public"]["Enums"]["tipo_sesion"]
           total_ejercicios?: number
         }
@@ -432,7 +538,6 @@ export type Database = {
         Row: {
           desbloqueada: boolean | null
           dias_activos: number | null
-          dificultad_actual: number | null
           estudiante_id: string | null
           estudiante_nombre: string | null
           grado_escolar: string | null
@@ -471,10 +576,6 @@ export type Database = {
       }
     }
     Functions: {
-      calcular_dominio_habilidad: {
-        Args: { p_estudiante_id: string; p_habilidad_id: string }
-        Returns: number
-      }
       es_profesor_de: { Args: { p_estudiante_id: string }; Returns: boolean }
       rol_actual: {
         Args: never
@@ -496,7 +597,7 @@ export type Database = {
         | "atajos"
         | "razonamiento"
       rol_usuario: "estudiante" | "profesor" | "admin"
-      tipo_sesion: "practica" | "evaluacion"
+      tipo_sesion: "practica" | "evaluacion" | "evaluacion_habilidad"
     }
     CompositeTypes: {
       [_ in never]: never

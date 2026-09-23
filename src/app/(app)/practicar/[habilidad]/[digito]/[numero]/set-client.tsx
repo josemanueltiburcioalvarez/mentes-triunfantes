@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
-import {
-  generarEjercicio,
-  type EjercicioGenerado,
-  type HabilidadBasica,
-} from "@/lib/ejercicios/generador";
+import { generarEjercicio, type EjercicioGenerado, type HabilidadBasica } from "@/lib/ejercicios/generador";
 
 const TOTAL_EJERCICIOS = 10;
 
@@ -16,33 +12,29 @@ interface Props {
   nombreHabilidad: HabilidadBasica;
   tituloHabilidad: string;
   estudianteId: string;
-  dificultadInicial: number;
+  digito: number;
+  numeroEjercicio: number;
+  descripcionDigito: string;
+  notaAprobacion: number;
 }
 
-function siguienteDificultad(dificultad: number, ultimosResultados: boolean[]): number {
-  const ultimos3 = ultimosResultados.slice(-3);
-  const ultimos2 = ultimosResultados.slice(-2);
-  if (ultimos3.length === 3 && ultimos3.every(Boolean)) return Math.min(10, dificultad + 1);
-  if (ultimos2.length === 2 && ultimos2.every((r) => !r)) return Math.max(1, dificultad - 1);
-  return dificultad;
-}
-
-export default function PracticaClient({
+export default function SetPracticaClient({
   habilidadId,
   nombreHabilidad,
   tituloHabilidad,
   estudianteId,
-  dificultadInicial,
+  digito,
+  numeroEjercicio,
+  descripcionDigito,
+  notaAprobacion,
 }: Props) {
   const supabase = crearClienteNavegador();
 
   const [sesionId, setSesionId] = useState<string | null>(null);
   const [errorSesion, setErrorSesion] = useState<string | null>(null);
 
-  const [dificultad, setDificultad] = useState(dificultadInicial);
-  const [historial, setHistorial] = useState<boolean[]>([]);
   const [ejercicio, setEjercicio] = useState<EjercicioGenerado | null>(null);
-  const [numeroEjercicio, setNumeroEjercicio] = useState(1);
+  const [numeroPregunta, setNumeroPregunta] = useState(1);
   const [inicioEjercicio, setInicioEjercicio] = useState<number>(0);
 
   const [respuesta, setRespuesta] = useState("");
@@ -51,15 +43,21 @@ export default function PracticaClient({
   >(null);
   const [enviando, setEnviando] = useState(false);
 
-  const [correctosSesion, setCorrectosSesion] = useState(0);
-  const [sesionTerminada, setSesionTerminada] = useState(false);
+  const [correctos, setCorrectos] = useState(0);
+  const [terminado, setTerminado] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
     async function iniciarSesion() {
       const { data, error } = await supabase
         .from("sesiones")
-        .insert({ estudiante_id: estudianteId, habilidad_id: habilidadId, tipo: "practica" })
+        .insert({
+          estudiante_id: estudianteId,
+          habilidad_id: habilidadId,
+          tipo: "practica",
+          digito,
+          numero_ejercicio: numeroEjercicio,
+        })
         .select("id")
         .single();
 
@@ -69,7 +67,7 @@ export default function PracticaClient({
         return;
       }
       setSesionId(data.id);
-      setEjercicio(generarEjercicio(nombreHabilidad, dificultadInicial));
+      setEjercicio(generarEjercicio(nombreHabilidad, digito));
       setInicioEjercicio(Date.now());
     }
     iniciarSesion();
@@ -92,7 +90,7 @@ export default function PracticaClient({
       sesion_id: sesionId,
       estudiante_id: estudianteId,
       habilidad_id: habilidadId,
-      dificultad,
+      dificultad: digito,
       enunciado: ejercicio.enunciado,
       respuesta_correcta: String(ejercicio.respuesta),
       respuesta_dada: respuesta,
@@ -106,23 +104,20 @@ export default function PracticaClient({
       return;
     }
 
-    const nuevoHistorial = [...historial, esCorrecto].slice(-3);
-    setHistorial(nuevoHistorial);
-    setDificultad(siguienteDificultad(dificultad, nuevoHistorial));
-    if (esCorrecto) setCorrectosSesion((c) => c + 1);
+    if (esCorrecto) setCorrectos((c) => c + 1);
     setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: ejercicio.respuesta });
   }
 
   async function siguiente() {
-    if (numeroEjercicio >= TOTAL_EJERCICIOS) {
+    if (numeroPregunta >= TOTAL_EJERCICIOS) {
       if (sesionId) {
         await supabase.from("sesiones").update({ fin: new Date().toISOString() }).eq("id", sesionId);
       }
-      setSesionTerminada(true);
+      setTerminado(true);
       return;
     }
-    setNumeroEjercicio((n) => n + 1);
-    setEjercicio(generarEjercicio(nombreHabilidad, dificultad));
+    setNumeroPregunta((n) => n + 1);
+    setEjercicio(generarEjercicio(nombreHabilidad, digito));
     setRespuesta("");
     setRetroalimentacion(null);
     setInicioEjercicio(Date.now());
@@ -132,25 +127,37 @@ export default function PracticaClient({
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="text-sm text-red-600">{errorSesion}</p>
-        <Link href="/dashboard" className="text-sm text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400">
-          Volver al panel
+        <Link
+          href={`/practicar/${nombreHabilidad}`}
+          className="text-sm text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
+        >
+          Volver
         </Link>
       </div>
     );
   }
 
-  if (sesionTerminada) {
+  if (terminado) {
+    const puntaje = Math.round((correctos / TOTAL_EJERCICIOS) * 100);
+    const aprobado = puntaje >= notaAprobacion;
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">¡Sesión completa!</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          {aprobado ? "¡Aprobado!" : "Casi..."}
+        </h1>
         <p className="text-lg text-zinc-600 dark:text-zinc-400">
-          {correctosSesion} de {TOTAL_EJERCICIOS} correctas
+          {correctos} de {TOTAL_EJERCICIOS} correctas ({puntaje}%)
+        </p>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          {aprobado
+            ? "Ya puedes seguir con el siguiente ejercicio."
+            : `Necesitas ${notaAprobacion}% para aprobar. Vuelve a intentarlo.`}
         </p>
         <Link
-          href="/dashboard"
+          href={`/practicar/${nombreHabilidad}`}
           className="mt-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
         >
-          Volver al panel
+          Volver al mapa de {tituloHabilidad}
         </Link>
       </div>
     );
@@ -167,11 +174,14 @@ export default function PracticaClient({
   return (
     <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-8">
       <div className="mb-6 flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
-        <span>{tituloHabilidad}</span>
         <span>
-          {numeroEjercicio} / {TOTAL_EJERCICIOS}
+          {tituloHabilidad} · Dígito {digito} · Ejercicio {numeroEjercicio}
+        </span>
+        <span>
+          {numeroPregunta} / {TOTAL_EJERCICIOS}
         </span>
       </div>
+      <p className="mb-4 text-center text-xs text-zinc-400 dark:text-zinc-500">{descripcionDigito}</p>
 
       <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <p className="mb-6 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -211,7 +221,7 @@ export default function PracticaClient({
               onClick={siguiente}
               className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             >
-              {numeroEjercicio >= TOTAL_EJERCICIOS ? "Ver resumen" : "Siguiente"}
+              {numeroPregunta >= TOTAL_EJERCICIOS ? "Ver resultado" : "Siguiente"}
             </button>
           </div>
         )}
