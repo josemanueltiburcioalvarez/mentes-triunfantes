@@ -54,8 +54,17 @@ export default function VerticalDivision({
     };
   });
 
+  const columnasDe = (desde: number, hasta: number) =>
+    Array.from({ length: hasta - desde + 1 }, (_, k) => desde + k);
+
+  // Todos los cuadros son obligatorios: cociente, productos y restos de cada paso.
   const cajasCociente = pasos.map((_, j) => valor(`q${j}`));
-  const valido = cajasCociente.every((d) => d !== "");
+  const pasosCompletos = ventanas.every(
+    (v, s) =>
+      columnasDe(v.productoDesde, v.productoHasta).every((c) => valor(`p${s}-${c}`) !== "") &&
+      columnasDe(v.restoDesde, v.restoHasta).every((c) => valor(`r${s}-${c}`) !== "")
+  );
+  const valido = cajasCociente.every((d) => d !== "") && pasosCompletos;
 
   function escribir(clave: string, siguiente: string | null, texto: string) {
     const digito = soloDigitos(texto);
@@ -159,8 +168,8 @@ export default function VerticalDivision({
           {ventanas.map((v, s) => {
             const filaProducto = 2 + 2 * s;
             const filaResto = 3 + 2 * s;
-            const productoCols = Array.from({ length: v.productoHasta - v.productoDesde + 1 }, (_, k) => v.productoDesde + k);
-            const restoCols = Array.from({ length: v.restoHasta - v.restoDesde + 1 }, (_, k) => v.restoDesde + k);
+            const productoCols = columnasDe(v.productoDesde, v.productoHasta);
+            const restoCols = columnasDe(v.restoDesde, v.restoHasta);
             return (
               <div key={`paso${s}`} className="contents">
                 <div
@@ -210,7 +219,10 @@ export default function VerticalDivision({
 
       <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-500">
         Escribe el cociente debajo del divisor. En cada paso anota el producto que restas y, debajo, lo que
-        queda con la cifra que bajas (↓), alineado con su columna.
+        queda con la cifra que bajas (↓), alineado con su columna.{" "}
+        <span className="font-medium text-zinc-500 dark:text-zinc-400">
+          Todos los cuadros son obligatorios para poder responder.
+        </span>
       </p>
 
       {!bloqueado && (
