@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadBasica } from "@/lib/ejercicios/generador";
 
@@ -41,6 +42,9 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) return null;
+
+  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", user.id).single();
+  if (perfil?.rol === "admin") redirect("/admin");
 
   const { data: filas } = await supabase
     .from("vista_resumen_estudiante")

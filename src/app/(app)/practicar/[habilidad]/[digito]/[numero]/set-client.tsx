@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import { generarEjercicio, type EjercicioGenerado, type HabilidadBasica } from "@/lib/ejercicios/generador";
+import Pregunta, { type RespuestaPregunta } from "@/components/pregunta";
 
 const TOTAL_EJERCICIOS = 10;
 
@@ -37,7 +38,6 @@ export default function SetPracticaClient({
   const [numeroPregunta, setNumeroPregunta] = useState(1);
   const [inicioEjercicio, setInicioEjercicio] = useState<number>(0);
 
-  const [respuesta, setRespuesta] = useState("");
   const [retroalimentacion, setRetroalimentacion] = useState<
     { correcto: boolean; respuestaCorrecta: number } | null
   >(null);
@@ -77,12 +77,10 @@ export default function SetPracticaClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function manejarEnvio(e: React.FormEvent) {
-    e.preventDefault();
+  async function manejarRespuesta(r: RespuestaPregunta) {
     if (!ejercicio || !sesionId || retroalimentacion) return;
 
-    const numerico = Number(respuesta.replace(",", "."));
-    const esCorrecto = numerico === ejercicio.respuesta;
+    const esCorrecto = r.valor === ejercicio.respuesta;
     const segundos = Math.max(0, (Date.now() - inicioEjercicio) / 1000);
 
     setEnviando(true);
@@ -93,9 +91,10 @@ export default function SetPracticaClient({
       dificultad: digito,
       enunciado: ejercicio.enunciado,
       respuesta_correcta: String(ejercicio.respuesta),
-      respuesta_dada: respuesta,
+      respuesta_dada: r.respuestaDada,
       es_correcto: esCorrecto,
       segundos,
+      pasos: r.pasos,
     });
     setEnviando(false);
 
@@ -118,7 +117,6 @@ export default function SetPracticaClient({
     }
     setNumeroPregunta((n) => n + 1);
     setEjercicio(generarEjercicio(nombreHabilidad, digito));
-    setRespuesta("");
     setRetroalimentacion(null);
     setInicioEjercicio(Date.now());
   }
@@ -183,31 +181,17 @@ export default function SetPracticaClient({
       </div>
       <p className="mb-4 text-center text-xs text-zinc-400 dark:text-zinc-500">{descripcionDigito}</p>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="mb-6 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          {ejercicio.enunciado}
-        </p>
+      <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <Pregunta
+          key={numeroPregunta}
+          ejercicio={ejercicio}
+          bloqueado={retroalimentacion !== null}
+          enviando={enviando}
+          onResponder={manejarRespuesta}
+        />
 
-        {!retroalimentacion ? (
-          <form onSubmit={manejarEnvio} className="flex flex-col items-center gap-4">
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
-              value={respuesta}
-              onChange={(e) => setRespuesta(e.target.value)}
-              className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-center text-xl outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-            />
-            <button
-              type="submit"
-              disabled={enviando || respuesta === ""}
-              className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              Responder
-            </button>
-          </form>
-        ) : (
-          <div className="flex flex-col items-center gap-4">
+        {retroalimentacion && (
+          <div className="mt-6 flex flex-col items-center gap-4">
             <p
               className={`text-lg font-medium ${
                 retroalimentacion.correcto ? "text-emerald-600" : "text-red-600"

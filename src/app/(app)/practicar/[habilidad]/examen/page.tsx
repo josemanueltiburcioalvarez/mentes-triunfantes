@@ -52,6 +52,24 @@ export default async function ExamenPage({
     );
   }
 
+  const { data: autorizacion } = await supabase
+    .from("autorizaciones_examen")
+    .select("meet_url")
+    .eq("estudiante_id", user.id)
+    .eq("habilidad_id", habilidadFila.id)
+    .eq("estado", "autorizado")
+    .maybeSingle();
+
+  if (!autorizacion?.meet_url) {
+    return (
+      <MensajeCentrado
+        titulo="Examen sin autorización"
+        mensaje="El examen final se rinde en vivo con tu profesor. Solicítalo desde el mapa y espera su autorización."
+        habilidad={habilidad}
+      />
+    );
+  }
+
   return (
     <ExamenClient
       habilidadId={habilidadFila.id}
@@ -59,6 +77,7 @@ export default async function ExamenPage({
       tituloHabilidad={NOMBRES_HABILIDAD_BASICA[nombreHabilidad]}
       estudianteId={user.id}
       notaAprobacion={habilidadFila.nota_aprobacion}
+      meetUrl={autorizacion.meet_url}
     />
   );
 }

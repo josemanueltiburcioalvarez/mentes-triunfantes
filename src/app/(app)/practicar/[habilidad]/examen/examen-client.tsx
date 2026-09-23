@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import {
@@ -8,6 +8,7 @@ import {
   type EjercicioConDigito,
   type HabilidadBasica,
 } from "@/lib/ejercicios/generador";
+import Pregunta, { type RespuestaPregunta } from "@/components/pregunta";
 
 interface Props {
   habilidadId: string;
@@ -15,7 +16,11 @@ interface Props {
   tituloHabilidad: string;
   estudianteId: string;
   notaAprobacion: number;
+  meetUrl: string;
 }
+
+const BOTON =
+  "rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300";
 
 export default function ExamenClient({
   habilidadId,
@@ -23,16 +28,17 @@ export default function ExamenClient({
   tituloHabilidad,
   estudianteId,
   notaAprobacion,
+  meetUrl,
 }: Props) {
   const supabase = crearClienteNavegador();
 
   const [preguntas] = useState<EjercicioConDigito[]>(() => generarExamenHabilidad(nombreHabilidad));
   const [sesionId, setSesionId] = useState<string | null>(null);
+  const [iniciando, setIniciando] = useState(false);
   const [errorSesion, setErrorSesion] = useState<string | null>(null);
 
   const [indice, setIndice] = useState(0);
   const [inicioPregunta, setInicioPregunta] = useState<number>(0);
-  const [respuesta, setRespuesta] = useState("");
   const [retroalimentacion, setRetroalimentacion] = useState<
     { correcto: boolean; respuestaCorrecta: number } | null
   >(null);
@@ -41,42 +47,36 @@ export default function ExamenClient({
   const [correctos, setCorrectos] = useState(0);
   const [terminado, setTerminado] = useState(false);
 
-  useEffect(() => {
-    let cancelado = false;
-    async function iniciarSesion() {
-      const { data, error } = await supabase
-        .from("sesiones")
-        .insert({
-          estudiante_id: estudianteId,
-          habilidad_id: habilidadId,
-          tipo: "evaluacion_habilidad",
-        })
-        .select("id")
-        .single();
-
-      if (cancelado) return;
-      if (error || !data) {
-        setErrorSesion("No se pudo iniciar el examen. Intenta de nuevo.");
-        return;
-      }
-      setSesionId(data.id);
-      setInicioPregunta(Date.now());
-    }
-    iniciarSesion();
-    return () => {
-      cancelado = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const preguntaActual = preguntas[indice];
 
-  async function manejarEnvio(e: React.FormEvent) {
-    e.preventDefault();
+  async function comenzar() {
+    setIniciando(true);
+    const { data, error } = await supabase
+      .from("sesiones")
+      .insert({
+        estudiante_id: estudianteId,
+        habilidad_id: habilidadId,
+        tipo: "evaluacion_habilidad",
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      setErrorSesion(
+        "No se pudo iniciar el examen. Puede que tu autorización ya se haya usado; pide una nueva a tu profesor."
+      );
+      setIniciando(false);
+      return;
+    }
+    setSesionId(data.id);
+    setInicioPregunta(Date.now());
+    setIniciando(false);
+  }
+
+  async function manejarRespuesta(r: RespuestaPregunta) {
     if (!sesionId || retroalimentacion) return;
 
-    const numerico = Number(respuesta.replace(",", "."));
-    const esCorrecto = numerico === preguntaActual.respuesta;
+    const esCorrecto = r.valor === preguntaActual.respuesta;
     const segundos = Math.max(0, (Date.now() - inicioPregunta) / 1000);
 
     setEnviando(true);
@@ -87,14 +87,15 @@ export default function ExamenClient({
       dificultad: preguntaActual.digito,
       enunciado: preguntaActual.enunciado,
       respuesta_correcta: String(preguntaActual.respuesta),
-      respuesta_dada: respuesta,
+      respuesta_dada: r.respuestaDada,
       es_correcto: esCorrecto,
       segundos,
+      pasos: r.pasos,
     });
     setEnviando(false);
 
     if (error) {
-      setErrorSesion("No se pudo guardar tu respuesta. Intenta de nuevo.");
+      setErrorSesion("No se pudo guardar tu respuesta. Avisa a tu profesor.");
       return;
     }
 
@@ -111,7 +112,6 @@ export default function ExamenClient({
       return;
     }
     setIndice((i) => i + 1);
-    setRespuesta("");
     setRetroalimentacion(null);
     setInicioPregunta(Date.now());
   }
@@ -119,7 +119,7 @@ export default function ExamenClient({
   if (errorSesion) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
-        <p className="text-sm text-red-600">{errorSesion}</p>
+        <p className="max-w-sm text-sm text-red-600">{errorSesion}</p>
         <Link
           href={`/practicar/${nombreHabilidad}`}
           className="text-sm text-zinc-600 underline-offset-2 hover:underline dark:text-zinc-400"
@@ -144,13 +144,10 @@ export default function ExamenClient({
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {aprobado
             ? "Se desbloqueó la siguiente habilidad."
-            : `Necesitas ${notaAprobacion}% para aprobar. Puedes volver a intentarlo cuando quieras.`}
+            : `Necesitas ${notaAprobacion}% para aprobar. Solicita otro examen a tu profesor cuando quieras volver a intentarlo.`}
         </p>
         <div className="mt-2 flex gap-3">
-          <Link
-            href="/dashboard"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-          >
+          <Link href="/dashboard" className={BOTON}>
             Ir al panel
           </Link>
           <Link
@@ -166,8 +163,28 @@ export default function ExamenClient({
 
   if (!sesionId) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Cargando...</p>
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
+          Examen final de {tituloHabilidad}
+        </h1>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          {preguntas.length} preguntas · {notaAprobacion}% para aprobar. Resuélvelas a mano, en papel, con la
+          cámara encendida en la reunión de Meet.
+        </p>
+        <a
+          href={meetUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        >
+          Abrir reunión de Meet
+        </a>
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+          Al comenzar se usa tu autorización: no se puede reiniciar sin pedir otra.
+        </p>
+        <button onClick={comenzar} disabled={iniciando} className={BOTON}>
+          {iniciando ? "Iniciando..." : "Comenzar examen"}
+        </button>
       </div>
     );
   }
@@ -181,31 +198,17 @@ export default function ExamenClient({
         </span>
       </div>
 
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-        <p className="mb-6 text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-          {preguntaActual.enunciado}
-        </p>
+      <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-8 text-center shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <Pregunta
+          key={indice}
+          ejercicio={preguntaActual}
+          bloqueado={retroalimentacion !== null}
+          enviando={enviando}
+          onResponder={manejarRespuesta}
+        />
 
-        {!retroalimentacion ? (
-          <form onSubmit={manejarEnvio} className="flex flex-col items-center gap-4">
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
-              value={respuesta}
-              onChange={(e) => setRespuesta(e.target.value)}
-              className="w-32 rounded-lg border border-zinc-300 px-3 py-2 text-center text-xl outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
-            />
-            <button
-              type="submit"
-              disabled={enviando || respuesta === ""}
-              className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              Responder
-            </button>
-          </form>
-        ) : (
-          <div className="flex flex-col items-center gap-4">
+        {retroalimentacion && (
+          <div className="mt-6 flex flex-col items-center gap-4">
             <p
               className={`text-lg font-medium ${
                 retroalimentacion.correcto ? "text-emerald-600" : "text-red-600"
@@ -215,10 +218,7 @@ export default function ExamenClient({
                 ? "¡Correcto!"
                 : `Incorrecto. Era ${retroalimentacion.respuestaCorrecta}`}
             </p>
-            <button
-              onClick={siguiente}
-              className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
+            <button onClick={siguiente} className={BOTON}>
               {indice >= preguntas.length - 1 ? "Ver resultado" : "Siguiente"}
             </button>
           </div>

@@ -12,6 +12,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      autorizaciones_examen: {
+        Row: {
+          autorizado_at: string | null
+          autorizado_por: string | null
+          created_at: string
+          estado: Database["public"]["Enums"]["estado_autorizacion_examen"]
+          estudiante_id: string
+          habilidad_id: string
+          id: string
+          meet_url: string | null
+          usado_at: string | null
+        }
+        Insert: {
+          autorizado_at?: string | null
+          autorizado_por?: string | null
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_autorizacion_examen"]
+          estudiante_id: string
+          habilidad_id: string
+          id?: string
+          meet_url?: string | null
+          usado_at?: string | null
+        }
+        Update: {
+          autorizado_at?: string | null
+          autorizado_por?: string | null
+          created_at?: string
+          estado?: Database["public"]["Enums"]["estado_autorizacion_examen"]
+          estudiante_id?: string
+          habilidad_id?: string
+          id?: string
+          meet_url?: string | null
+          usado_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "autorizaciones_examen_autorizado_por_fkey"
+            columns: ["autorizado_por"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "autorizaciones_examen_estudiante_id_fkey"
+            columns: ["estudiante_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "autorizaciones_examen_habilidad_id_fkey"
+            columns: ["habilidad_id"]
+            isOneToOne: false
+            referencedRelation: "habilidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ejercicios: {
         Row: {
           created_at: string
@@ -195,6 +253,7 @@ export type Database = {
           estudiante_id: string
           habilidad_id: string
           id: string
+          pasos: Json | null
           respuesta_correcta: string
           respuesta_dada: string | null
           segundos: number
@@ -208,6 +267,7 @@ export type Database = {
           estudiante_id: string
           habilidad_id: string
           id?: string
+          pasos?: Json | null
           respuesta_correcta: string
           respuesta_dada?: string | null
           segundos: number
@@ -221,6 +281,7 @@ export type Database = {
           estudiante_id?: string
           habilidad_id?: string
           id?: string
+          pasos?: Json | null
           respuesta_correcta?: string
           respuesta_dada?: string | null
           segundos?: number
@@ -561,6 +622,25 @@ export type Database = {
         }
         Relationships: []
       }
+      vista_sesiones_sospechosas: {
+        Row: {
+          correctos: number | null
+          estudiante_id: string | null
+          estudiante_nombre: string | null
+          fin: string | null
+          habilidad_nombre: Database["public"]["Enums"]["nombre_habilidad"] | null
+          inicio: string | null
+          requerian_marcas: number | null
+          respuestas_rapidas: number | null
+          segundos_promedio: number | null
+          sesion_id: string | null
+          sin_marcas: number | null
+          sospechosa: boolean | null
+          tipo: Database["public"]["Enums"]["tipo_sesion"] | null
+          total_intentos: number | null
+        }
+        Relationships: []
+      }
       vista_retencion: {
         Row: {
           dias_sin_practicar: number | null
@@ -583,6 +663,7 @@ export type Database = {
       }
     }
     Enums: {
+      estado_autorizacion_examen: "solicitado" | "autorizado" | "usado" | "cancelado"
       estado_suscripcion: "pendiente" | "activa" | "vencida" | "cancelada"
       estado_usuario: "activo" | "inactivo" | "suspendido"
       nombre_habilidad:

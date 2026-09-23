@@ -3,6 +3,8 @@ export type HabilidadBasica = "suma" | "resta" | "tabla_multiplicacion";
 export interface EjercicioGenerado {
   enunciado: string;
   respuesta: number;
+  operacion?: "suma" | "resta";
+  operandos?: [number, number];
 }
 
 export interface EjercicioConDigito extends EjercicioGenerado {
@@ -39,14 +41,14 @@ function generarSuma(digito: number): EjercicioGenerado {
   const { min, max } = RANGOS_SUMA_RESTA[digito];
   const a = entreAleatorio(min, max);
   const b = entreAleatorio(min, max);
-  return { enunciado: `${a} + ${b} =`, respuesta: a + b };
+  return { enunciado: `${a} + ${b} =`, respuesta: a + b, operacion: "suma", operandos: [a, b] };
 }
 
 function generarResta(digito: number): EjercicioGenerado {
   const { min, max } = RANGOS_SUMA_RESTA[digito];
   const a = entreAleatorio(min, max);
   const b = entreAleatorio(min, a); // aseguramos resultado no negativo
-  return { enunciado: `${a} - ${b} =`, respuesta: a - b };
+  return { enunciado: `${a} - ${b} =`, respuesta: a - b, operacion: "resta", operandos: [a, b] };
 }
 
 function generarTablaMultiplicacion(digito: number): EjercicioGenerado {
