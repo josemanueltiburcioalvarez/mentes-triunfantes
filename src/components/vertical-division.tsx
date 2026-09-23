@@ -36,12 +36,14 @@ export default function VerticalDivision({
   const colDerecha = (j: number) => n + 3 + j;
   const plantilla = `1.5rem repeat(${n}, var(--c)) 0.5rem repeat(${columnasDerecha}, var(--c))`;
 
+  // Una casilla por cifra del producto y del resto de cada paso, alineadas a la derecha
+  // con la columna donde termina el paso (el resto llega hasta la cifra que se baja).
   const ventanas = pasos.map((paso) => {
     const i = paso.columna;
-    const hayBajada = i + 1 < n;
-    const anchoProducto = Math.min(cifrasDivisor + 1, i + 1);
+    const hayBajada = paso.restoConBajada !== null;
+    const anchoProducto = String(paso.producto).length;
     const finResto = hayBajada ? i + 1 : i;
-    const anchoResto = Math.min(hayBajada ? cifrasDivisor + 1 : cifrasDivisor, finResto + 1);
+    const anchoResto = String(paso.restoConBajada ?? paso.resto).length;
     return {
       i,
       hayBajada,
@@ -53,8 +55,7 @@ export default function VerticalDivision({
   });
 
   const cajasCociente = pasos.map((_, j) => valor(`q${j}`));
-  const primero = cajasCociente.findIndex((d) => d !== "");
-  const valido = primero >= 0 && cajasCociente.slice(primero).every((d) => d !== "");
+  const valido = cajasCociente.every((d) => d !== "");
 
   function escribir(clave: string, siguiente: string | null, texto: string) {
     const digito = soloDigitos(texto);
@@ -94,23 +95,17 @@ export default function VerticalDivision({
     e.preventDefault();
     if (bloqueado || !valido) return;
 
-    const digitos = cajasCociente.slice(primero).join("");
+    const digitos = cajasCociente.join("");
     const productos = ventanas.map((v, s) => textoFila(`p${s}`, v.productoDesde, v.productoHasta));
     const restos = ventanas.map((v, s) => textoFila(`r${s}`, v.restoDesde, v.restoHasta));
 
     // el resto de cada paso se escribe junto con la cifra que se baja (salvo el ultimo)
-    const restosEsperados = pasos.map((paso, s) =>
-      ventanas[s].hayBajada ? paso.resto * 10 + Number(digitoEn(dividendo, n - 1 - (ventanas[s].i + 1))) : paso.resto
-    );
+    const restosEsperados = pasos.map((paso) => paso.restoConBajada ?? paso.resto);
     const productosEsperados = pasos.map((paso) => paso.producto);
 
-    const correcta = pasos.every((paso, s) => {
-      const productoOk = numero(productos[s]) === paso.producto;
-      const restoOk =
-        numero(restos[s]) === restosEsperados[s] ||
-        (paso.cocienteDigito === 0 && (numero(restos[s]) === 0 || numero(restos[s]) === paso.resto));
-      return productoOk && restoOk;
-    });
+    const correcta = pasos.every(
+      (_, s) => numero(productos[s]) === productosEsperados[s] && numero(restos[s]) === restosEsperados[s]
+    );
 
     onResponder({
       respuestaDada: digitos,

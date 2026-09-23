@@ -59,23 +59,28 @@ export interface PasoDivision {
   cocienteDigito: number;
   producto: number;
   resto: number;
+  restoConBajada: number | null; // resto con la cifra siguiente bajada; null en el ultimo paso
 }
 
-// Division larga: un paso por cada cifra del dividendo desde que el numero parcial puede
-// alcanzar al divisor (inicio = cifras del divisor - 1).
-export function pasosDivision(dividendo: number, divisor: number): { inicio: number; pasos: PasoDivision[] } {
+// Division larga como en el cuaderno: se toman cifras del dividendo hasta que el numero parcial
+// alcanza al divisor; desde ahi hay un paso por cada cifra (cada paso da una cifra del cociente).
+export function pasosDivision(dividendo: number, divisor: number): { pasos: PasoDivision[] } {
   const cifras = String(dividendo).split("").map(Number);
-  const inicio = String(divisor).length - 1;
   const pasos: PasoDivision[] = [];
   let actual = 0;
+  let empezo = false;
   for (let i = 0; i < cifras.length; i++) {
     actual = actual * 10 + cifras[i];
-    if (i < inicio) continue;
+    if (!empezo) {
+      if (actual < divisor) continue;
+      empezo = true;
+    }
     const cocienteDigito = Math.floor(actual / divisor);
     const producto = cocienteDigito * divisor;
     const resto = actual - producto;
-    pasos.push({ columna: i, cocienteDigito, producto, resto });
+    const restoConBajada = i + 1 < cifras.length ? resto * 10 + cifras[i + 1] : null;
+    pasos.push({ columna: i, cocienteDigito, producto, resto, restoConBajada });
     actual = resto;
   }
-  return { inicio, pasos };
+  return { pasos };
 }
