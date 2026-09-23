@@ -2,6 +2,7 @@ import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
 import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
+import { guiasDe } from "@/lib/guias/catalogo";
 import { solicitarExamen } from "./acciones";
 
 const DIGITOS = [1, 2, 3, 4, 5] as const;
@@ -98,6 +99,28 @@ export default async function PracticarPage({
       <p className="mb-8 text-sm text-zinc-500 dark:text-zinc-400">
         {totalAprobados} de 15 ejercicios aprobados · {Math.round(progresoHabilidad.porcentaje_dominio)}% de avance
       </p>
+
+      <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/40">
+        <h2 className="mb-1 text-base font-semibold text-zinc-900 dark:text-zinc-50">
+          Antes de empezar: mira cómo se hace
+        </h2>
+        <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-300">
+          {guiasDe(nombreHabilidad).length > 1
+            ? "Tienes 2 guías paso a paso con ejemplos. Míralas antes de practicar y vuelve a ellas cuando quieras."
+            : "Mira los trucos antes de practicar y vuelve a ellos cuando quieras."}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {guiasDe(nombreHabilidad).map((g) => (
+            <Link
+              key={g.numero}
+              href={`/guia/${nombreHabilidad}/${g.numero}`}
+              className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Guía {g.numero}: {g.titulo}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       <div className="flex flex-col gap-6">
         {DIGITOS.map((digito) => (

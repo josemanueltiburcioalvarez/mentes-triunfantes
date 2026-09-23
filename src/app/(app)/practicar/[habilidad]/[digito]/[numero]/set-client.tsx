@@ -179,7 +179,16 @@ export default function SetPracticaClient({
           {numeroPregunta} / {TOTAL_EJERCICIOS}
         </span>
       </div>
-      <p className="mb-4 text-center text-xs text-zinc-400 dark:text-zinc-500">{descripcionDigito}</p>
+      <p className="mb-4 text-center text-xs text-zinc-400 dark:text-zinc-500">
+        {descripcionDigito} ·{" "}
+        <Link
+          href={`/guia/${nombreHabilidad}/1`}
+          target="_blank"
+          className="text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
+        >
+          ¿Necesitas ayuda? Ver guía
+        </Link>
+      </p>
 
       <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-4 text-center sm:p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <Pregunta

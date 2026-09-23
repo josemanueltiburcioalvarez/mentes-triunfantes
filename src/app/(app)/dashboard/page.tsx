@@ -152,12 +152,20 @@ export default async function DashboardPage() {
                         </div>
 
                         {desbloqueada && tienePractica ? (
-                          <Link
-                            href={`/practicar/${nombreHabilidad}`}
-                            className="inline-block rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                          >
-                            Practicar
-                          </Link>
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href={`/practicar/${nombreHabilidad}`}
+                              className="inline-block rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                            >
+                              Practicar
+                            </Link>
+                            <Link
+                              href={`/guia/${nombreHabilidad}/1`}
+                              className="text-xs text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
+                            >
+                              Ver guía
+                            </Link>
+                          </div>
                         ) : desbloqueada ? (
                           <span className="text-xs text-zinc-400">Próximamente</span>
                         ) : (

@@ -1,0 +1,136 @@
+import type { HabilidadPracticable } from "../ejercicios/generador";
+import { guiaMultiplicacion1, guiaMultiplicacion2, guiaResta, guiaSuma } from "./columnas";
+import { guiaDivision } from "./division";
+import type { Guia } from "./tipos";
+
+const GUIA_TABLA: Guia = {
+  tipo: "consejos",
+  numero: 1,
+  titulo: "Trucos para aprender las tablas",
+  resumen: "No hace falta memorizar todo de golpe: con estos trucos te sabes casi todas las tablas.",
+  secciones: [
+    {
+      titulo: "Multiplicar es sumar varias veces",
+      texto: "4 × 3 quiere decir: el 3 repetido 4 veces. Si te olvidas un resultado, puedes sumar para encontrarlo.",
+      ejemplo: "4 × 3 = 3 + 3 + 3 + 3 = 12",
+    },
+    {
+      titulo: "El orden no importa",
+      texto: "Cambiar el orden no cambia el resultado. Aprendes una y ya te sabes la otra: la tabla se reduce casi a la mitad.",
+      ejemplo: "3 × 7 = 7 × 3 = 21",
+    },
+    {
+      titulo: "La tabla del 2: el doble",
+      texto: "Multiplicar por 2 es sumar el número consigo mismo.",
+      ejemplo: "2 × 7 = 7 + 7 = 14",
+    },
+    {
+      titulo: "La tabla del 10: agrega un cero",
+      texto: "Al multiplicar por 10, el número se queda igual y le pones un 0 al final.",
+      ejemplo: "10 × 6 = 60",
+    },
+    {
+      titulo: "La tabla del 5: la mitad de la del 10",
+      texto: "Calcula la del 10 y saca la mitad. Los resultados de la tabla del 5 siempre terminan en 0 o en 5.",
+      ejemplo: "5 × 6 = mitad de 60 = 30",
+    },
+    {
+      titulo: "La tabla del 4: el doble del doble",
+      texto: "Duplica el número dos veces.",
+      ejemplo: "4 × 7 → el doble de 7 es 14 → el doble de 14 es 28",
+    },
+    {
+      titulo: "La tabla del 9 con los dedos",
+      texto:
+        "Abre tus 10 dedos y baja el dedo que quieres multiplicar por 9. Los dedos de la izquierda son las decenas y los de " +
+        "la derecha son las unidades. Además, las cifras del resultado siempre suman 9.",
+      ejemplo: "9 × 4: bajo el 4.º dedo → quedan 3 a la izquierda y 6 a la derecha → 36 (3 + 6 = 9)",
+    },
+    {
+      titulo: "Tablas del 6, 7 y 8: apóyate en la del 5",
+      texto: "Si ya sabes la tabla del 5, súmale una vez más el número para pasar a la del 6.",
+      ejemplo: "6 × 7 = (5 × 7) + 7 = 35 + 7 = 42",
+    },
+    {
+      titulo: "Tablas del 11 y del 12",
+      texto:
+        "Del 11 (hasta el 9) solo repites la cifra. Del 12, multiplica por 10 y suma dos veces el número.",
+      ejemplo: "11 × 4 = 44   ·   12 × 6 = 60 + 12 = 72",
+    },
+  ],
+};
+
+export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
+  switch (habilidad) {
+    case "suma":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Sumar en columnas",
+          resumen: "Cómo sumar dos números y qué hacer cuando una columna pasa de 9 (la llevada).",
+          pasos: guiaSuma(47, 38),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Sumas largas con varias llevadas",
+          resumen: "El mismo método con números más grandes, con llevadas seguidas en varias columnas.",
+          pasos: guiaSuma(3458, 2976),
+        },
+      ];
+    case "resta":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Restar pidiendo prestado",
+          resumen: "Qué hacer cuando la cifra de arriba es menor que la de abajo: cambiar 1 decena por 10 unidades.",
+          pasos: guiaResta(52, 27),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Restar cuando hay ceros",
+          resumen: "Cuando la columna de la que quieres pedir prestado es 0, el préstamo viaja más lejos.",
+          pasos: guiaResta(403, 168),
+        },
+      ];
+    case "tabla_multiplicacion":
+      return [GUIA_TABLA];
+    case "multiplicacion":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Multiplicar por una cifra",
+          resumen: "Multiplicar cada cifra de derecha a izquierda y manejar las llevadas.",
+          pasos: guiaMultiplicacion1(47, 6),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Multiplicar por dos cifras",
+          resumen: "Dos productos parciales (unidades y decenas), el corrimiento y la suma final.",
+          pasos: guiaMultiplicacion2(47, 23),
+        },
+      ];
+    case "division":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Dividir por una cifra",
+          resumen: "Los 4 pasos de la división: dividir, multiplicar, restar y bajar.",
+          pasos: guiaDivision(156, 3),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Dividir por dos cifras",
+          resumen: "Cómo saber cuántas veces cabe un divisor de dos cifras sin adivinar.",
+          pasos: guiaDivision(756, 21),
+        },
+      ];
+  }
+}
