@@ -1,17 +1,18 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { digitoEn, marcasMultiplicacion, parcialesMultiplicacion } from "@/lib/ejercicios/vertical";
 import {
   BOTON_RESPONDER,
   CAJA_DIGITO,
-  CAJA_LARGA,
   CAJA_MARCA,
   CELDA_DIGITO,
   normalizarNumero,
   soloDigitos,
   type PropsComunes,
 } from "./tipos-pregunta";
+
+type Refs = MutableRefObject<(HTMLInputElement | null)[]>;
 
 export default function VerticalMultiplicacion({
   a,
@@ -23,27 +24,59 @@ export default function VerticalMultiplicacion({
   const cifrasA = String(a).length;
   const cifrasB = String(b).length;
   const n = cifrasA + cifrasB; // columnas del resultado
+  const parcialesEsperados = parcialesMultiplicacion(a, b).map(String);
+
+  // Una casilla por cifra: k = 0 es la de la derecha. El segundo producto parcial va
+  // corrido una columna a la izquierda (vale decenas).
   const [resultado, setResultado] = useState<string[]>(() => Array(n).fill(""));
   const [marcas, setMarcas] = useState<string[]>(() => Array(cifrasA - 1).fill(""));
-  const [parcial1, setParcial1] = useState("");
-  const [parcial2, setParcial2] = useState("");
-  const refsResultado = useRef<(HTMLInputElement | null)[]>([]);
+  const [parcial1, setParcial1] = useState<string[]>(() => Array(parcialesEsperados[0].length).fill(""));
+  const [parcial2, setParcial2] = useState<string[]>(() => Array((parcialesEsperados[1] ?? "").length).fill(""));
+  const refsResultado: Refs = useRef([]);
+  const refsParcial1: Refs = useRef([]);
+  const refsParcial2: Refs = useRef([]);
 
   const columnas = Array.from({ length: n }, (_, i) => n - 1 - i); // izquierda -> derecha
   const plantilla = `2rem repeat(${n}, 2.75rem)`;
-  // posicion de grilla (1 = columna del operador) de la columna c contada desde la derecha
-  const posicion = (c: number) => n - c + 1;
-  const abarca = (desde: number, hasta: number) => ({
-    gridColumn: `${posicion(hasta)} / ${posicion(desde) + 1}`,
-  });
 
   const altoLleno = resultado.reduce((max, d, c) => (d !== "" ? c : max), -1);
   const valido = altoLleno >= 0 && resultado.slice(0, altoLleno + 1).every((d) => d !== "");
 
-  function cambiarResultado(c: number, valor: string) {
-    const digito = soloDigitos(valor);
-    setResultado((prev) => prev.map((d, i) => (i === c ? digito : d)));
-    if (digito && c + 1 < n) refsResultado.current[c + 1]?.focus();
+  function cajasDe(
+    etiqueta: string,
+    valores: string[],
+    setValores: Dispatch<SetStateAction<string[]>>,
+    refs: Refs,
+    desplazamiento: number,
+    autoFoco: boolean
+  ) {
+    return columnas.map((c) => {
+      const k = c - desplazamiento;
+      if (k < 0 || k >= valores.length) return <div key={`${etiqueta}${c}`} />;
+      return (
+        <input
+          key={`${etiqueta}${c}`}
+          ref={(el) => {
+            refs.current[k] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoFocus={autoFoco && k === 0}
+          disabled={bloqueado}
+          value={valores[k]}
+          onChange={(e) => {
+            const digito = soloDigitos(e.target.value);
+            setValores((prev) => prev.map((v, i) => (i === k ? digito : v)));
+            if (digito && k + 1 < valores.length) refs.current[k + 1]?.focus();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Backspace" && valores[k] === "" && k > 0) refs.current[k - 1]?.focus();
+          }}
+          aria-label={`${etiqueta}, columna ${k + 1}`}
+          className={CAJA_DIGITO}
+        />
+      );
+    });
   }
 
   function enviar(e: React.FormEvent) {
@@ -53,11 +86,9 @@ export default function VerticalMultiplicacion({
     const digitos = resultado.slice(0, altoLleno + 1).reverse().join("");
     const esperadasMarcas = marcasMultiplicacion(a, b);
     const escritas = marcas.map((m) => (m === "" ? 0 : Number(m)));
-    const parcialesEsperados = parcialesMultiplicacion(a, b).map(String);
-    const parcialesEscritos = cifrasB === 2 ? [parcial1, parcial2] : [];
-    const parcialesOk = parcialesEscritos.every(
-      (p, i) => normalizarNumero(p) === parcialesEsperados[i]
-    );
+    const textoDe = (valores: string[]) => [...valores].reverse().join("");
+    const parcialesEscritos = cifrasB === 2 ? [textoDe(parcial1), textoDe(parcial2)] : [];
+    const parcialesOk = parcialesEscritos.every((p, i) => normalizarNumero(p) === parcialesEsperados[i]);
 
     onResponder({
       respuestaDada: digitos,
@@ -79,7 +110,7 @@ export default function VerticalMultiplicacion({
 
   return (
     <form onSubmit={enviar} className="flex flex-col items-center gap-4">
-      <div className="flex flex-col gap-1">
+      <div className="flex max-w-full flex-col gap-1 overflow-x-auto">
         <div className="grid items-center" style={{ gridTemplateColumns: plantilla }}>
           <div />
           {columnas.map((c) =>
@@ -126,29 +157,11 @@ export default function VerticalMultiplicacion({
           <>
             <div className="grid items-center" style={{ gridTemplateColumns: plantilla }}>
               <div />
-              <input
-                type="text"
-                inputMode="numeric"
-                disabled={bloqueado}
-                value={parcial1}
-                onChange={(e) => setParcial1(soloDigitos(e.target.value, cifrasA + 1))}
-                aria-label="Producto parcial por las unidades"
-                className={CAJA_LARGA}
-                style={abarca(0, cifrasA)}
-              />
+              {cajasDe("Producto por las unidades", parcial1, setParcial1, refsParcial1, 0, true)}
             </div>
             <div className="grid items-center" style={{ gridTemplateColumns: plantilla }}>
               <div className="text-center font-mono text-2xl text-zinc-500">+</div>
-              <input
-                type="text"
-                inputMode="numeric"
-                disabled={bloqueado}
-                value={parcial2}
-                onChange={(e) => setParcial2(soloDigitos(e.target.value, cifrasA + 1))}
-                aria-label="Producto parcial por las decenas"
-                className={CAJA_LARGA}
-                style={abarca(1, cifrasA + 1)}
-              />
+              {cajasDe("Producto por las decenas", parcial2, setParcial2, refsParcial2, 1, false)}
             </div>
             <div className="my-1 h-px bg-zinc-400 dark:bg-zinc-600" />
           </>
@@ -156,32 +169,14 @@ export default function VerticalMultiplicacion({
 
         <div className="grid items-center" style={{ gridTemplateColumns: plantilla }}>
           <div />
-          {columnas.map((c) => (
-            <input
-              key={`r${c}`}
-              ref={(el) => {
-                refsResultado.current[c] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              autoFocus={c === 0}
-              disabled={bloqueado}
-              value={resultado[c]}
-              onChange={(e) => cambiarResultado(c, e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Backspace" && resultado[c] === "" && c > 0) refsResultado.current[c - 1]?.focus();
-              }}
-              aria-label={`Resultado, columna ${c + 1}`}
-              className={CAJA_DIGITO}
-            />
-          ))}
+          {cajasDe("Resultado", resultado, setResultado, refsResultado, 0, cifrasB === 1)}
         </div>
       </div>
 
       <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-500">
         {cifrasB === 1
           ? "Multiplica cifra por cifra de derecha a izquierda. Anota las llevadas arriba."
-          : "Anota el producto por las unidades, luego el de las decenas (corrido a la izquierda) y suma. Las llevadas van arriba."}
+          : "Escribe el producto por las unidades y, debajo, el de las decenas corrido una columna a la izquierda. Luego suma. Las llevadas van arriba."}
       </p>
 
       {!bloqueado && (
