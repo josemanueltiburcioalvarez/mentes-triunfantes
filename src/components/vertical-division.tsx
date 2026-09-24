@@ -41,9 +41,11 @@ export default function VerticalDivision({
   const ventanas = pasos.map((paso) => {
     const i = paso.columna;
     const hayBajada = paso.restoConBajada !== null;
-    const anchoProducto = String(paso.producto).length;
+    // Un producto ocupa al menos tantas casillas como cifras tiene el divisor (0 × 21 = 00) y el
+    // resto se escribe con la cifra bajada al lado (0 y 5 -> 05), sin comerse los ceros.
+    const anchoProducto = Math.max(String(paso.producto).length, cifrasDivisor);
     const finResto = hayBajada ? i + 1 : i;
-    const anchoResto = String(paso.restoConBajada ?? paso.resto).length;
+    const anchoResto = String(paso.resto).length + (hayBajada ? 1 : 0);
     return {
       i,
       hayBajada,

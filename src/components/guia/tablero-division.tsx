@@ -15,10 +15,8 @@ export default function TableroDivision({ escena }: { escena: EscenaDivision }) 
   const plantilla = `1.5rem repeat(${n}, 2.75rem) 0.5rem repeat(${columnasDerecha}, 2.75rem)`;
 
   // digitos de un numero alineados a la derecha en la columna `fin` (0 = izquierda)
-  const celdasDe = (valor: number, fin: number) =>
-    String(valor)
-      .split("")
-      .map((d, k) => ({ d, c: fin - String(valor).length + 1 + k }));
+  const celdasDe = (texto: string, fin: number) =>
+    texto.split("").map((d, k) => ({ d, c: fin - texto.length + 1 + k }));
 
   return (
     <div className="max-w-full overflow-x-auto">
@@ -82,7 +80,7 @@ export default function TableroDivision({ escena }: { escena: EscenaDivision }) 
                   >
                     −
                   </div>
-                  {celdasDe(p.producto, p.columna).map(({ d, c }) => (
+                  {celdasDe(String(p.producto).padStart(cifrasDivisor, "0"), p.columna).map(({ d, c }) => (
                     <div
                       key={`p${s}-${c}`}
                       className={`${CELDA} border-b-2 border-zinc-500 ${
@@ -109,7 +107,10 @@ export default function TableroDivision({ escena }: { escena: EscenaDivision }) 
               )}
 
               {restoVisible &&
-                celdasDe(conBajada && p.restoConBajada !== null ? p.restoConBajada : p.resto, conBajada ? p.columna + 1 : p.columna).map(
+                celdasDe(
+                  conBajada && p.restoConBajada !== null ? `${p.resto}${p.restoConBajada % 10}` : String(p.resto),
+                  conBajada ? p.columna + 1 : p.columna
+                ).map(
                   ({ d, c }) => (
                     <div
                       key={`r${s}-${c}`}

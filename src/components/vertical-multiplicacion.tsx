@@ -25,13 +25,16 @@ export default function VerticalMultiplicacion({
   const cifrasB = String(b).length;
   const n = cifrasA + cifrasB; // columnas del resultado
   const parcialesEsperados = parcialesMultiplicacion(a, b).map(String);
+  // Un producto parcial ocupa al menos tantas casillas como cifras tiene el multiplicando
+  // (por 0 se escribe un 0 en cada columna: 92 × 0 = 00).
+  const anchoParcial = parcialesEsperados.map((p) => Math.max(p.length, cifrasA));
 
   // Una casilla por cifra: k = 0 es la de la derecha. El segundo producto parcial va
   // corrido una columna a la izquierda (vale decenas).
   const [resultado, setResultado] = useState<string[]>(() => Array(n).fill(""));
   const [marcas, setMarcas] = useState<string[]>(() => Array(cifrasA - 1).fill(""));
-  const [parcial1, setParcial1] = useState<string[]>(() => Array(parcialesEsperados[0].length).fill(""));
-  const [parcial2, setParcial2] = useState<string[]>(() => Array((parcialesEsperados[1] ?? "").length).fill(""));
+  const [parcial1, setParcial1] = useState<string[]>(() => Array(anchoParcial[0]).fill(""));
+  const [parcial2, setParcial2] = useState<string[]>(() => Array(anchoParcial[1] ?? 0).fill(""));
   const refsResultado: Refs = useRef([]);
   const refsParcial1: Refs = useRef([]);
   const refsParcial2: Refs = useRef([]);
