@@ -1,4 +1,4 @@
--- PROPUESTA (aun NO aplicada a la base de datos). Cierra los huecos encontrados en la auditoria:
+-- APLICADA en Supabase (migracion 025). Cierra los huecos encontrados en la auditoria:
 --  * un estudiante podia editar su propia sesion (correctos/total/fin/tipo/digito) y aprobar sin responder
 --  * un estudiante podia abrir una sesion de practica de un ejercicio bloqueado
 --  * un estudiante podia agregar intentos a sesiones ajenas, ya terminadas o en exceso
