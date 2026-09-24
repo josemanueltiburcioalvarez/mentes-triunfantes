@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { PasoGuia } from "@/lib/guias/tipos";
 import TableroColumnas from "./tablero-columnas";
 import TableroDivision from "./tablero-division";
+import TableroLineas from "./tablero-lineas";
 
 function Texto({ texto }: { texto: string }) {
   return (
@@ -68,8 +69,10 @@ export default function GuiaPasoAPaso({
       <div className="flex min-h-56 w-full items-center justify-center">
         {paso.escena.tipo === "columnas" ? (
           <TableroColumnas escena={paso.escena} />
-        ) : (
+        ) : paso.escena.tipo === "division" ? (
           <TableroDivision escena={paso.escena} />
+        ) : (
+          <TableroLineas escena={paso.escena} />
         )}
       </div>
 

@@ -1,7 +1,15 @@
 import type { HabilidadPracticable } from "../ejercicios/generador";
 import { guiaMultiplicacion1, guiaMultiplicacion2, guiaResta, guiaSuma } from "./columnas";
 import { guiaDivision } from "./division";
+import { guiaCombinada, guiaCuadradoDosCifras, guiaPotencia, guiaRaizGrande, guiaRaizIntro } from "./lineas";
+import type { Token } from "../ejercicios/combinadas";
 import type { Guia } from "./tipos";
+
+const n = (v: number): Token => ({ t: "num", v });
+const o = (v: "+" | "−" | "×" | "÷"): Token => ({ t: "op", v });
+const LP: Token = { t: "lp" };
+const RP: Token = { t: "rp" };
+const pow = (e: number): Token => ({ t: "pow", e });
 
 const GUIA_TABLA: Guia = {
   tipo: "consejos",
@@ -130,6 +138,57 @@ export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
           titulo: "Dividir por dos cifras",
           resumen: "Cómo saber cuántas veces cabe un divisor de dos cifras sin adivinar.",
           pasos: guiaDivision(756, 21),
+        },
+      ];
+    case "potencia":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Qué es una potencia",
+          resumen: "Una potencia es una multiplicación abreviada: base, exponente y cómo resolverla de dos en dos.",
+          pasos: guiaPotencia(7, 3),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Cuadrados de dos cifras",
+          resumen: "Elevar al cuadrado un número de dos cifras con la multiplicación por dos cifras.",
+          pasos: guiaCuadradoDosCifras(23),
+        },
+      ];
+    case "raiz":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "La raíz cuadrada",
+          resumen: "La raíz es la operación contraria a la potencia: se busca por tanteo y se comprueba.",
+          pasos: guiaRaizIntro(8),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Raíces grandes: acércate y comprueba",
+          resumen: "Cómo encontrar la raíz de un número grande usando las decenas y la última cifra.",
+          pasos: guiaRaizGrande(36),
+        },
+      ];
+    case "operaciones_combinadas":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "El orden de las operaciones",
+          resumen: "Por qué la multiplicación va antes que la suma y cómo se resuelve una cuenta paso a paso.",
+          pasos: guiaCombinada([n(3), o("+"), n(4), o("×"), n(5)]),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Con paréntesis y potencias",
+          resumen: "Paréntesis primero, luego potencias, luego multiplicar y dividir, y al final sumar.",
+          pasos: guiaCombinada([LP, n(8), o("−"), n(3), RP, o("×"), n(2), pow(2), o("+"), n(6), o("÷"), n(3)]),
         },
       ];
   }

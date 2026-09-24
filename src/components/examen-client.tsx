@@ -55,7 +55,7 @@ export default function ExamenClient({
   const [indice, setIndice] = useState(0);
   const [inicioPregunta, setInicioPregunta] = useState<number>(0);
   const [retroalimentacion, setRetroalimentacion] = useState<
-    { correcto: boolean; respuestaCorrecta: number } | null
+    { correcto: boolean; respuestaCorrecta: number; detalle?: string } | null
   >(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -116,7 +116,7 @@ export default function ExamenClient({
     }
 
     if (esCorrecto) setCorrectos((c) => c + 1);
-    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: preguntaActual.respuesta });
+    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: preguntaActual.respuesta, detalle: r.detalle });
   }
 
   async function siguiente() {
@@ -232,6 +232,9 @@ export default function ExamenClient({
                 ? "¡Correcto!"
                 : `Incorrecto. Era ${retroalimentacion.respuestaCorrecta}`}
             </p>
+            {retroalimentacion.detalle && (
+              <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">{retroalimentacion.detalle}</p>
+            )}
             <button onClick={siguiente} className={BOTON_RESPONDER}>
               {indice >= preguntas.length - 1 ? "Ver resultado" : "Siguiente"}
             </button>

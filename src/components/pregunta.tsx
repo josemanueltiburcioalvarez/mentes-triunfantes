@@ -14,6 +14,9 @@ import {
 } from "./tipos-pregunta";
 import VerticalMultiplicacion from "./vertical-multiplicacion";
 import VerticalDivision from "./vertical-division";
+import VerticalPotencia from "./vertical-potencia";
+import VerticalRaiz from "./vertical-raiz";
+import CombinadasPaso from "./combinadas-paso";
 
 export type { RespuestaPregunta };
 
@@ -25,6 +28,10 @@ export default function Pregunta(props: Props) {
   const { ejercicio, ...comunes } = props;
   const operandos = ejercicio.operandos;
 
+  if (ejercicio.operacion === "combinadas" && ejercicio.expresion) {
+    return <CombinadasPaso {...comunes} expresion={ejercicio.expresion} />;
+  }
+
   if (ejercicio.operacion && operandos) {
     switch (ejercicio.operacion) {
       case "suma":
@@ -34,6 +41,10 @@ export default function Pregunta(props: Props) {
         return <VerticalMultiplicacion {...comunes} a={operandos[0]} b={operandos[1]} />;
       case "division":
         return <VerticalDivision {...comunes} dividendo={operandos[0]} divisor={operandos[1]} />;
+      case "potencia":
+        return <VerticalPotencia {...comunes} base={operandos[0]} exponente={operandos[1]} />;
+      case "raiz":
+        return <VerticalRaiz {...comunes} radicando={operandos[0]} raiz={operandos[1]} />;
     }
   }
   return <Simple {...props} />;

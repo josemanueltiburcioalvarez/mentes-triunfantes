@@ -1,9 +1,14 @@
+import { generarCombinada, aTexto, superindice, type Token } from "./combinadas";
+
 export const HABILIDADES_PRACTICABLES = [
   "suma",
   "resta",
   "tabla_multiplicacion",
   "multiplicacion",
   "division",
+  "potencia",
+  "raiz",
+  "operaciones_combinadas",
 ] as const;
 
 export type HabilidadPracticable = (typeof HABILIDADES_PRACTICABLES)[number];
@@ -12,13 +17,21 @@ export function esHabilidadPracticable(valor: string): valor is HabilidadPractic
   return (HABILIDADES_PRACTICABLES as readonly string[]).includes(valor);
 }
 
-export type OperacionVertical = "suma" | "resta" | "multiplicacion" | "division";
+export type OperacionVertical =
+  | "suma"
+  | "resta"
+  | "multiplicacion"
+  | "division"
+  | "potencia"
+  | "raiz"
+  | "combinadas";
 
 export interface EjercicioGenerado {
   enunciado: string;
   respuesta: number;
   operacion?: OperacionVertical;
   operandos?: [number, number];
+  expresion?: Token[];
 }
 
 export interface EjercicioConDigito extends EjercicioGenerado {
@@ -129,6 +142,68 @@ function generarDivision(digito: number): EjercicioGenerado {
   }
 }
 
+// potencia: [base, exponente] por digito
+function generarPotencia(digito: number): EjercicioGenerado {
+  let base: number;
+  let exponente: number;
+  switch (digito) {
+    case 1:
+      base = entreAleatorio(2, 9);
+      exponente = 2;
+      break;
+    case 2:
+      base = entreAleatorio(2, 5);
+      exponente = 3;
+      break;
+    case 3:
+      base = entreAleatorio(6, 9);
+      exponente = 3;
+      break;
+    case 4:
+      base = entreAleatorio(11, 25);
+      exponente = 2;
+      break;
+    default:
+      if (Math.random() < 0.5) {
+        base = entreAleatorio(2, 6);
+        exponente = 4;
+      } else {
+        base = entreAleatorio(2, 3);
+        exponente = 5;
+      }
+  }
+  return {
+    enunciado: `${base}${superindice(exponente)} =`,
+    respuesta: base ** exponente,
+    operacion: "potencia",
+    operandos: [base, exponente],
+  };
+}
+
+const RANGO_RAIZ: Record<number, [number, number]> = {
+  1: [2, 9],
+  2: [10, 20],
+  3: [21, 30],
+  4: [31, 50],
+  5: [51, 99],
+};
+
+function generarRaiz(digito: number): EjercicioGenerado {
+  const [min, max] = RANGO_RAIZ[digito];
+  const raiz = entreAleatorio(min, max);
+  return {
+    enunciado: `√${raiz * raiz} =`,
+    respuesta: raiz,
+    operacion: "raiz",
+    operandos: [raiz * raiz, raiz],
+  };
+}
+
+function generarOperacionesCombinadas(digito: number): EjercicioGenerado {
+  const { tokens, respuesta } = generarCombinada(digito);
+  return { enunciado: `${aTexto(tokens)} =`, respuesta, operacion: "combinadas", expresion: tokens };
+}
+
 export function generarEjercicio(habilidad: HabilidadPracticable, digito: number): EjercicioGenerado {
   switch (habilidad) {
     case "suma":
@@ -141,6 +216,12 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
       return generarMultiplicacion(digito);
     case "division":
       return generarDivision(digito);
+    case "potencia":
+      return generarPotencia(digito);
+    case "raiz":
+      return generarRaiz(digito);
+    case "operaciones_combinadas":
+      return generarOperacionesCombinadas(digito);
   }
 }
 
@@ -156,6 +237,33 @@ export function descripcionDigito(habilidad: HabilidadPracticable, digito: numbe
       const [a, b] = CIFRAS_DIVISION[digito];
       return `${a} cifras ÷ ${b} ${b === 1 ? "cifra" : "cifras"} (exacta)`;
     }
+    case "potencia":
+      return [
+        "",
+        "Cuadrados: de 2² a 9²",
+        "Cubos pequeños: de 2³ a 5³",
+        "Cubos: de 6³ a 9³",
+        "Cuadrados de 2 cifras: de 11² a 25²",
+        "Potencias de exponente 4 y 5 (3⁴, 2⁵...)",
+      ][digito];
+    case "raiz":
+      return [
+        "",
+        "Raíces de 4 a 81 (√81 = 9)",
+        "Raíces de 100 a 400",
+        "Raíces de 441 a 900",
+        "Raíces de 961 a 2 500",
+        "Raíces de 2 601 a 9 801",
+      ][digito];
+    case "operaciones_combinadas":
+      return [
+        "",
+        "Multiplicar antes de sumar o restar",
+        "Varias operaciones (y de izquierda a derecha)",
+        "Con paréntesis",
+        "Paréntesis y varias operaciones",
+        "Con potencias y raíces",
+      ][digito];
     default:
       return RANGOS_SUMA_RESTA[digito].descripcion;
   }
@@ -198,4 +306,7 @@ export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {
   tabla_multiplicacion: "Tabla de multiplicar",
   multiplicacion: "Multiplicación",
   division: "División",
+  potencia: "Potencia",
+  raiz: "Raíz",
+  operaciones_combinadas: "Operaciones combinadas",
 };

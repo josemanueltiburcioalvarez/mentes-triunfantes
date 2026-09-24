@@ -4,6 +4,7 @@ export interface RespuestaPregunta {
   respuestaDada: string;
   valor: number;
   pasos: Json | null;
+  detalle?: string; // explicacion extra que se muestra junto a la retroalimentacion
 }
 
 export interface PropsComunes {

@@ -29,10 +29,21 @@ export interface EscenaDivision {
   focoHasta: number;
 }
 
+export interface LineaEscena {
+  t: string;
+  e?: "normal" | "foco" | "resultado" | "apagado" | "tachado";
+}
+
+// lista de lineas de texto (potencias, raices, operaciones combinadas)
+export interface EscenaLineas {
+  tipo: "lineas";
+  lineas: LineaEscena[];
+}
+
 export interface PasoGuia {
   titulo: string;
   texto: string; // admite **negrita**
-  escena: EscenaColumnas | EscenaDivision;
+  escena: EscenaColumnas | EscenaDivision | EscenaLineas;
 }
 
 export interface GuiaPasos {

@@ -39,7 +39,7 @@ export default function SetPracticaClient({
   const [inicioEjercicio, setInicioEjercicio] = useState<number>(0);
 
   const [retroalimentacion, setRetroalimentacion] = useState<
-    { correcto: boolean; respuestaCorrecta: number } | null
+    { correcto: boolean; respuestaCorrecta: number; detalle?: string } | null
   >(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -104,7 +104,7 @@ export default function SetPracticaClient({
     }
 
     if (esCorrecto) setCorrectos((c) => c + 1);
-    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: ejercicio.respuesta });
+    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: ejercicio.respuesta, detalle: r.detalle });
   }
 
   async function siguiente() {
@@ -210,6 +210,9 @@ export default function SetPracticaClient({
                 ? "¡Correcto!"
                 : `Incorrecto. Era ${retroalimentacion.respuestaCorrecta}`}
             </p>
+            {retroalimentacion.detalle && (
+              <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">{retroalimentacion.detalle}</p>
+            )}
             <button
               onClick={siguiente}
               className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
