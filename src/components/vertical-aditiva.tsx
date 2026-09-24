@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { digitoEn, marcasEsperadas, numColumnas } from "@/lib/ejercicios/vertical";
+import { digitoEn, marcasEsperadas, NOMBRES_COLUMNA, numColumnas } from "@/lib/ejercicios/vertical";
 import {
   BOTON_RESPONDER,
   CAJA_DIGITO,
@@ -54,9 +54,26 @@ export default function VerticalAditiva({
     const digitos = resultado.slice(0, altoLleno + 1).reverse().join("");
     const esperadas = marcasEsperadas(operacion, a, b);
     const escritas = marcas.map((m) => (m === "" ? 0 : Number(m)));
+
+    // Las llevadas / prestadas tambien cuentan: deben anotarse donde haya y no donde no haya.
+    const errores: string[] = [];
+    esperadas.forEach((esperada, k) => {
+      const escrita = escritas[k] ?? 0;
+      if (escrita === esperada) return;
+      const columna = NOMBRES_COLUMNA[k] ?? `la columna ${k + 1}`;
+      errores.push(
+        operacion === "suma"
+          ? `al sumar ${columna} ${esperada ? "había que llevar 1" : "no había llevada"} y anotaste ${escrita}`
+          : `al restar ${columna} ${esperada ? "había que pedir prestado 1" : "no había que pedir prestado"} y anotaste ${escrita}`
+      );
+    });
+    const marcasOk = errores.length === 0;
+
+    // El resultado solo cuenta si las llevadas (o prestadas) estan bien anotadas.
     onResponder({
       respuestaDada: digitos,
-      valor: Number(digitos),
+      valor: marcasOk ? Number(digitos) : -1,
+      detalle: marcasOk ? undefined : `Revisa tu procedimiento: ${errores.join("; ")}.`,
       pasos: {
         modo: "vertical",
         operacion,
@@ -65,7 +82,7 @@ export default function VerticalAditiva({
         marcas_esperadas: esperadas,
         requeria_marcas: esperadas.some((m) => m === 1),
         uso_marcas: escritas.some((m) => m !== 0),
-        marcas_correctas: esperadas.every((m, i) => (escritas[i] ?? 0) === m),
+        marcas_correctas: marcasOk,
       },
     });
   }
@@ -131,8 +148,8 @@ export default function VerticalAditiva({
 
       <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-500">
         {operacion === "suma"
-          ? "Escribe el resultado de derecha a izquierda. Si llevas, anótalo en las casillas de arriba."
-          : "Escribe el resultado de derecha a izquierda. Si prestas, anota 1 arriba de la columna de la que prestas."}
+          ? "Escribe el resultado de derecha a izquierda. Si llevas, anótalo en las casillas de arriba: las llevadas se revisan."
+          : "Escribe el resultado de derecha a izquierda. Si prestas, anota 1 arriba de la columna de la que prestas: las prestadas se revisan."}
       </p>
 
       {!bloqueado && (

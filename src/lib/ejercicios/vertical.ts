@@ -6,6 +6,8 @@ export function numColumnas(operacion: OperacionAditiva, a: number, b: number): 
     : String(a).length;
 }
 
+export const NOMBRES_COLUMNA = ["las unidades", "las decenas", "las centenas", "las unidades de millar", "las decenas de millar"];
+
 // columna 0 = la de la derecha (unidades)
 export function digitoEn(n: number, columna: number): string {
   const s = String(n);

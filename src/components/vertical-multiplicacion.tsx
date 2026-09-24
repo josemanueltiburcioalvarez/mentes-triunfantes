@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
-import { digitoEn, marcasMultiplicacion, parcialesMultiplicacion } from "@/lib/ejercicios/vertical";
+import { digitoEn, marcasMultiplicacion, NOMBRES_COLUMNA, parcialesMultiplicacion } from "@/lib/ejercicios/vertical";
 import {
   BOTON_RESPONDER,
   CAJA_DIGITO,
@@ -103,11 +103,20 @@ export default function VerticalMultiplicacion({
       )
       .filter((x): x is string => x !== null);
 
-    // El resultado solo cuenta si los productos parciales estan bien.
+    const erroresLlevadas = esperadasMarcas
+      .map((esperada, k) =>
+        (escritas[k] ?? 0) === esperada
+          ? null
+          : `al multiplicar ${NOMBRES_COLUMNA[k] ?? `la columna ${k + 1}`} la llevada era ${esperada} y anotaste ${escritas[k] ?? 0}`
+      )
+      .filter((x): x is string => x !== null);
+    const procedimientoOk = parcialesOk && erroresLlevadas.length === 0;
+
+    // El resultado solo cuenta si las llevadas y los productos parciales estan bien.
     onResponder({
       respuestaDada: digitos,
-      valor: parcialesOk ? Number(digitos) : -1,
-      detalle: parcialesOk ? undefined : `Revisa tu procedimiento: ${erroresParciales.join("; ")}.`,
+      valor: procedimientoOk ? Number(digitos) : -1,
+      detalle: procedimientoOk ? undefined : `Revisa tu procedimiento: ${[...erroresLlevadas, ...erroresParciales].join("; ")}.`,
       pasos: {
         modo: "vertical",
         operacion: "multiplicacion",
@@ -118,7 +127,7 @@ export default function VerticalMultiplicacion({
         parciales_esperados: parcialesEsperados,
         requeria_marcas: esperadasMarcas.some((m) => m > 0) || cifrasB === 2,
         uso_marcas: escritas.some((m) => m !== 0) || parcialesEscritos.some((p) => p !== ""),
-        marcas_correctas: esperadasMarcas.every((m, i) => (escritas[i] ?? 0) === m) && parcialesOk,
+        marcas_correctas: procedimientoOk,
       },
     });
   }
@@ -190,8 +199,8 @@ export default function VerticalMultiplicacion({
 
       <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-500">
         {cifrasB === 1
-          ? "Multiplica cifra por cifra de derecha a izquierda. Anota las llevadas arriba."
-          : "Escribe el producto por las unidades y, debajo, el de las decenas corrido una columna a la izquierda. Luego suma. Las llevadas van arriba. Los dos productos son obligatorios."}
+          ? "Multiplica cifra por cifra de derecha a izquierda. Anota las llevadas arriba: se revisan."
+          : "Escribe el producto por las unidades y, debajo, el de las decenas corrido una columna a la izquierda. Luego suma. Las llevadas van arriba y se revisan. Los dos productos son obligatorios."}
       </p>
 
       {!bloqueado && (

@@ -89,11 +89,14 @@ export default function EnteroSumaResta({
   }
 
   function alResponderMagnitud(r: RespuestaPregunta) {
+    // valor es -1 cuando las llevadas/prestadas estan mal anotadas; lo escrito va en respuestaDada
+    const escrito = Number(r.respuestaDada);
     if (r.valor !== magnitud) {
       setErrores((n) => n + 1);
-      setMagnitudMal((m) => [...m, `${Math.abs(acumulado)} ${iguales ? "+" : "−"} ${Math.abs(efectivo)} = ${magnitud} (escribiste ${r.valor})`]);
+      const cuenta = `${Math.abs(acumulado)} ${iguales ? "+" : "−"} ${Math.abs(efectivo)} = ${magnitud}`;
+      setMagnitudMal((m) => [...m, escrito !== magnitud ? `${cuenta} (escribiste ${escrito})` : `${cuenta}: ${(r.detalle ?? "procedimiento con errores").replace(/\.$/, "")}`]);
     }
-    setMagnitudEscrita(r.valor);
+    setMagnitudEscrita(escrito);
     setMensaje(null);
     setFase("signo");
   }
