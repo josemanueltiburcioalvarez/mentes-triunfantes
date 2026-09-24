@@ -6,6 +6,7 @@ import { crearClienteNavegador } from "@/lib/supabase/client";
 import {
   generarExamenHabilidad,
   generarExamenNivel,
+  textoRespuesta,
   type EjercicioConDigito,
   type HabilidadPracticable,
 } from "@/lib/ejercicios/generador";
@@ -55,7 +56,7 @@ export default function ExamenClient({
   const [indice, setIndice] = useState(0);
   const [inicioPregunta, setInicioPregunta] = useState<number>(0);
   const [retroalimentacion, setRetroalimentacion] = useState<
-    { correcto: boolean; respuestaCorrecta: number; detalle?: string } | null
+    { correcto: boolean; respuestaCorrecta: string; detalle?: string } | null
   >(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -102,7 +103,7 @@ export default function ExamenClient({
       habilidad_id: idsHabilidad[preguntaActual.habilidad],
       dificultad: preguntaActual.digito,
       enunciado: preguntaActual.enunciado,
-      respuesta_correcta: String(preguntaActual.respuesta),
+      respuesta_correcta: textoRespuesta(preguntaActual),
       respuesta_dada: r.respuestaDada,
       es_correcto: esCorrecto,
       segundos,
@@ -116,7 +117,7 @@ export default function ExamenClient({
     }
 
     if (esCorrecto) setCorrectos((c) => c + 1);
-    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: preguntaActual.respuesta, detalle: r.detalle });
+    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: textoRespuesta(preguntaActual), detalle: r.detalle });
   }
 
   async function siguiente() {

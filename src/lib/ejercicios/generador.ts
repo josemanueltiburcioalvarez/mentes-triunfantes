@@ -1,4 +1,15 @@
 import { generarCombinada, aTexto, superindice, type Token } from "./combinadas";
+import {
+  DESCRIPCIONES_ENTEROS,
+  generarDivisionEnteros,
+  generarMultiplicacionEnteros,
+  generarPotenciaEntera,
+  generarRaizEntera,
+  generarSumaRestaEnteros,
+  type EnteroPotencia,
+  type EnteroRaiz,
+} from "./enteros";
+import { DESCRIPCIONES_ECUACIONES, generarEcuacion, type Ecuacion } from "./ecuaciones";
 
 export const HABILIDADES_PRACTICABLES = [
   "suma",
@@ -9,6 +20,13 @@ export const HABILIDADES_PRACTICABLES = [
   "potencia",
   "raiz",
   "operaciones_combinadas",
+  "suma_enteros",
+  "resta_enteros",
+  "multiplicacion_enteros",
+  "division_enteros",
+  "potencia_enteros",
+  "raiz_enteros",
+  "ecuaciones",
 ] as const;
 
 export type HabilidadPracticable = (typeof HABILIDADES_PRACTICABLES)[number];
@@ -24,7 +42,14 @@ export type OperacionVertical =
   | "division"
   | "potencia"
   | "raiz"
-  | "combinadas";
+  | "combinadas"
+  | "suma_enteros"
+  | "resta_enteros"
+  | "multiplicacion_enteros"
+  | "division_enteros"
+  | "potencia_enteros"
+  | "raiz_enteros"
+  | "ecuacion";
 
 export interface EjercicioGenerado {
   enunciado: string;
@@ -32,6 +57,14 @@ export interface EjercicioGenerado {
   operacion?: OperacionVertical;
   operandos?: [number, number];
   expresion?: Token[];
+  // numeros con signo
+  terminos?: number[];
+  potenciaEntera?: EnteroPotencia;
+  raizEntera?: EnteroRaiz;
+  // ecuaciones
+  ecuacion?: Ecuacion;
+  // texto para mostrar la respuesta correcta cuando no es un numero (ej. "no existe en los enteros")
+  respuestaTexto?: string;
 }
 
 export interface EjercicioConDigito extends EjercicioGenerado {
@@ -204,6 +237,47 @@ function generarOperacionesCombinadas(digito: number): EjercicioGenerado {
   return { enunciado: `${aTexto(tokens)} =`, respuesta, operacion: "combinadas", expresion: tokens };
 }
 
+function generarSumaEnteros(digito: number): EjercicioGenerado {
+  const g = generarSumaRestaEnteros(digito, "+");
+  return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "suma_enteros", terminos: g.terminos };
+}
+
+function generarRestaEnteros(digito: number): EjercicioGenerado {
+  const g = generarSumaRestaEnteros(digito, "−");
+  return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "resta_enteros", terminos: g.terminos };
+}
+
+function generarMultiplicacionConSigno(digito: number): EjercicioGenerado {
+  const g = generarMultiplicacionEnteros(digito);
+  return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "multiplicacion_enteros", operandos: g.operandos };
+}
+
+function generarDivisionConSigno(digito: number): EjercicioGenerado {
+  const g = generarDivisionEnteros(digito);
+  return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "division_enteros", operandos: g.operandos };
+}
+
+function generarPotenciaConSigno(digito: number): EjercicioGenerado {
+  const g = generarPotenciaEntera(digito);
+  return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "potencia_enteros", potenciaEntera: g };
+}
+
+function generarRaizConSigno(digito: number): EjercicioGenerado {
+  const g = generarRaizEntera(digito);
+  return {
+    enunciado: g.enunciado,
+    respuesta: g.respuesta,
+    operacion: "raiz_enteros",
+    raizEntera: g,
+    respuestaTexto: g.respuestaTexto,
+  };
+}
+
+function generarEcuaciones(digito: number): EjercicioGenerado {
+  const e = generarEcuacion(digito);
+  return { enunciado: `Resuelve: ${e.texto}`, respuesta: e.solucion, operacion: "ecuacion", ecuacion: e };
+}
+
 export function generarEjercicio(habilidad: HabilidadPracticable, digito: number): EjercicioGenerado {
   switch (habilidad) {
     case "suma":
@@ -222,6 +296,20 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
       return generarRaiz(digito);
     case "operaciones_combinadas":
       return generarOperacionesCombinadas(digito);
+    case "suma_enteros":
+      return generarSumaEnteros(digito);
+    case "resta_enteros":
+      return generarRestaEnteros(digito);
+    case "multiplicacion_enteros":
+      return generarMultiplicacionConSigno(digito);
+    case "division_enteros":
+      return generarDivisionConSigno(digito);
+    case "potencia_enteros":
+      return generarPotenciaConSigno(digito);
+    case "raiz_enteros":
+      return generarRaizConSigno(digito);
+    case "ecuaciones":
+      return generarEcuaciones(digito);
   }
 }
 
@@ -264,6 +352,15 @@ export function descripcionDigito(habilidad: HabilidadPracticable, digito: numbe
         "Paréntesis y varias operaciones",
         "Con potencias y raíces",
       ][digito];
+    case "suma_enteros":
+    case "resta_enteros":
+    case "multiplicacion_enteros":
+    case "division_enteros":
+    case "potencia_enteros":
+    case "raiz_enteros":
+      return DESCRIPCIONES_ENTEROS[habilidad][digito];
+    case "ecuaciones":
+      return DESCRIPCIONES_ECUACIONES[digito];
     default:
       return RANGOS_SUMA_RESTA[digito].descripcion;
   }
@@ -309,4 +406,16 @@ export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {
   potencia: "Potencia",
   raiz: "Raíz",
   operaciones_combinadas: "Operaciones combinadas",
+  suma_enteros: "Suma con signos",
+  resta_enteros: "Resta con signos",
+  multiplicacion_enteros: "Multiplicación con signos",
+  division_enteros: "División con signos",
+  potencia_enteros: "Potencia con signos",
+  raiz_enteros: "Raíz con signos",
+  ecuaciones: "Ecuaciones",
 };
+
+// Texto de la respuesta correcta para guardar y mostrar (los negativos con signo menos tipografico).
+export function textoRespuesta(ejercicio: { respuesta: number; respuestaTexto?: string }): string {
+  return ejercicio.respuestaTexto ?? String(ejercicio.respuesta).replace("-", "−");
+}

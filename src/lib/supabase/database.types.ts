@@ -698,6 +698,13 @@ export type Database = {
         | "operaciones_combinadas"
         | "atajos"
         | "razonamiento"
+        | "suma_enteros"
+        | "resta_enteros"
+        | "multiplicacion_enteros"
+        | "division_enteros"
+        | "potencia_enteros"
+        | "raiz_enteros"
+        | "ecuaciones"
       rol_usuario: "estudiante" | "profesor" | "admin"
       tipo_sesion: "practica" | "evaluacion" | "evaluacion_habilidad"
     }

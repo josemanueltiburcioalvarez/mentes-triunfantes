@@ -1,16 +1,10 @@
 import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
+import { NOMBRES_HABILIDAD as NOMBRES_BASE } from "@/lib/ejercicios/generador";
 import { autorizarExamen, cancelarAutorizacion } from "./acciones";
 
 const NOMBRES_HABILIDAD: Record<string, string> = {
-  suma: "Suma",
-  resta: "Resta",
-  tabla_multiplicacion: "Tabla de multiplicar",
-  multiplicacion: "Multiplicación",
-  division: "División",
-  potencia: "Potencia",
-  raiz: "Raíz",
-  operaciones_combinadas: "Operaciones combinadas",
+  ...NOMBRES_BASE,
   atajos: "Atajos",
   razonamiento: "Razonamiento",
 };

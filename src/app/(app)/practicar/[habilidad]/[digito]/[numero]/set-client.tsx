@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
-import { generarEjercicio, type EjercicioGenerado, type HabilidadPracticable } from "@/lib/ejercicios/generador";
+import {
+  generarEjercicio,
+  textoRespuesta,
+  type EjercicioGenerado,
+  type HabilidadPracticable,
+} from "@/lib/ejercicios/generador";
 import Pregunta, { type RespuestaPregunta } from "@/components/pregunta";
 
 const TOTAL_EJERCICIOS = 10;
@@ -39,7 +44,7 @@ export default function SetPracticaClient({
   const [inicioEjercicio, setInicioEjercicio] = useState<number>(0);
 
   const [retroalimentacion, setRetroalimentacion] = useState<
-    { correcto: boolean; respuestaCorrecta: number; detalle?: string } | null
+    { correcto: boolean; respuestaCorrecta: string; detalle?: string } | null
   >(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -90,7 +95,7 @@ export default function SetPracticaClient({
       habilidad_id: habilidadId,
       dificultad: digito,
       enunciado: ejercicio.enunciado,
-      respuesta_correcta: String(ejercicio.respuesta),
+      respuesta_correcta: textoRespuesta(ejercicio),
       respuesta_dada: r.respuestaDada,
       es_correcto: esCorrecto,
       segundos,
@@ -104,7 +109,7 @@ export default function SetPracticaClient({
     }
 
     if (esCorrecto) setCorrectos((c) => c + 1);
-    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: ejercicio.respuesta, detalle: r.detalle });
+    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: textoRespuesta(ejercicio), detalle: r.detalle });
   }
 
   async function siguiente() {

@@ -2,6 +2,23 @@ import type { HabilidadPracticable } from "../ejercicios/generador";
 import { guiaMultiplicacion1, guiaMultiplicacion2, guiaResta, guiaSuma } from "./columnas";
 import { guiaDivision } from "./division";
 import { guiaCombinada, guiaCuadradoDosCifras, guiaPotencia, guiaRaizGrande, guiaRaizIntro } from "./lineas";
+import {
+  guiaDividirGrandesSignos,
+  guiaEcuacionAmbosLados,
+  guiaEcuacionDosPasos,
+  guiaEcuacionIntro,
+  guiaMultiplicarGrandesSignos,
+  guiaPotenciaParentesis,
+  guiaPotenciaParImpar,
+  guiaRaizExiste,
+  guiaRaizMenosAfuera,
+  guiaReglaSignosDividir,
+  guiaReglaSignosMultiplicar,
+  guiaRestasSeguidas,
+  guiaRestaSignosOpuesto,
+  guiaSumaSignosDiferentes,
+  guiaSumaSignosIguales,
+} from "./enteros";
 import type { Token } from "../ejercicios/combinadas";
 import type { Guia } from "./tipos";
 
@@ -189,6 +206,132 @@ export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
           titulo: "Con paréntesis y potencias",
           resumen: "Paréntesis primero, luego potencias, luego multiplicar y dividir, y al final sumar.",
           pasos: guiaCombinada([LP, n(8), o("−"), n(3), RP, o("×"), n(2), pow(2), o("+"), n(6), o("÷"), n(3)]),
+        },
+      ];
+    case "suma_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Signos iguales",
+          resumen: "Sumar dos números con el mismo signo: se suman y se deja el signo.",
+          pasos: guiaSumaSignosIguales(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Signos diferentes",
+          resumen: "Sumar un positivo y un negativo: se restan y gana el signo del mayor.",
+          pasos: guiaSumaSignosDiferentes(),
+        },
+      ];
+    case "resta_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Restar es sumar el opuesto",
+          resumen: "Cambiar el − por + y cambiar el signo del segundo número.",
+          pasos: guiaRestaSignosOpuesto(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Varias restas seguidas",
+          resumen: "Resolver de izquierda a derecha, de dos en dos.",
+          pasos: guiaRestasSeguidas(),
+        },
+      ];
+    case "multiplicacion_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "La regla de los signos",
+          resumen: "Iguales dan positivo; diferentes dan negativo.",
+          pasos: guiaReglaSignosMultiplicar(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Números grandes con signo",
+          resumen: "Primero el signo, luego la multiplicación en vertical.",
+          pasos: guiaMultiplicarGrandesSignos(),
+        },
+      ];
+    case "division_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "La regla de los signos al dividir",
+          resumen: "La misma regla que en la multiplicación.",
+          pasos: guiaReglaSignosDividir(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Divisiones largas con signo",
+          resumen: "Primero el signo, luego la división en vertical.",
+          pasos: guiaDividirGrandesSignos(),
+        },
+      ];
+    case "potencia_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Base negativa: exponente par o impar",
+          resumen: "Cuándo el resultado es positivo y cuándo negativo.",
+          pasos: guiaPotenciaParImpar(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "El paréntesis: (−3)² y −3²",
+          resumen: "El signo dentro y fuera del paréntesis cambia el resultado.",
+          pasos: guiaPotenciaParentesis(),
+        },
+      ];
+    case "raiz_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "¿Existe la raíz?",
+          resumen: "La raíz cuadrada de un negativo no existe; la cúbica sí.",
+          pasos: guiaRaizExiste(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "El menos de afuera",
+          resumen: "Primero la raíz y después el signo de afuera.",
+          pasos: guiaRaizMenosAfuera(),
+        },
+      ];
+    case "ecuaciones":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Qué es una ecuación",
+          resumen: "Dejar la x sola con la operación contraria.",
+          pasos: guiaEcuacionIntro(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Ecuaciones de dos pasos",
+          resumen: "Primero lo que suma o resta, luego lo que multiplica o divide.",
+          pasos: guiaEcuacionDosPasos(),
+        },
+        {
+          tipo: "pasos",
+          numero: 3,
+          titulo: "La x en los dos lados",
+          resumen: "Juntar las x y resolver, incluso con soluciones negativas.",
+          pasos: guiaEcuacionAmbosLados(),
         },
       ];
   }

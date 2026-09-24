@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import VerticalMultiplicacion from "./vertical-multiplicacion";
+import VerticalPotencia from "./vertical-potencia";
 import { BOTON_RESPONDER, CAJA_DIGITO, soloDigitos, type PropsComunes, type RespuestaPregunta } from "./tipos-pregunta";
 
 // Raiz cuadrada por tanteo y comprobacion: el estudiante escribe la raiz y la comprueba
@@ -9,10 +10,12 @@ import { BOTON_RESPONDER, CAJA_DIGITO, soloDigitos, type PropsComunes, type Resp
 export default function VerticalRaiz({
   radicando,
   raiz,
+  indice = 2,
   bloqueado,
   enviando,
   onResponder,
-}: PropsComunes & { radicando: number; raiz: number }) {
+}: PropsComunes & { radicando: number; raiz: number; indice?: 2 | 3 }) {
+  const simbolo = indice === 3 ? "∛" : "√";
   const cifras = String(raiz).length;
   const [digitos, setDigitos] = useState<string[]>(() => Array(cifras).fill(""));
   const [escrita, setEscrita] = useState<number | null>(null);
@@ -29,7 +32,7 @@ export default function VerticalRaiz({
   function alResponderComprobacion(r: RespuestaPregunta) {
     const candidata = escrita as number;
     const demuestra = r.valor === radicando;
-    const cuadrado = candidata * candidata;
+    const cuadrado = candidata ** indice;
     onResponder({
       respuestaDada: String(candidata),
       valor: demuestra ? candidata : -1,
@@ -46,19 +49,25 @@ export default function VerticalRaiz({
       detalle: demuestra
         ? undefined
         : cuadrado === radicando
-          ? `Tu raíz (${candidata}) era correcta, pero al comprobar ${candidata} × ${candidata} escribiste ${r.valor} y debía dar ${radicando}.`
-          : `Tu raíz fue ${candidata}: ${candidata} × ${candidata} = ${cuadrado}, y no es ${radicando}.`,
+          ? `Tu raíz (${candidata}) era correcta, pero al comprobar escribiste ${r.valor} y debía dar ${radicando}.`
+          : `Tu raíz fue ${candidata}: al comprobar da ${cuadrado}, y no es ${radicando}.`,
     });
   }
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <p className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">√{radicando}</p>
+      <p className="text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        {simbolo}
+        {radicando}
+      </p>
 
       {escrita === null ? (
         <form onSubmit={comprobar} className="flex flex-col items-center gap-3">
           <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">
-            ¿Qué número multiplicado por sí mismo da {radicando}? Escríbelo y luego lo comprobarás multiplicando.
+            {indice === 3
+              ? `¿Qué número multiplicado por sí mismo tres veces da ${radicando}?`
+              : `¿Qué número multiplicado por sí mismo da ${radicando}?`}{" "}
+            Escríbelo y luego lo comprobarás multiplicando.
           </p>
           <div className="flex gap-1">
             {digitos.map((d, k) => (
@@ -92,16 +101,29 @@ export default function VerticalRaiz({
       ) : (
         <div className="flex flex-col items-center gap-3">
           <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">
-            Comprueba tu raíz: <span className="font-mono text-zinc-700 dark:text-zinc-200">{escrita} × {escrita}</span>{" "}
+            Comprueba tu raíz:{" "}
+            <span className="font-mono text-zinc-700 dark:text-zinc-200">
+              {indice === 3 ? `${escrita} × ${escrita} × ${escrita}` : `${escrita} × ${escrita}`}
+            </span>{" "}
             debe dar {radicando}.
           </p>
-          <VerticalMultiplicacion
-            a={escrita}
-            b={escrita}
-            bloqueado={bloqueado}
-            enviando={enviando}
-            onResponder={alResponderComprobacion}
-          />
+          {indice === 3 ? (
+            <VerticalPotencia
+              base={escrita}
+              exponente={3}
+              bloqueado={bloqueado}
+              enviando={enviando}
+              onResponder={alResponderComprobacion}
+            />
+          ) : (
+            <VerticalMultiplicacion
+              a={escrita}
+              b={escrita}
+              bloqueado={bloqueado}
+              enviando={enviando}
+              onResponder={alResponderComprobacion}
+            />
+          )}
         </div>
       )}
     </div>

@@ -1,31 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import { esHabilidadPracticable } from "@/lib/ejercicios/generador";
+import { esHabilidadPracticable, HABILIDADES_PRACTICABLES, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
 import { solicitarEvaluacionNivel } from "./acciones";
 
 const ORDEN_HABILIDADES = [
-  "suma",
-  "resta",
-  "tabla_multiplicacion",
-  "multiplicacion",
-  "division",
-  "potencia",
-  "raiz",
-  "operaciones_combinadas",
+  ...HABILIDADES_PRACTICABLES,
   "atajos",
   "razonamiento",
 ] as const;
 
 const NOMBRES_LEGIBLES: Record<(typeof ORDEN_HABILIDADES)[number], string> = {
-  suma: "Suma",
-  resta: "Resta",
-  tabla_multiplicacion: "Tabla de multiplicar",
-  multiplicacion: "Multiplicación",
-  division: "División",
-  potencia: "Potencia",
-  raiz: "Raíz",
-  operaciones_combinadas: "Operaciones combinadas",
+  ...NOMBRES_HABILIDAD,
   atajos: "Atajos",
   razonamiento: "Razonamiento",
 };
