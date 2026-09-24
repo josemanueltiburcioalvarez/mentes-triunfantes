@@ -11,6 +11,7 @@ interface Etapa {
   b: number;
   escrito: number;
   correcto: boolean;
+  detalle?: string;
   pasos: Json | null;
 }
 
@@ -32,7 +33,7 @@ export default function VerticalPotencia({
   function alResponderEtapa(r: RespuestaPregunta) {
     const nueva: Etapa[] = [
       ...hechas,
-      { a, b: base, escrito: r.valor, correcto: r.valor === a * base, pasos: r.pasos },
+      { a, b: base, escrito: Number(r.respuestaDada), correcto: r.valor === a * base, detalle: r.detalle, pasos: r.pasos },
     ];
     setHechas(nueva);
     if (etapa + 1 < etapasTotal) {
@@ -65,7 +66,11 @@ export default function VerticalPotencia({
         : "Alguna multiplicación intermedia estuvo mal: " +
           nueva
             .filter((e) => !e.correcto)
-            .map((e) => `${e.a} × ${e.b} = ${e.a * e.b} (escribiste ${e.escrito})`)
+            .map(
+              (e) =>
+                `${e.a} × ${e.b} = ${e.a * e.b} (escribiste ${e.escrito})` +
+                (e.detalle ? `. ${e.detalle}` : "")
+            )
             .join("; ") +
           ".",
     });

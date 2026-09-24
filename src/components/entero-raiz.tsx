@@ -31,6 +31,7 @@ export default function EnteroRaiz({
   const [errores, setErrores] = useState(0);
   const [raizEscrita, setRaizEscrita] = useState<number | null>(null);
   const [pasosRaiz, setPasosRaiz] = useState<unknown>(null);
+  const [detalleRaiz, setDetalleRaiz] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
   const simbolo = indice === 3 ? "∛" : "√";
@@ -62,6 +63,7 @@ export default function EnteroRaiz({
     if (r.valor !== magnitudRaiz) setErrores((n) => n + 1);
     setRaizEscrita(r.valor === magnitudRaiz ? magnitudRaiz : null);
     setPasosRaiz(r.pasos);
+    setDetalleRaiz(r.detalle ?? null);
     setMensaje(null);
     setFase("signo");
   }
@@ -105,7 +107,7 @@ export default function EnteroRaiz({
       },
       detalle: bien
         ? undefined
-        : `Llegaste al resultado, pero tuviste ${errores} error${errores === 1 ? "" : "es"} en el camino (elegir si existe, calcular la raíz o poner el signo), así que cuenta como incorrecto.`,
+        : `Llegaste al resultado, pero tuviste ${errores} error${errores === 1 ? "" : "es"} en el camino (elegir si existe, calcular la raíz o poner el signo), así que cuenta como incorrecto.` + (detalleRaiz ? ` ${detalleRaiz}` : ""),
     });
   }
 

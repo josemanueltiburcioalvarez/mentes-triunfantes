@@ -43,7 +43,9 @@ export default function VerticalMultiplicacion({
   const plantilla = `2rem repeat(${n}, 2.75rem)`;
 
   const altoLleno = resultado.reduce((max, d, c) => (d !== "" ? c : max), -1);
-  const valido = altoLleno >= 0 && resultado.slice(0, altoLleno + 1).every((d) => d !== "");
+  // Con dos cifras en el multiplicador, los dos productos parciales son obligatorios.
+  const parcialesCompletos = cifrasB === 1 || [...parcial1, ...parcial2].every((d) => d !== "");
+  const valido = altoLleno >= 0 && resultado.slice(0, altoLleno + 1).every((d) => d !== "") && parcialesCompletos;
 
   function cajasDe(
     etiqueta: string,
@@ -93,9 +95,19 @@ export default function VerticalMultiplicacion({
     const parcialesEscritos = cifrasB === 2 ? [textoDe(parcial1), textoDe(parcial2)] : [];
     const parcialesOk = parcialesEscritos.every((p, i) => normalizarNumero(p) === parcialesEsperados[i]);
 
+    const erroresParciales = parcialesEscritos
+      .map((p, i) =>
+        normalizarNumero(p) === parcialesEsperados[i]
+          ? null
+          : `el producto por las ${i === 0 ? "unidades" : "decenas"} era ${parcialesEsperados[i]} y escribiste ${normalizarNumero(p)}`
+      )
+      .filter((x): x is string => x !== null);
+
+    // El resultado solo cuenta si los productos parciales estan bien.
     onResponder({
       respuestaDada: digitos,
-      valor: Number(digitos),
+      valor: parcialesOk ? Number(digitos) : -1,
+      detalle: parcialesOk ? undefined : `Revisa tu procedimiento: ${erroresParciales.join("; ")}.`,
       pasos: {
         modo: "vertical",
         operacion: "multiplicacion",
@@ -179,7 +191,7 @@ export default function VerticalMultiplicacion({
       <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-500">
         {cifrasB === 1
           ? "Multiplica cifra por cifra de derecha a izquierda. Anota las llevadas arriba."
-          : "Escribe el producto por las unidades y, debajo, el de las decenas corrido una columna a la izquierda. Luego suma. Las llevadas van arriba."}
+          : "Escribe el producto por las unidades y, debajo, el de las decenas corrido una columna a la izquierda. Luego suma. Las llevadas van arriba. Los dos productos son obligatorios."}
       </p>
 
       {!bloqueado && (

@@ -114,13 +114,20 @@ export default function VerticalDivision({
     const restosEsperados = pasos.map((paso) => paso.restoConBajada ?? paso.resto);
     const productosEsperados = pasos.map((paso) => paso.producto);
 
-    const correcta = pasos.every(
-      (_, s) => numero(productos[s]) === productosEsperados[s] && numero(restos[s]) === restosEsperados[s]
-    );
+    const errores: string[] = [];
+    pasos.forEach((_, s) => {
+      if (numero(productos[s]) !== productosEsperados[s])
+        errores.push(`en el paso ${s + 1} el producto a restar era ${productosEsperados[s]} y escribiste ${numero(productos[s])}`);
+      if (numero(restos[s]) !== restosEsperados[s])
+        errores.push(`en el paso ${s + 1} lo que queda (con la cifra que bajas) era ${restosEsperados[s]} y escribiste ${numero(restos[s])}`);
+    });
+    const correcta = errores.length === 0;
 
+    // El cociente solo cuenta si todo el procedimiento esta bien: producto y resta de cada paso.
     onResponder({
       respuestaDada: digitos,
-      valor: Number(digitos),
+      valor: correcta ? Number(digitos) : -1,
+      detalle: correcta ? undefined : `Revisa tu procedimiento: ${errores.join("; ")}.`,
       pasos: {
         modo: "vertical",
         operacion: "division",

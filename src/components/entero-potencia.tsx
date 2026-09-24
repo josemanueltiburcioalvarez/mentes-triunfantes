@@ -22,6 +22,8 @@ export default function EnteroPotencia({
   const [erroresSigno, setErroresSigno] = useState(0);
   const [magnitudEscrita, setMagnitudEscrita] = useState<number | null>(null);
   const [pasosMagnitud, setPasosMagnitud] = useState<unknown>(null);
+  const [trabajoBien, setTrabajoBien] = useState(true);
+  const [detalleTrabajo, setDetalleTrabajo] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
   const magnitud = magnitudBase ** exponente;
@@ -50,13 +52,16 @@ export default function EnteroPotencia({
   }
 
   function alResponderMagnitud(r: RespuestaPregunta) {
-    setMagnitudEscrita(r.valor);
+    // valor es -1 cuando alguna multiplicación intermedia tiene errores; lo escrito va en respuestaDada
+    setMagnitudEscrita(Number(r.respuestaDada));
+    setTrabajoBien(r.valor === magnitud);
+    setDetalleTrabajo(r.detalle ?? null);
     setPasosMagnitud(r.pasos);
   }
 
   function responder() {
     if (bloqueado || magnitudEscrita === null) return;
-    const bien = erroresSigno === 0 && magnitudEscrita === magnitud;
+    const bien = erroresSigno === 0 && trabajoBien && magnitudEscrita === magnitud;
     const escrito = (negativo ? -1 : 1) * magnitudEscrita;
     onResponder({
       respuestaDada: conSigno(escrito),
@@ -77,8 +82,10 @@ export default function EnteroPotencia({
       },
       detalle: bien
         ? undefined
-        : magnitudEscrita !== magnitud
-          ? `La potencia sin signo era ${magnitudBase}${superindice(exponente)} = ${magnitud}, y escribiste ${magnitudEscrita}.`
+        : !trabajoBien || magnitudEscrita !== magnitud
+          ? (magnitudEscrita !== magnitud
+              ? `La potencia sin signo era ${magnitudBase}${superindice(exponente)} = ${magnitud}, y escribiste ${magnitudEscrita}. `
+              : "") + (detalleTrabajo ?? "")
           : `Acertaste el número, pero fallaste ${erroresSigno} ${erroresSigno === 1 ? "vez" : "veces"} al elegir el signo, así que cuenta como incorrecto.`,
     });
   }

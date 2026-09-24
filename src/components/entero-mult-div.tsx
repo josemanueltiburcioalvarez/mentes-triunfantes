@@ -22,6 +22,8 @@ export default function EnteroMultDiv({
   const [magnitudEscrita, setMagnitudEscrita] = useState<number | null>(null);
   const [erroresSigno, setErroresSigno] = useState(0);
   const [pasosMagnitud, setPasosMagnitud] = useState<unknown>(null);
+  const [trabajoBien, setTrabajoBien] = useState(true);
+  const [detalleTrabajo, setDetalleTrabajo] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
   const simbolo = operacion === "multiplicacion" ? "×" : "÷";
@@ -48,13 +50,16 @@ export default function EnteroMultDiv({
   }
 
   function alResponderMagnitud(r: RespuestaPregunta) {
-    setMagnitudEscrita(r.valor);
+    // valor es -1 cuando el procedimiento (productos, restas) tiene errores; lo escrito va en respuestaDada
+    setMagnitudEscrita(Number(r.respuestaDada));
+    setTrabajoBien(r.valor === magnitud);
+    setDetalleTrabajo(r.detalle ?? null);
     setPasosMagnitud(r.pasos);
   }
 
   function responder() {
     if (bloqueado || magnitudEscrita === null) return;
-    const bien = erroresSigno === 0 && magnitudEscrita === magnitud;
+    const bien = erroresSigno === 0 && trabajoBien && magnitudEscrita === magnitud;
     const escrito = (signoCorrecto === "-" ? -1 : 1) * magnitudEscrita;
     onResponder({
       respuestaDada: conSigno(escrito),
@@ -73,8 +78,10 @@ export default function EnteroMultDiv({
       },
       detalle: bien
         ? undefined
-        : magnitudEscrita !== magnitud
-          ? `La cuenta sin signos era ${absA} ${simbolo} ${absB} = ${magnitud}, y escribiste ${magnitudEscrita}.`
+        : !trabajoBien || magnitudEscrita !== magnitud
+          ? (magnitudEscrita !== magnitud
+              ? `La cuenta sin signos era ${absA} ${simbolo} ${absB} = ${magnitud}, y escribiste ${magnitudEscrita}. `
+              : "") + (detalleTrabajo ?? "")
           : `Acertaste el resultado, pero fallaste ${erroresSigno} ${erroresSigno === 1 ? "vez" : "veces"} al elegir el signo, así que cuenta como incorrecto.`,
     });
   }

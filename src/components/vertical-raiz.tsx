@@ -40,7 +40,7 @@ export default function VerticalRaiz({
         modo: "vertical",
         operacion: "raiz",
         raiz_escrita: candidata,
-        producto_escrito: r.valor,
+        producto_escrito: Number(r.respuestaDada),
         comprobacion: r.pasos,
         requeria_marcas: true,
         uso_marcas: true,
@@ -49,7 +49,7 @@ export default function VerticalRaiz({
       detalle: demuestra
         ? undefined
         : cuadrado === radicando
-          ? `Tu raíz (${candidata}) era correcta, pero al comprobar escribiste ${r.valor} y debía dar ${radicando}.`
+          ? `Tu raíz (${candidata}) era correcta, pero la comprobación tuvo errores. ${r.detalle ?? `Escribiste ${r.respuestaDada} y debía dar ${radicando}.`}`
           : `Tu raíz fue ${candidata}: al comprobar da ${cuadrado}, y no es ${radicando}.`,
     });
   }
