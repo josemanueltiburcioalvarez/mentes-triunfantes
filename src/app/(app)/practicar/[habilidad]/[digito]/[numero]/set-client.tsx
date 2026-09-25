@@ -47,6 +47,8 @@ export default function SetPracticaClient({
     { correcto: boolean; respuestaCorrecta: string; detalle?: string } | null
   >(null);
   const [enviando, setEnviando] = useState(false);
+  // aviso no bloqueante cuando no se pudo guardar una respuesta o el cierre de la sesion
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
 
   const [correctos, setCorrectos] = useState(0);
   const [terminado, setTerminado] = useState(false);
@@ -89,6 +91,7 @@ export default function SetPracticaClient({
     const segundos = Math.max(0, (Date.now() - inicioEjercicio) / 1000);
 
     setEnviando(true);
+    setErrorGuardado(null);
     const { error } = await supabase.from("intentos").insert({
       sesion_id: sesionId,
       estudiante_id: estudianteId,
@@ -104,7 +107,7 @@ export default function SetPracticaClient({
     setEnviando(false);
 
     if (error) {
-      setErrorSesion("No se pudo guardar tu respuesta. Intenta de nuevo.");
+      setErrorGuardado("No se pudo guardar tu respuesta. Revisa tu conexión y vuelve a pulsar Responder.");
       return;
     }
 
@@ -115,11 +118,23 @@ export default function SetPracticaClient({
   async function siguiente() {
     if (numeroPregunta >= TOTAL_EJERCICIOS) {
       if (sesionId) {
-        await supabase.from("sesiones").update({ fin: new Date().toISOString() }).eq("id", sesionId);
+        setEnviando(true);
+        setErrorGuardado(null);
+        const { data, error } = await supabase
+          .from("sesiones")
+          .update({ fin: new Date().toISOString() })
+          .eq("id", sesionId)
+          .select("id");
+        setEnviando(false);
+        if (error || !data || data.length === 0) {
+          setErrorGuardado("No se pudo guardar tu resultado. Revisa tu conexión y pulsa de nuevo «Ver resultado».");
+          return;
+        }
       }
       setTerminado(true);
       return;
     }
+    setErrorGuardado(null);
     setNumeroPregunta((n) => n + 1);
     setEjercicio(generarEjercicio(nombreHabilidad, digito));
     setRetroalimentacion(null);
@@ -204,6 +219,12 @@ export default function SetPracticaClient({
           onResponder={manejarRespuesta}
         />
 
+        {errorGuardado && (
+          <p role="alert" className="mt-4 max-w-xs text-sm text-red-600">
+            {errorGuardado}
+          </p>
+        )}
+
         {retroalimentacion && (
           <div className="mt-6 flex flex-col items-center gap-4">
             <p
@@ -220,6 +241,7 @@ export default function SetPracticaClient({
             )}
             <button
               onClick={siguiente}
+              disabled={enviando}
               className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             >
               {numeroPregunta >= TOTAL_EJERCICIOS ? "Ver resultado" : "Siguiente"}

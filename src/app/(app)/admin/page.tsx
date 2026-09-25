@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { NOMBRES_HABILIDAD as NOMBRES_BASE } from "@/lib/ejercicios/generador";
+import FormularioAccion from "@/components/formulario-accion";
 import { autorizarExamen, cancelarAutorizacion } from "./acciones";
 
 const NOMBRES_HABILIDAD: Record<string, string> = {
@@ -75,7 +76,8 @@ export default async function AdminPage() {
                 </div>
 
                 {s.estado === "solicitado" ? (
-                  <form action={autorizarExamen} className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-start gap-3">
+                  <FormularioAccion accion={autorizarExamen} className="flex flex-1 flex-wrap items-center gap-2">
                     <input type="hidden" name="id" value={s.id} />
                     <input
                       type="url"
@@ -91,17 +93,19 @@ export default async function AdminPage() {
                     >
                       Autorizar
                     </button>
+                  </FormularioAccion>
+                  <FormularioAccion accion={cancelarAutorizacion} className="flex items-center py-2">
+                    <input type="hidden" name="id" value={s.id} />
                     <button
                       type="submit"
-                      formAction={cancelarAutorizacion}
-                      formNoValidate
                       className="text-sm text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400"
                     >
                       Rechazar
                     </button>
-                  </form>
+                  </FormularioAccion>
+                  </div>
                 ) : (
-                  <form action={cancelarAutorizacion} className="flex flex-wrap items-center gap-3">
+                  <FormularioAccion accion={cancelarAutorizacion} className="flex flex-wrap items-center gap-3">
                     <input type="hidden" name="id" value={s.id} />
                     <span className="text-sm text-emerald-700 dark:text-emerald-400">Autorizado</span>
                     {s.meet_url && (
@@ -120,7 +124,7 @@ export default async function AdminPage() {
                     >
                       Cancelar autorización
                     </button>
-                  </form>
+                  </FormularioAccion>
                 )}
               </li>
             ))}

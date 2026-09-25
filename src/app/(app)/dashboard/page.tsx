@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { esHabilidadPracticable, HABILIDADES_PRACTICABLES, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
+import FormularioAccion from "@/components/formulario-accion";
 import { solicitarEvaluacionNivel } from "./acciones";
 
 const ORDEN_HABILIDADES = [
@@ -207,10 +208,12 @@ export default async function DashboardPage() {
                       Solicitud enviada. Tu profesor te enviará el link de Meet.
                     </span>
                   ) : (
-                    <form action={solicitarEvaluacionNivel} className="flex flex-col items-center gap-2">
+                    <FormularioAccion accion={solicitarEvaluacionNivel} className="flex flex-col items-center gap-2">
                       <input type="hidden" name="nivel_id" value={nivelFila.id} />
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Se rinde en vivo por Meet con tu profesor y da acceso al siguiente nivel.
+                        {nivel.orden >= nivelesOrdenados[nivelesOrdenados.length - 1].orden
+                          ? "Se rinde en vivo por Meet con tu profesor y cierra el programa."
+                          : "Se rinde en vivo por Meet con tu profesor y da acceso al siguiente nivel."}
                       </p>
                       <button
                         type="submit"
@@ -218,7 +221,7 @@ export default async function DashboardPage() {
                       >
                         Solicitar evaluación de nivel
                       </button>
-                    </form>
+                    </FormularioAccion>
                   )}
                 </div>
               )}

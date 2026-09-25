@@ -3,6 +3,8 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { esHabilidadPracticable, type HabilidadPracticable } from "@/lib/ejercicios/generador";
 import ExamenClient from "@/components/examen-client";
 
+const NIVEL_FINAL = 4;
+
 export default async function ExamenNivelPage({
   params,
 }: {
@@ -11,7 +13,7 @@ export default async function ExamenNivelPage({
   const { orden: ordenStr } = await params;
   const orden = Number(ordenStr);
 
-  if (!Number.isInteger(orden) || orden < 1 || orden > 4) {
+  if (!Number.isInteger(orden) || orden < 1 || orden > NIVEL_FINAL) {
     return <MensajeCentrado titulo="No encontrado" mensaje="Este nivel no existe." />;
   }
 
@@ -93,7 +95,11 @@ export default async function ExamenNivelPage({
       meetUrl={autorizacion.meet_url}
       volverHref="/dashboard"
       volverTexto="Volver al panel"
-      mensajeAprobado="Se desbloqueó el siguiente nivel."
+      mensajeAprobado={
+        orden >= NIVEL_FINAL
+          ? "¡Completaste todos los niveles de Mentes Triunfantes!"
+          : "Se desbloqueó el siguiente nivel."
+      }
     />
   );
 }

@@ -392,9 +392,19 @@ export function generarExamenHabilidad(habilidad: HabilidadPracticable): Ejercic
   return mezclar(preguntasPorDigito(habilidad, 4));
 }
 
-// Evaluacion de nivel: 10 preguntas por habilidad (2 de cada digito), mezcladas.
+// Evaluacion de nivel, mezclada y de unas 30 preguntas como maximo: con pocas habilidades son 10 por
+// habilidad (2 de cada digito); con muchas (ej. Experto) se toma 1 pregunta de los digitos mas altos.
 export function generarExamenNivel(habilidades: HabilidadPracticable[]): EjercicioConDigito[] {
-  return mezclar(habilidades.flatMap((habilidad) => preguntasPorDigito(habilidad, 2)));
+  const porHabilidad = Math.min(10, Math.floor(30 / habilidades.length));
+  if (porHabilidad >= 10) {
+    return mezclar(habilidades.flatMap((habilidad) => preguntasPorDigito(habilidad, 2)));
+  }
+  const digitos = [5, 4, 3, 2, 1].slice(0, Math.max(1, porHabilidad));
+  return mezclar(
+    habilidades.flatMap((habilidad) =>
+      digitos.map((digito) => ({ ...generarEjercicio(habilidad, digito), digito, habilidad }))
+    )
+  );
 }
 
 export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {

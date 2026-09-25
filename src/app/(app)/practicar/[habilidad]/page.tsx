@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
 import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
 import { guiasDe } from "@/lib/guias/catalogo";
+import FormularioAccion from "@/components/formulario-accion";
 import { solicitarExamen } from "./acciones";
 
 const DIGITOS = [1, 2, 3, 4, 5] as const;
@@ -218,7 +219,7 @@ export default async function PracticarPage({
                 Solicitud enviada. Tu profesor te enviará el link de Meet.
               </span>
             ) : (
-              <form action={solicitarExamen} className="flex flex-col items-center gap-2">
+              <FormularioAccion accion={solicitarExamen} className="flex flex-col items-center gap-2">
                 <input type="hidden" name="habilidad" value={nombreHabilidad} />
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   El examen se rinde en vivo por Meet con tu profesor.
@@ -229,7 +230,7 @@ export default async function PracticarPage({
                 >
                   Solicitar examen
                 </button>
-              </form>
+              </FormularioAccion>
             )}
           </div>
         </section>
