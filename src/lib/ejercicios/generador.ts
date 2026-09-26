@@ -185,25 +185,20 @@ function generarPotencia(digito: number): EjercicioGenerado {
       exponente = 2;
       break;
     case 2:
-      base = entreAleatorio(2, 5);
+      base = entreAleatorio(1, 9);
       exponente = 3;
       break;
     case 3:
-      base = entreAleatorio(6, 9);
-      exponente = 3;
+      base = entreAleatorio(10, 50);
+      exponente = 2;
       break;
     case 4:
-      base = entreAleatorio(11, 25);
+      base = entreAleatorio(51, 99);
       exponente = 2;
       break;
     default:
-      if (Math.random() < 0.5) {
-        base = entreAleatorio(2, 6);
-        exponente = 4;
-      } else {
-        base = entreAleatorio(2, 3);
-        exponente = 5;
-      }
+      base = entreAleatorio(2, 9);
+      exponente = Math.random() < 0.5 ? 4 : 5;
   }
   return {
     enunciado: `${base}${superindice(exponente)} =`,
@@ -329,10 +324,10 @@ export function descripcionDigito(habilidad: HabilidadPracticable, digito: numbe
       return [
         "",
         "Cuadrados: de 2² a 9²",
-        "Cubos pequeños: de 2³ a 5³",
-        "Cubos: de 6³ a 9³",
-        "Cuadrados de 2 cifras: de 11² a 25²",
-        "Potencias de exponente 4 y 5 (3⁴, 2⁵...)",
+        "Cubos: de 1³ a 9³",
+        "Cuadrados de 10² a 50²",
+        "Cuadrados de 51² a 99²",
+        "Exponente 4 y 5 con bases de 2 a 9 (3⁴, 7⁵...)",
       ][digito];
     case "raiz":
       return [
@@ -374,14 +369,30 @@ function mezclar<T>(lista: T[]): T[] {
   return lista;
 }
 
+// Genera un ejercicio que no repita ninguno de los ya usados (si el espacio es muy chico, tras varios
+// intentos acepta uno repetido).
+export function generarEjercicioNuevo(
+  habilidad: HabilidadPracticable,
+  digito: number,
+  vistos: Set<string>
+): EjercicioGenerado {
+  let ejercicio = generarEjercicio(habilidad, digito);
+  for (let intento = 0; intento < 40 && vistos.has(ejercicio.enunciado); intento++) {
+    ejercicio = generarEjercicio(habilidad, digito);
+  }
+  vistos.add(ejercicio.enunciado);
+  return ejercicio;
+}
+
 function preguntasPorDigito(
   habilidad: HabilidadPracticable,
   cantidadPorDigito: number
 ): EjercicioConDigito[] {
   const preguntas: EjercicioConDigito[] = [];
   for (let digito = 1; digito <= 5; digito++) {
+    const vistos = new Set<string>();
     for (let i = 0; i < cantidadPorDigito; i++) {
-      preguntas.push({ ...generarEjercicio(habilidad, digito), digito, habilidad });
+      preguntas.push({ ...generarEjercicioNuevo(habilidad, digito, vistos), digito, habilidad });
     }
   }
   return preguntas;

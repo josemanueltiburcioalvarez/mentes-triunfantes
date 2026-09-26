@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import {
-  generarEjercicio,
+  generarEjercicioNuevo,
   textoRespuesta,
   type EjercicioGenerado,
   type HabilidadPracticable,
@@ -47,6 +47,8 @@ export default function SetPracticaClient({
     { correcto: boolean; respuestaCorrecta: string; detalle?: string } | null
   >(null);
   const [enviando, setEnviando] = useState(false);
+  // enunciados ya vistos en este set, para no repetir ejercicios
+  const vistos = useRef(new Set<string>());
   // aviso no bloqueante cuando no se pudo guardar una respuesta o el cierre de la sesion
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
 
@@ -74,7 +76,7 @@ export default function SetPracticaClient({
         return;
       }
       setSesionId(data.id);
-      setEjercicio(generarEjercicio(nombreHabilidad, digito));
+      setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current));
       setInicioEjercicio(Date.now());
     }
     iniciarSesion();
@@ -136,7 +138,7 @@ export default function SetPracticaClient({
     }
     setErrorGuardado(null);
     setNumeroPregunta((n) => n + 1);
-    setEjercicio(generarEjercicio(nombreHabilidad, digito));
+    setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current));
     setRetroalimentacion(null);
     setInicioEjercicio(Date.now());
   }
