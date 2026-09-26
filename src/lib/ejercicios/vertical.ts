@@ -34,6 +34,19 @@ export function marcasEsperadas(operacion: OperacionAditiva, a: number, b: numbe
   return marcas;
 }
 
+// Resta con prestamo "a la peruana": cifra que debe quedar arriba en cada columna despues de prestar.
+// La columna que presta baja 1, la que recibe suma 10 (14, 13...) y una del medio con 0 queda en 9.
+// columna 0 = unidades.
+export function digitosTopeResta(a: number, b: number): number[] {
+  const marcas = marcasEsperadas("resta", a, b);
+  const n = numColumnas("resta", a, b);
+  return Array.from({ length: n }, (_, c) => {
+    const presta = c >= 1 ? marcas[c - 1] : 0;
+    const recibe = c < n - 1 ? marcas[c] : 0;
+    return Number(digitoEn(a, c)) - presta + 10 * recibe;
+  });
+}
+
 // Llevadas del producto parcial por la cifra de unidades del multiplicador.
 // marcas[k] = llevada saliente de la columna k, escrita sobre la columna k+1 (columnas 0..cifras-2).
 export function marcasMultiplicacion(a: number, b: number): number[] {
