@@ -1,7 +1,7 @@
 import type { HabilidadPracticable } from "../ejercicios/generador";
 import { guiaMultiplicacion1, guiaMultiplicacion2, guiaResta, guiaSuma } from "./columnas";
 import { guiaDivision } from "./division";
-import { guiaCombinada, guiaCuadradoDosCifras, guiaPotencia, guiaRaizGrande, guiaRaizIntro } from "./lineas";
+import { guiaCombinada, guiaCuadradoDosCifras, guiaPotencia, guiaRaizGrande, guiaRaizIntro, guiaRaizSuperior } from "./lineas";
 import {
   guiaDividirGrandesSignos,
   guiaEcuacionAmbosLados,
@@ -189,6 +189,13 @@ export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
           titulo: "Raíces grandes: acércate y comprueba",
           resumen: "Cómo encontrar la raíz de un número grande usando las decenas y la última cifra.",
           pasos: guiaRaizGrande(36),
+        },
+        {
+          tipo: "pasos",
+          numero: 3,
+          titulo: "Raíz cúbica, cuarta y quinta",
+          resumen: "El índice dice cuántas veces se multiplica el resultado por sí mismo.",
+          pasos: guiaRaizSuperior(),
         },
       ];
     case "operaciones_combinadas":

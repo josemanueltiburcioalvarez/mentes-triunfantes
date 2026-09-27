@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import VerticalMultiplicacion from "./vertical-multiplicacion";
 import VerticalPotencia from "./vertical-potencia";
+import { SIMBOLO_RAIZ } from "@/lib/ejercicios/generador";
 import { BOTON_RESPONDER, CAJA_DIGITO, soloDigitos, type PropsComunes, type RespuestaPregunta } from "./tipos-pregunta";
 
 // Raiz cuadrada por tanteo y comprobacion: el estudiante escribe la raiz y la comprueba
@@ -14,8 +15,10 @@ export default function VerticalRaiz({
   bloqueado,
   enviando,
   onResponder,
-}: PropsComunes & { radicando: number; raiz: number; indice?: 2 | 3 }) {
-  const simbolo = indice === 3 ? "∛" : "√";
+}: PropsComunes & { radicando: number; raiz: number; indice?: 2 | 3 | 4 | 5 }) {
+  const simbolo = SIMBOLO_RAIZ[indice];
+  const NOMBRE_VECES = { 2: "dos", 3: "tres", 4: "cuatro", 5: "cinco" }[indice];
+  const producto = Array(indice).fill("§").join(" × ");
   const cifras = String(raiz).length;
   const [digitos, setDigitos] = useState<string[]>(() => Array(cifras).fill(""));
   const [escrita, setEscrita] = useState<number | null>(null);
@@ -64,8 +67,8 @@ export default function VerticalRaiz({
       {escrita === null ? (
         <form onSubmit={comprobar} className="flex flex-col items-center gap-3">
           <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">
-            {indice === 3
-              ? `¿Qué número multiplicado por sí mismo tres veces da ${radicando}?`
+            {indice > 2
+              ? `¿Qué número multiplicado por sí mismo ${NOMBRE_VECES} veces da ${radicando}?`
               : `¿Qué número multiplicado por sí mismo da ${radicando}?`}{" "}
             Escríbelo y luego lo comprobarás multiplicando.
           </p>
@@ -103,14 +106,14 @@ export default function VerticalRaiz({
           <p className="max-w-xs text-sm text-zinc-500 dark:text-zinc-400">
             Comprueba tu raíz:{" "}
             <span className="font-mono text-zinc-700 dark:text-zinc-200">
-              {indice === 3 ? `${escrita} × ${escrita} × ${escrita}` : `${escrita} × ${escrita}`}
+              {producto.replaceAll("§", String(escrita))}
             </span>{" "}
             debe dar {radicando}.
           </p>
-          {indice === 3 ? (
+          {indice > 2 ? (
             <VerticalPotencia
               base={escrita}
-              exponente={3}
+              exponente={indice}
               bloqueado={bloqueado}
               enviando={enviando}
               onResponder={alResponderComprobacion}

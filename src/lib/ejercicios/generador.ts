@@ -57,6 +57,8 @@ export interface EjercicioGenerado {
   operacion?: OperacionVertical;
   operandos?: [number, number];
   expresion?: Token[];
+  // raiz cuadrada (2), cubica (3), cuarta (4) o quinta (5)
+  indiceRaiz?: 2 | 3 | 4 | 5;
   // numeros con signo
   terminos?: number[];
   potenciaEntera?: EnteroPotencia;
@@ -208,22 +210,38 @@ function generarPotencia(digito: number): EjercicioGenerado {
   };
 }
 
+// raices cuadradas de los digitos 1 a 3; el 4 es la raiz cubica y el 5 la cuarta y la quinta
 const RANGO_RAIZ: Record<number, [number, number]> = {
   1: [2, 12],
-  2: [13, 25],
-  3: [26, 40],
-  4: [41, 65],
-  5: [66, 99],
+  2: [13, 30],
+  3: [31, 99],
 };
 
+export const SIMBOLO_RAIZ: Record<2 | 3 | 4 | 5, string> = { 2: "√", 3: "∛", 4: "∜", 5: "⁵√" };
+
 function generarRaiz(digito: number): EjercicioGenerado {
-  const [min, max] = RANGO_RAIZ[digito];
-  const raiz = entreAleatorio(min, max);
+  let indice: 2 | 3 | 4 | 5 = 2;
+  let raiz: number;
+  if (digito <= 3) {
+    const [min, max] = RANGO_RAIZ[digito];
+    raiz = entreAleatorio(min, max);
+  } else if (digito === 4) {
+    indice = 3;
+    raiz = entreAleatorio(2, 25);
+  } else if (Math.random() < 0.55) {
+    indice = 4;
+    raiz = entreAleatorio(2, 12);
+  } else {
+    indice = 5;
+    raiz = entreAleatorio(2, 9);
+  }
+  const radicando = raiz ** indice;
   return {
-    enunciado: `√${raiz * raiz} =`,
+    enunciado: `${SIMBOLO_RAIZ[indice]}${radicando} =`,
     respuesta: raiz,
     operacion: "raiz",
-    operandos: [raiz * raiz, raiz],
+    operandos: [radicando, raiz],
+    indiceRaiz: indice,
   };
 }
 
@@ -332,11 +350,11 @@ export function descripcionDigito(habilidad: HabilidadPracticable, digito: numbe
     case "raiz":
       return [
         "",
-        "Raíces de 4 a 144 (√81 = 9)",
-        "Raíces de 169 a 625",
-        "Raíces de 676 a 1 600",
-        "Raíces de 1 681 a 4 225",
-        "Raíces de 4 356 a 9 801",
+        "Raíces cuadradas de 4 a 144 (√81 = 9)",
+        "Raíces cuadradas de 169 a 900",
+        "Raíces cuadradas de 961 a 9 801",
+        "Raíz cúbica (∛27 = 3, ∛15 625 = 25)",
+        "Raíz cuarta y raíz quinta (∜81 = 3, ⁵√32 = 2)",
       ][digito];
     case "operaciones_combinadas":
       return [

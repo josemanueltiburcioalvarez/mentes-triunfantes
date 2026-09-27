@@ -76,7 +76,7 @@ export default function Pregunta(props: Props) {
       case "potencia":
         return <VerticalPotencia {...comunes} base={operandos[0]} exponente={operandos[1]} />;
       case "raiz":
-        return <VerticalRaiz {...comunes} radicando={operandos[0]} raiz={operandos[1]} />;
+        return <VerticalRaiz {...comunes} radicando={operandos[0]} raiz={operandos[1]} indice={ejercicio.indiceRaiz ?? 2} />;
     }
   }
   return <Simple {...props} />;

@@ -113,6 +113,46 @@ export function guiaRaizIntro(raiz: number): PasoGuia[] {
   ];
 }
 
+export function guiaRaizSuperior(): PasoGuia[] {
+  return [
+    {
+      titulo: "Raíces cúbica, cuarta y quinta",
+      texto:
+        "El pequeño número de la raíz (el **índice**) dice cuántas veces se multiplica el resultado por sí mismo. " +
+        "Sin número es la cuadrada (2 veces); **∛** es la cúbica (3 veces), **∜** la cuarta (4 veces) y **⁵√** la quinta (5 veces).",
+      escena: lineas(
+        L("√49 = 7      porque 7 × 7 = 49"),
+        L("∛27 = 3      porque 3 × 3 × 3 = 27", "foco"),
+        L("∜81 = 3      porque 3 × 3 × 3 × 3 = 81", "foco"),
+        L("⁵√32 = 2     porque 2 × 2 × 2 × 2 × 2 = 32", "foco")
+      ),
+    },
+    {
+      titulo: "Busca por tanteo",
+      texto:
+        "Igual que con la cuadrada: pruebas un número y ves si te pasas o te quedas corto. Para **∛125** pruebo 4: 4 × 4 × 4 = 64 (corto); " +
+        "pruebo 5: 5 × 5 × 5 = 125 ✓. Por eso ∛125 = **5**.",
+      escena: lineas(L("4 × 4 × 4 = 64    (es menor)"), L("5 × 5 × 5 = 125   ✓", "resultado"), L("∛125 = 5", "resultado")),
+    },
+    {
+      titulo: "Aprende las potencias que más se usan",
+      texto: "Conocer estas potencias te permite reconocer la raíz al instante.",
+      escena: lineas(
+        L("Cubos:  1, 8, 27, 64, 125, 216, 343, 512, 729, 1000"),
+        L("Cuartas:  2⁴ = 16 · 3⁴ = 81 · 4⁴ = 256 · 5⁴ = 625"),
+        L("Quintas:  2⁵ = 32 · 3⁵ = 243 · 4⁵ = 1024 · 5⁵ = 3125")
+      ),
+    },
+    {
+      titulo: "Compruebo el resultado",
+      texto:
+        "Siempre compruebas elevando tu respuesta al índice: si ∜625 = 5, entonces 5⁴ = 5 × 5 × 5 × 5 = 625. " +
+        "En la práctica esa comprobación la haces con multiplicaciones en vertical, de dos en dos.",
+      escena: lineas(L("∜625 = 5", "resultado"), L("5 × 5 = 25   →   25 × 5 = 125   →   125 × 5 = 625 ✓")),
+    },
+  ];
+}
+
 const ULTIMA_CIFRA: Record<number, number[]> = { 0: [0], 1: [1, 9], 4: [2, 8], 5: [5], 6: [4, 6], 9: [3, 7] };
 
 export function guiaRaizGrande(raiz: number): PasoGuia[] {
