@@ -156,7 +156,7 @@ export default function CombinadasPaso({
             inputMode="numeric"
             autoFocus
             value={entrada}
-            onChange={(e) => setEntrada(soloDigitos(e.target.value, 6))}
+            onChange={(e) => setEntrada(soloDigitos(e.target.value, 7))}
             aria-label="Resultado de la operación"
             className="h-11 w-24 rounded-lg border border-zinc-300 px-2 text-center font-mono text-xl outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
           />

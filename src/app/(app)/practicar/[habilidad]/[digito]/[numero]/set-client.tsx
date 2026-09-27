@@ -76,7 +76,7 @@ export default function SetPracticaClient({
         return;
       }
       setSesionId(data.id);
-      setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current));
+      setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current, numeroEjercicio));
       setInicioEjercicio(Date.now());
     }
     iniciarSesion();
@@ -138,7 +138,7 @@ export default function SetPracticaClient({
     }
     setErrorGuardado(null);
     setNumeroPregunta((n) => n + 1);
-    setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current));
+    setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current, numeroEjercicio));
     setRetroalimentacion(null);
     setInicioEjercicio(Date.now());
   }

@@ -70,7 +70,7 @@ export default async function SetPracticaPage({
       estudianteId={user.id}
       digito={digito}
       numeroEjercicio={numero}
-      descripcionDigito={descripcionDigito(nombreHabilidad, digito)}
+      descripcionDigito={descripcionDigito(nombreHabilidad, digito, numero)}
       notaAprobacion={habilidadFila.nota_aprobacion}
     />
   );

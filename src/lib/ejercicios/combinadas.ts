@@ -205,7 +205,117 @@ export function resultadoFinal(tokens: Token[]): number | null {
 const entre = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const N = num;
 
-function constructor(digito: number): Token[] {
+// Tamano de los numeros segun el ejercicio (1, 2 o 3) del digito:
+// 1 = una cifra, 2 = de 2 a 3 cifras, 3 = de 3 a 4 cifras.
+export type TamanoNumeros = 1 | 2 | 3;
+
+// Versiones con numeros grandes de las plantillas de cada digito. Las divisiones son exactas y las
+// restas positivas por construccion; generarCombinada descarta lo que aun asi no sirva.
+function constructorEscalado(digito: number, m: 2 | 3): Token[] {
+  const T = () => (m === 2 ? entre(10, 999) : entre(100, 9999)); // termino para sumar o restar
+  const TMAX = m === 2 ? 999 : 9999;
+  const M = () => (m === 2 ? entre(12, 99) : entre(100, 999)); // multiplicando
+  const Q = () => (m === 2 ? entre(12, 99) : entre(100, 999)); // cociente
+  const S = () => entre(2, 9); // multiplicador o divisor de una cifra
+  const D = () => entre(2, 6);
+  const B = () => (m === 2 ? entre(10, 30) : entre(31, 99)); // base de 2 cifras
+  const cuadrados =
+    m === 2
+      ? [100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400, 441, 484, 529, 576, 625, 676, 729, 784, 841, 900]
+      : [1024, 1225, 1600, 2025, 2500, 3025, 3600, 4225, 4900, 5625, 6400, 7225, 8100, 9025, 9801];
+  const cuadrado = () => cuadrados[entre(0, cuadrados.length - 1)];
+  const sub = (max: number) => entre(1, Math.max(1, Math.min(max, TMAX)));
+
+  switch (digito) {
+    case 1: {
+      const v = entre(0, 3);
+      if (v === 0) return [N(T()), op("+"), N(M()), op("×"), N(S())];
+      if (v === 1) return [N(M()), op("×"), N(S()), op("+"), N(T())];
+      const mm = M();
+      const s = S();
+      if (v === 2) return [N(mm), op("×"), N(s), op("−"), N(sub(mm * s - 1))];
+      return [N(mm * s + sub(TMAX)), op("−"), N(mm), op("×"), N(s)];
+    }
+    case 2: {
+      const v = entre(0, 4);
+      if (v === 0) {
+        const t = T();
+        const mm = M();
+        const s = S();
+        return [N(t), op("+"), N(mm), op("×"), N(s), op("−"), N(sub(t + mm * s - 1))];
+      }
+      if (v === 1) {
+        const d = D();
+        return [N(M()), op("×"), N(S()), op("+"), N(d * Q()), op("÷"), N(d)];
+      }
+      if (v === 2) {
+        const d = D();
+        const q = Q();
+        return [N(q + sub(TMAX)), op("−"), N(d * q), op("÷"), N(d), op("+"), N(T())];
+      }
+      if (v === 3) {
+        const d = D();
+        return [N(d * Q()), op("÷"), N(d), op("×"), N(S())];
+      }
+      const b = T();
+      return [N(b + sub(TMAX)), op("−"), N(b), op("+"), N(T())];
+    }
+    case 3: {
+      const v = entre(0, 4);
+      if (v === 0) return [LP, N(T()), op("+"), N(T()), RP, op("×"), N(S())];
+      if (v === 1) {
+        const x = T();
+        return [N(S()), op("×"), LP, N(x), op("−"), N(sub(x - 1)), RP];
+      }
+      if (v === 2) {
+        const d = D();
+        const suma = d * Q();
+        const x = entre(1, suma - 1);
+        return [LP, N(x), op("+"), N(suma - x), RP, op("÷"), N(d)];
+      }
+      if (v === 3) {
+        const x = T();
+        return [N(T()), op("+"), LP, N(x), op("−"), N(sub(x - 1)), RP, op("×"), N(S())];
+      }
+      const t1 = T();
+      const t2 = T();
+      return [N(t1 + t2 + sub(TMAX)), op("−"), LP, N(t1), op("+"), N(t2), RP];
+    }
+    case 4: {
+      const v = entre(0, 3);
+      if (v === 0) return [LP, N(T()), op("+"), N(T()), RP, op("×"), LP, N(entre(6, 15)), op("−"), N(entre(1, 5)), RP];
+      if (v === 1) {
+        const d = D();
+        return [N(S()), op("×"), LP, N(T()), op("+"), N(T()), RP, op("−"), N(d * entre(2, 9)), op("÷"), N(d)];
+      }
+      if (v === 2) {
+        return [LP, N(entre(10, 30)), op("−"), N(entre(1, 9)), RP, op("×"), N(M()), op("+"), N(T()), op("×"), N(S())];
+      }
+      const d = D();
+      const suma = d * Q();
+      const x = entre(1, suma - 1);
+      return [LP, N(x), op("+"), N(suma - x), RP, op("÷"), N(d), op("+"), N(M()), op("×"), N(S())];
+    }
+    default: {
+      const v = entre(0, 4);
+      if (v === 0) return [N(T()), op("+"), N(B()), pow(2), op("×"), N(S())];
+      if (v === 1) {
+        const suma = m === 2 ? entre(10, 30) : entre(20, 60);
+        const x = entre(1, suma - 1);
+        const cuad = suma * suma;
+        const divisores = [2, 3, 4, 5, 6, 8, 9, 10, 12].filter((k) => cuad % k === 0);
+        return [LP, N(x), op("+"), N(suma - x), RP, pow(2), op("÷"), N(divisores[entre(0, divisores.length - 1)])];
+      }
+      if (v === 2) return [SQRT, N(cuadrado()), op("+"), N(M()), op("×"), N(S())];
+      if (v === 3) return [N(B()), pow(2), op("−"), SQRT, N(cuadrado())];
+      const x = m === 2 ? entre(12, 30) : entre(20, 60);
+      return [LP, N(x), op("−"), N(entre(1, 9)), RP, pow(2), op("×"), N(S()), op("+"), N(T())];
+    }
+  }
+}
+
+function constructor(digito: number, tamano: TamanoNumeros = 1): Token[] {
+  if (tamano > 1) return constructorEscalado(digito, tamano as 2 | 3);
   const a = entre(2, 9);
   const b = entre(2, 9);
   const c = entre(2, 9);
@@ -283,12 +393,19 @@ function constructor(digito: number): Token[] {
   }
 }
 
-export function generarCombinada(digito: number): { tokens: Token[]; respuesta: number } {
+// valor maximo de cualquier paso segun el tamano de los numeros
+const TOPE_VALOR: Record<TamanoNumeros, number> = { 1: 999, 2: 20000, 3: 100000 };
+// numero mas grande que puede aparecer escrito en el enunciado
+const TOPE_NUMERO: Record<TamanoNumeros, number> = { 1: 99, 2: 999, 3: 9999 };
+
+export function generarCombinada(digito: number, tamano: TamanoNumeros = 1): { tokens: Token[]; respuesta: number } {
   for (let intento = 0; intento < 500; intento++) {
-    const tokens = constructor(digito);
+    const tokens = constructor(digito, tamano);
     const pasos = pasosResolucion(tokens);
     if (!pasos || pasos.length < 2) continue;
-    if (pasos.some((p) => p.reduccion.valor > 999)) continue;
+    if (pasos.some((p) => p.reduccion.valor > TOPE_VALOR[tamano])) continue;
+    // los numeros del enunciado respetan el tamano pedido (2 a 3 cifras o 3 a 4 cifras)
+    if (tamano > 1 && tokens.some((k) => k.t === "num" && k.v > TOPE_NUMERO[tamano])) continue;
     const final = resultadoFinal(tokens);
     if (final === null || final < 1) continue;
     return { tokens, respuesta: final };

@@ -1,4 +1,4 @@
-import { generarCombinada, aTexto, superindice, type Token } from "./combinadas";
+import { generarCombinada, aTexto, superindice, type TamanoNumeros, type Token } from "./combinadas";
 import {
   DESCRIPCIONES_ENTEROS,
   generarDivisionEnteros,
@@ -245,8 +245,9 @@ function generarRaiz(digito: number): EjercicioGenerado {
   };
 }
 
-function generarOperacionesCombinadas(digito: number): EjercicioGenerado {
-  const { tokens, respuesta } = generarCombinada(digito);
+function generarOperacionesCombinadas(digito: number, nivel: number): EjercicioGenerado {
+  const tamano = (nivel === 2 || nivel === 3 ? nivel : 1) as TamanoNumeros;
+  const { tokens, respuesta } = generarCombinada(digito, tamano);
   return { enunciado: `${aTexto(tokens)} =`, respuesta, operacion: "combinadas", expresion: tokens };
 }
 
@@ -291,7 +292,9 @@ function generarEcuaciones(digito: number): EjercicioGenerado {
   return { enunciado: `Resuelve: ${e.texto}`, respuesta: e.solucion, operacion: "ecuacion", ecuacion: e };
 }
 
-export function generarEjercicio(habilidad: HabilidadPracticable, digito: number): EjercicioGenerado {
+// nivel = numero de ejercicio (1 a 3) dentro del digito; solo cambia el tamano de los numeros de las
+// operaciones combinadas (1 = una cifra, 2 = 2 a 3 cifras, 3 = 3 a 4 cifras).
+export function generarEjercicio(habilidad: HabilidadPracticable, digito: number, nivel = 1): EjercicioGenerado {
   switch (habilidad) {
     case "suma":
       return generarSuma(digito);
@@ -308,7 +311,7 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
     case "raiz":
       return generarRaiz(digito);
     case "operaciones_combinadas":
-      return generarOperacionesCombinadas(digito);
+      return generarOperacionesCombinadas(digito, nivel);
     case "suma_enteros":
       return generarSumaEnteros(digito);
     case "resta_enteros":
@@ -326,7 +329,15 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
   }
 }
 
-export function descripcionDigito(habilidad: HabilidadPracticable, digito: number): string {
+const TEXTO_TAMANO = ["", "números de 1 cifra", "números de 2 a 3 cifras", "números de 3 a 4 cifras"];
+
+// numero = ejercicio (1 a 3) dentro del digito; en operaciones combinadas indica el tamano de los numeros
+export function descripcionDigito(habilidad: HabilidadPracticable, digito: number, numero?: number): string {
+  const base = descripcionBase(habilidad, digito);
+  return habilidad === "operaciones_combinadas" && numero ? `${base} · ${TEXTO_TAMANO[numero]}` : base;
+}
+
+function descripcionBase(habilidad: HabilidadPracticable, digito: number): string {
   switch (habilidad) {
     case "tabla_multiplicacion":
       return RANGOS_TABLA[digito].descripcion;
@@ -392,11 +403,12 @@ function mezclar<T>(lista: T[]): T[] {
 export function generarEjercicioNuevo(
   habilidad: HabilidadPracticable,
   digito: number,
-  vistos: Set<string>
+  vistos: Set<string>,
+  nivel = 1
 ): EjercicioGenerado {
-  let ejercicio = generarEjercicio(habilidad, digito);
+  let ejercicio = generarEjercicio(habilidad, digito, nivel);
   for (let intento = 0; intento < 40 && vistos.has(ejercicio.enunciado); intento++) {
-    ejercicio = generarEjercicio(habilidad, digito);
+    ejercicio = generarEjercicio(habilidad, digito, nivel);
   }
   vistos.add(ejercicio.enunciado);
   return ejercicio;
@@ -409,8 +421,11 @@ function preguntasPorDigito(
   const preguntas: EjercicioConDigito[] = [];
   for (let digito = 1; digito <= 5; digito++) {
     const vistos = new Set<string>();
+    // en los examenes se mezclan los tres tamanos de numeros (el ejercicio 1, 2 y 3 de cada digito)
+    const desfase = Math.floor(Math.random() * 3);
     for (let i = 0; i < cantidadPorDigito; i++) {
-      preguntas.push({ ...generarEjercicioNuevo(habilidad, digito, vistos), digito, habilidad });
+      const nivel = ((i + desfase) % 3) + 1;
+      preguntas.push({ ...generarEjercicioNuevo(habilidad, digito, vistos, nivel), digito, habilidad });
     }
   }
   return preguntas;
@@ -431,7 +446,11 @@ export function generarExamenNivel(habilidades: HabilidadPracticable[]): Ejercic
   const digitos = [5, 4, 3, 2, 1].slice(0, Math.max(1, porHabilidad));
   return mezclar(
     habilidades.flatMap((habilidad) =>
-      digitos.map((digito) => ({ ...generarEjercicio(habilidad, digito), digito, habilidad }))
+      digitos.map((digito) => ({
+        ...generarEjercicio(habilidad, digito, 1 + Math.floor(Math.random() * 3)),
+        digito,
+        habilidad,
+      }))
     )
   );
 }
