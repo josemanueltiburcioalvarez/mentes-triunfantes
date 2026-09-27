@@ -181,7 +181,7 @@ function generarPotencia(digito: number): EjercicioGenerado {
   let exponente: number;
   switch (digito) {
     case 1:
-      base = entreAleatorio(2, 9);
+      base = entreAleatorio(2, 12);
       exponente = 2;
       break;
     case 2:
@@ -209,11 +209,11 @@ function generarPotencia(digito: number): EjercicioGenerado {
 }
 
 const RANGO_RAIZ: Record<number, [number, number]> = {
-  1: [2, 9],
-  2: [10, 20],
-  3: [21, 30],
-  4: [31, 50],
-  5: [51, 99],
+  1: [2, 12],
+  2: [13, 25],
+  3: [26, 40],
+  4: [41, 65],
+  5: [66, 99],
 };
 
 function generarRaiz(digito: number): EjercicioGenerado {
@@ -323,7 +323,7 @@ export function descripcionDigito(habilidad: HabilidadPracticable, digito: numbe
     case "potencia":
       return [
         "",
-        "Cuadrados: de 2² a 9²",
+        "Cuadrados: de 2² a 12²",
         "Cubos: de 1³ a 9³",
         "Cuadrados de 10² a 50²",
         "Cuadrados de 51² a 99²",
@@ -332,11 +332,11 @@ export function descripcionDigito(habilidad: HabilidadPracticable, digito: numbe
     case "raiz":
       return [
         "",
-        "Raíces de 4 a 81 (√81 = 9)",
-        "Raíces de 100 a 400",
-        "Raíces de 441 a 900",
-        "Raíces de 961 a 2 500",
-        "Raíces de 2 601 a 9 801",
+        "Raíces de 4 a 144 (√81 = 9)",
+        "Raíces de 169 a 625",
+        "Raíces de 676 a 1 600",
+        "Raíces de 1 681 a 4 225",
+        "Raíces de 4 356 a 9 801",
       ][digito];
     case "operaciones_combinadas":
       return [

@@ -101,43 +101,46 @@ export function generarPotenciaEntera(digito: number): EnteroPotencia {
   let parentesis = true;
   switch (digito) {
     case 1:
-      base = -entre(2, 9);
+      base = -entre(2, 20);
       exponente = 2;
       break;
     case 2:
-      base = -entre(2, 5);
+      base = -entre(2, 12);
       exponente = 3;
       break;
     case 3:
-      base = signoAleatorio() * entre(2, 5);
-      exponente = entre(2, 3);
+      if (Math.random() < 0.65) {
+        base = signoAleatorio() * entre(2, 15);
+        exponente = 2;
+      } else {
+        base = signoAleatorio() * entre(2, 8);
+        exponente = 3;
+      }
       break;
     case 4: {
       const v = entre(0, 2);
       if (v === 0) {
-        base = -entre(2, 4);
-        exponente = 4;
-      } else if (v === 1) {
-        base = -2;
-        exponente = 5;
-      } else {
-        base = signoAleatorio() * entre(2, 6);
+        base = signoAleatorio() * entre(5, 12);
         exponente = 3;
+      } else if (v === 1) {
+        base = signoAleatorio() * entre(2, 9);
+        exponente = 4;
+      } else {
+        base = -entre(2, 5);
+        exponente = 5;
       }
       break;
     }
     default: {
-      const v = entre(0, 2);
-      if (v === 0) {
-        base = entre(2, 12); // −b² : el menos esta afuera
-        exponente = 2;
+      // el signo dentro y fuera del parentesis: −b² , (−b)² , −b³ , (−b)³
+      const v = entre(0, 3);
+      const maximo = v < 2 ? 15 : 9;
+      exponente = v < 2 ? 2 : 3;
+      if (v % 2 === 0) {
+        base = entre(2, maximo); // el menos esta afuera
         parentesis = false;
-      } else if (v === 1) {
-        base = -entre(6, 15);
-        exponente = 2;
       } else {
-        base = -entre(2, 6);
-        exponente = 3;
+        base = -entre(2, maximo);
       }
     }
   }
@@ -165,30 +168,30 @@ export function generarRaizEntera(digito: number): EnteroRaiz {
   let menosAfuera = false;
   switch (digito) {
     case 1:
-      raiz = entre(2, 9);
+      raiz = entre(2, 15);
       negativo = Math.random() < 0.35;
       break;
     case 2:
       indice = 3;
-      raiz = entre(2, 5);
+      raiz = entre(2, 8);
       negativo = Math.random() < 0.5;
       break;
     case 3:
-      raiz = entre(10, 20);
+      raiz = entre(10, 25);
       negativo = Math.random() < 0.3;
       break;
     case 4:
       indice = 3;
-      raiz = entre(6, 10);
+      raiz = entre(6, 15);
       negativo = Math.random() < 0.5;
       break;
     default:
       menosAfuera = true;
-      if (Math.random() < 0.5) {
-        raiz = entre(2, 15);
+      if (Math.random() < 0.55) {
+        raiz = entre(2, 25);
       } else {
         indice = 3;
-        raiz = entre(2, 6);
+        raiz = entre(2, 10);
         negativo = Math.random() < 0.5;
       }
   }
@@ -243,18 +246,18 @@ export const DESCRIPCIONES_ENTEROS: Record<string, string[]> = {
   ],
   potencia_enteros: [
     "",
-    "Cuadrados de números negativos",
-    "Cubos de números negativos",
+    "Cuadrados de números negativos (hasta 20)",
+    "Cubos de números negativos (hasta 12)",
     "Cuadrados y cubos, positivos y negativos",
-    "Exponentes 3, 4 y 5 con base negativa",
-    "El signo dentro y fuera del paréntesis: (−3)² y −3²",
+    "Exponentes 3, 4 y 5, con base positiva o negativa",
+    "El signo dentro y fuera del paréntesis: (−3)², −3², (−2)³, −2³",
   ],
   raiz_enteros: [
     "",
-    "Raíz cuadrada (¿existe o no?)",
-    "Raíz cúbica, positiva y negativa",
-    "Raíces cuadradas de hasta 400",
-    "Raíces cúbicas de hasta 1 000",
+    "Raíz cuadrada hasta 225 (¿existe o no?)",
+    "Raíz cúbica de 8 a 512, positiva y negativa",
+    "Raíces cuadradas hasta 625",
+    "Raíces cúbicas hasta 3 375",
     "Con signo menos afuera: −√49, −∛(−27)",
   ],
 };
