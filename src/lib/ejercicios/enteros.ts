@@ -32,8 +32,10 @@ export interface EnteroSumaResta {
   operadores: SignoBinario[];
 }
 
-export function generarSumaRestaEnteros(digito: number, operador: SignoBinario): EnteroSumaResta {
-  const [min, max] = MAGNITUD_SUMA[digito];
+// En los digitos 4 y 5 (varios sumandos) el ejercicio 1, 2 y 3 usan numeros de 2, 3 y 4 cifras.
+export function generarSumaRestaEnteros(digito: number, operador: SignoBinario, nivel = 1): EnteroSumaResta {
+  const [min, max] =
+    digito >= 4 && nivel === 2 ? [100, 999] : digito >= 4 && nivel === 3 ? [1000, 9999] : MAGNITUD_SUMA[digito];
   const cantidad = TERMINOS_SUMA[digito];
   for (;;) {
     const terminos = Array.from({ length: cantidad }, () => signoAleatorio() * entre(min, max));

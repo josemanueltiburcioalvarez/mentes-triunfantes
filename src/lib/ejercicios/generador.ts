@@ -9,7 +9,7 @@ import {
   type EnteroPotencia,
   type EnteroRaiz,
 } from "./enteros";
-import { DESCRIPCIONES_ECUACIONES, generarEcuacion, type Ecuacion } from "./ecuaciones";
+import { DESCRIPCIONES_ECUACIONES, generarEcuacion, type Ecuacion, type NivelEcuacion } from "./ecuaciones";
 
 export const HABILIDADES_PRACTICABLES = [
   "suma",
@@ -251,13 +251,13 @@ function generarOperacionesCombinadas(digito: number, nivel: number): EjercicioG
   return { enunciado: `${aTexto(tokens)} =`, respuesta, operacion: "combinadas", expresion: tokens };
 }
 
-function generarSumaEnteros(digito: number): EjercicioGenerado {
-  const g = generarSumaRestaEnteros(digito, "+");
+function generarSumaEnteros(digito: number, nivel: number): EjercicioGenerado {
+  const g = generarSumaRestaEnteros(digito, "+", nivel);
   return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "suma_enteros", terminos: g.terminos };
 }
 
-function generarRestaEnteros(digito: number): EjercicioGenerado {
-  const g = generarSumaRestaEnteros(digito, "−");
+function generarRestaEnteros(digito: number, nivel: number): EjercicioGenerado {
+  const g = generarSumaRestaEnteros(digito, "−", nivel);
   return { enunciado: g.enunciado, respuesta: g.respuesta, operacion: "resta_enteros", terminos: g.terminos };
 }
 
@@ -287,13 +287,14 @@ function generarRaizConSigno(digito: number): EjercicioGenerado {
   };
 }
 
-function generarEcuaciones(digito: number): EjercicioGenerado {
-  const e = generarEcuacion(digito);
+function generarEcuaciones(digito: number, nivel: number): EjercicioGenerado {
+  const e = generarEcuacion(digito, (nivel === 2 || nivel === 3 ? nivel : 1) as NivelEcuacion);
   return { enunciado: `Resuelve: ${e.texto}`, respuesta: e.solucion, operacion: "ecuacion", ecuacion: e };
 }
 
-// nivel = numero de ejercicio (1 a 3) dentro del digito; solo cambia el tamano de los numeros de las
-// operaciones combinadas (1 = una cifra, 2 = 2 a 3 cifras, 3 = 3 a 4 cifras).
+// nivel = numero de ejercicio (1 a 3) dentro del digito. Cambia el tamano de los numeros en las
+// operaciones combinadas (1 cifra / 2 a 3 / 3 a 4), las ecuaciones (pequenos / 2 cifras / 3 cifras) y la
+// suma y resta con signos de los digitos 4 y 5 (2 / 3 / 4 cifras).
 export function generarEjercicio(habilidad: HabilidadPracticable, digito: number, nivel = 1): EjercicioGenerado {
   switch (habilidad) {
     case "suma":
@@ -313,9 +314,9 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
     case "operaciones_combinadas":
       return generarOperacionesCombinadas(digito, nivel);
     case "suma_enteros":
-      return generarSumaEnteros(digito);
+      return generarSumaEnteros(digito, nivel);
     case "resta_enteros":
-      return generarRestaEnteros(digito);
+      return generarRestaEnteros(digito, nivel);
     case "multiplicacion_enteros":
       return generarMultiplicacionConSigno(digito);
     case "division_enteros":
@@ -325,7 +326,7 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
     case "raiz_enteros":
       return generarRaizConSigno(digito);
     case "ecuaciones":
-      return generarEcuaciones(digito);
+      return generarEcuaciones(digito, nivel);
   }
 }
 
@@ -334,7 +335,14 @@ const TEXTO_TAMANO = ["", "números de 1 cifra", "números de 2 a 3 cifras", "n�
 // numero = ejercicio (1 a 3) dentro del digito; en operaciones combinadas indica el tamano de los numeros
 export function descripcionDigito(habilidad: HabilidadPracticable, digito: number, numero?: number): string {
   const base = descripcionBase(habilidad, digito);
-  return habilidad === "operaciones_combinadas" && numero ? `${base} · ${TEXTO_TAMANO[numero]}` : base;
+  if (!numero) return base;
+  if (habilidad === "operaciones_combinadas") return `${base} · ${TEXTO_TAMANO[numero]}`;
+  if (habilidad === "ecuaciones") return `${base} · ${["", "números pequeños", "números de 2 cifras", "números de 3 cifras"][numero]}`;
+  if ((habilidad === "suma_enteros" || habilidad === "resta_enteros") && digito >= 4) {
+    const cifras = numero + 1;
+    return base.replace("de 2 cifras", `de ${cifras} cifras`);
+  }
+  return base;
 }
 
 function descripcionBase(habilidad: HabilidadPracticable, digito: number): string {

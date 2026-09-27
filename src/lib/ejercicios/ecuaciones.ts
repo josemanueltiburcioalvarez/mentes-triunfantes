@@ -28,6 +28,20 @@ export interface Ecuacion {
 }
 
 const entre = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+// Tamano de los numeros segun el ejercicio (1, 2 o 3) del digito: 1 = como hasta ahora (pequenos),
+// 2 = de 2 cifras, 3 = de 3 cifras. Cambia la solucion, las constantes y los coeficientes.
+export type NivelEcuacion = 1 | 2 | 3;
+let nivelActual: NivelEcuacion = 1;
+const escalado = () => nivelActual > 1;
+// solucion x, constante suelta b y coeficiente a segun el nivel (o el rango original si es el 1)
+const rangoX = (orig: [number, number]): [number, number] =>
+  nivelActual === 1 ? orig : nivelActual === 2 ? [10, 99] : [100, 999];
+const rangoB = (orig: [number, number]): [number, number] =>
+  nivelActual === 1 ? orig : nivelActual === 2 ? [10, 99] : [100, 999];
+const rangoA = (orig: [number, number]): [number, number] =>
+  nivelActual === 1 ? orig : [orig[0], nivelActual === 2 ? 12 : 15];
+const entreR = (r: [number, number]) => entre(r[0], r[1]);
 // numero para usar dentro de una cuenta: los negativos van entre parentesis
 const n = (v: number) => (v < 0 ? `(−${-v})` : String(v));
 // numero suelto en una ecuacion
@@ -76,8 +90,8 @@ const PISTA_ORDEN =
 
 // x + b = d
 function f1a(): Ecuacion {
-  const x = entre(1, 12);
-  const b = entre(1, 20);
+  const x = entreR(rangoX([1, 12]));
+  const b = entreR(rangoB([1, 20]));
   const d = x + b;
   return {
     texto: `x + ${b} = ${d}`,
@@ -99,8 +113,8 @@ function f1a(): Ecuacion {
 
 // x − b = d
 function f1b(): Ecuacion {
-  const x = entre(2, 20);
-  const b = entre(1, x - 1);
+  const x = entreR(rangoX([2, 20]));
+  const b = entre(Math.min(rangoB([1, 20])[0], x - 1), x - 1);
   const d = x - b;
   return {
     texto: `x − ${b} = ${d}`,
@@ -122,8 +136,8 @@ function f1b(): Ecuacion {
 
 // a x = d
 function f2a(): Ecuacion {
-  const a = entre(2, 9);
-  const x = entre(1, 12);
+  const a = entreR(rangoA([2, 9]));
+  const x = entreR(rangoX([1, 12]));
   const d = a * x;
   return {
     texto: `${a}x = ${d}`,
@@ -145,8 +159,8 @@ function f2a(): Ecuacion {
 
 // x/a = d
 function f2b(): Ecuacion {
-  const a = entre(2, 9);
-  const d = entre(1, 12);
+  const a = entreR(rangoA([2, 9]));
+  const d = entreR(rangoX([1, 12]));
   const x = a * d;
   return {
     texto: `x/${a} = ${d}`,
@@ -168,9 +182,10 @@ function f2b(): Ecuacion {
 
 // a x + b = d   /   a x − b = d
 function f3(resta: boolean): Ecuacion {
-  const a = entre(2, 9);
-  const x = entre(1, 12);
-  const b = resta ? entre(1, Math.min(20, a * x - 1)) : entre(1, 20);
+  const a = entreR(rangoA([2, 9]));
+  const x = entreR(rangoX([1, 12]));
+  const [bMin, bMax] = rangoB([1, 20]);
+  const b = resta ? entre(Math.min(bMin, a * x - 1), Math.min(bMax, a * x - 1)) : entre(bMin, bMax);
   const d = resta ? a * x - b : a * x + b;
   const medio = resta ? d + b : d - b; // = a x
   return {
@@ -207,9 +222,9 @@ function f3(resta: boolean): Ecuacion {
 
 // a (x + b) = d
 function f4a(): Ecuacion {
-  const a = entre(2, 6);
-  const x = entre(1, 10);
-  const b = entre(1, 9);
+  const a = entreR(rangoA([2, 6]));
+  const x = entreR(rangoX([1, 10]));
+  const b = entreR(rangoB([1, 9]));
   const k = x + b;
   const d = a * k;
   return {
@@ -241,9 +256,9 @@ function f4a(): Ecuacion {
 
 // x/a + b = d
 function f4b(): Ecuacion {
-  const a = entre(2, 6);
-  const k = entre(1, 10);
-  const b = entre(1, 12);
+  const a = entreR(rangoA([2, 6]));
+  const k = entreR(rangoX([1, 10]));
+  const b = entreR(rangoB([1, 12]));
   const x = a * k;
   const d = k + b;
   return {
@@ -276,13 +291,13 @@ function f4b(): Ecuacion {
 // a x + b = c x + d   (x puede salir negativa)
 function f5(): Ecuacion {
   for (;;) {
-    const a = entre(3, 9);
+    const a = entreR(rangoA([3, 9]));
     const c = entre(1, a - 2); // coef = a - c >= 2 (evita "1x")
-    const x = (Math.random() < 0.25 ? -1 : 1) * entre(1, 9);
-    const b = (Math.random() < 0.5 ? -1 : 1) * entre(1, 12);
+    const x = (Math.random() < 0.25 ? -1 : 1) * entreR(rangoX([1, 9]));
+    const b = (Math.random() < 0.5 ? -1 : 1) * entreR(rangoB([1, 12]));
     const coef = a - c;
     const d = coef * x + b;
-    if (d === 0 || Math.abs(d) > 60) continue;
+    if (d === 0 || Math.abs(d) > (escalado() ? 20000 : 60)) continue;
 
     const dMenosB = d - b; // = coef x
     return {
@@ -327,7 +342,8 @@ function f5(): Ecuacion {
   }
 }
 
-export function generarEcuacion(digito: number): Ecuacion {
+export function generarEcuacion(digito: number, nivel: NivelEcuacion = 1): Ecuacion {
+  nivelActual = nivel;
   const cara = Math.random() < 0.5;
   switch (digito) {
     case 1:
