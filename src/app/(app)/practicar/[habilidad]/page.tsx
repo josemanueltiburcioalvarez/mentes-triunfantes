@@ -58,26 +58,26 @@ export default async function PracticarPage({
     );
   }
 
-  const { data: progresoEjercicios } = await supabase
-    .from("progreso_ejercicio")
-    .select("digito, numero_ejercicio, desbloqueado, aprobado, mejor_puntaje")
-    .eq("estudiante_id", user.id)
-    .eq("habilidad_id", habilidadFila.id);
-
-  const { data: evaluaciones } = await supabase
-    .from("evaluaciones_habilidad")
-    .select("aprobado, puntaje, created_at")
-    .eq("estudiante_id", user.id)
-    .eq("habilidad_id", habilidadFila.id)
-    .order("created_at", { ascending: false });
-
-  const { data: autorizacionAbierta } = await supabase
-    .from("autorizaciones_examen")
-    .select("estado, meet_url")
-    .eq("estudiante_id", user.id)
-    .eq("habilidad_id", habilidadFila.id)
-    .in("estado", ["solicitado", "autorizado"])
-    .maybeSingle();
+  const [{ data: progresoEjercicios }, { data: evaluaciones }, { data: autorizacionAbierta }] = await Promise.all([
+    supabase
+      .from("progreso_ejercicio")
+      .select("digito, numero_ejercicio, desbloqueado, aprobado, mejor_puntaje")
+      .eq("estudiante_id", user.id)
+      .eq("habilidad_id", habilidadFila.id),
+    supabase
+      .from("evaluaciones_habilidad")
+      .select("aprobado, puntaje, created_at")
+      .eq("estudiante_id", user.id)
+      .eq("habilidad_id", habilidadFila.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("autorizaciones_examen")
+      .select("estado, meet_url")
+      .eq("estudiante_id", user.id)
+      .eq("habilidad_id", habilidadFila.id)
+      .in("estado", ["solicitado", "autorizado"])
+      .maybeSingle(),
+  ]);
 
   const mapaProgreso = new Map(
     (progresoEjercicios ?? []).map((p) => [`${p.digito}-${p.numero_ejercicio}`, p])

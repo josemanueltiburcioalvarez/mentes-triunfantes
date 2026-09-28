@@ -21,15 +21,16 @@ export default async function ProfesorDetallePage({
 
   const supabase = await crearClienteServidor();
 
-  const { data: profesor } = await supabase.from("perfiles").select("id, nombre, email, created_at, rol").eq("id", id).maybeSingle();
+  const [{ data: profesor }, { data: asignaciones }] = await Promise.all([
+    supabase.from("perfiles").select("id, nombre, email, created_at, rol").eq("id", id).maybeSingle(),
+    supabase
+      .from("profesor_estudiante")
+      .select("estudiante_id, fecha_asignacion, estudiante:perfiles!profesor_estudiante_estudiante_id_fkey(nombre, email)")
+      .eq("profesor_id", id)
+      .eq("activo", true)
+      .order("fecha_asignacion", { ascending: false }),
+  ]);
   if (!profesor || profesor.rol !== "profesor") notFound();
-
-  const { data: asignaciones } = await supabase
-    .from("profesor_estudiante")
-    .select("estudiante_id, fecha_asignacion, estudiante:perfiles!profesor_estudiante_estudiante_id_fkey(nombre, email)")
-    .eq("profesor_id", id)
-    .eq("activo", true)
-    .order("fecha_asignacion", { ascending: false });
 
   const idsAsignados = new Set((asignaciones ?? []).map((a) => a.estudiante_id));
 
