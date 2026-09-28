@@ -6,6 +6,7 @@ import { crearClienteNavegador } from "@/lib/supabase/client";
 import {
   generarEjercicioNuevo,
   textoRespuesta,
+  usaNombreDigito,
   type EjercicioGenerado,
   type HabilidadPracticable,
 } from "@/lib/ejercicios/generador";
@@ -195,7 +196,8 @@ export default function SetPracticaClient({
     <div className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-8 sm:px-6">
       <div className="mb-6 flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
         <span>
-          {tituloHabilidad} · Dígito {digito} · Ejercicio {numeroEjercicio}
+          {tituloHabilidad} · {usaNombreDigito(nombreHabilidad) ? `Dígito ${digito} · ` : ""}Ejercicio{" "}
+          {numeroEjercicio}
         </span>
         <span>
           {numeroPregunta} / {TOTAL_EJERCICIOS}

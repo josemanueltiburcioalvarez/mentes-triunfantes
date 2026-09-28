@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
-import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
+import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD, usaNombreDigito } from "@/lib/ejercicios/generador";
 import { guiasDe } from "@/lib/guias/catalogo";
 import FormularioAccion from "@/components/formulario-accion";
 import { solicitarExamen } from "./acciones";
@@ -127,7 +127,8 @@ export default async function PracticarPage({
         {DIGITOS.map((digito) => (
           <section key={digito}>
             <h2 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Dígito {digito} · {descripcionDigito(nombreHabilidad, digito)}
+              {usaNombreDigito(nombreHabilidad) ? `Dígito ${digito} · ` : ""}
+              {descripcionDigito(nombreHabilidad, digito)}
             </h2>
             <div className="grid grid-cols-3 gap-3">
               {EJERCICIOS.map((numero) => {
@@ -183,7 +184,8 @@ export default async function PracticarPage({
               Examen final de {NOMBRES_HABILIDAD[nombreHabilidad]}
             </h2>
             <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-              20 preguntas mezclando los 5 dígitos · {habilidadFila.nota_aprobacion}% para aprobar
+              20 preguntas mezclando {usaNombreDigito(nombreHabilidad) ? "los 5 dígitos" : "todos los niveles"} ·{" "}
+              {habilidadFila.nota_aprobacion}% para aprobar
             </p>
 
             {examenAprobado ? (

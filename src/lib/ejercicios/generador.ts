@@ -31,6 +31,12 @@ export const HABILIDADES_PRACTICABLES = [
 
 export type HabilidadPracticable = (typeof HABILIDADES_PRACTICABLES)[number];
 
+// Solo en suma y resta el "dígito" es el número de cifras de los números; en las demás habilidades
+// es simplemente un grupo de dificultad y no se le pone ese nombre en pantalla.
+export function usaNombreDigito(habilidad: string): boolean {
+  return habilidad === "suma" || habilidad === "resta";
+}
+
 export function esHabilidadPracticable(valor: string): valor is HabilidadPracticable {
   return (HABILIDADES_PRACTICABLES as readonly string[]).includes(valor);
 }

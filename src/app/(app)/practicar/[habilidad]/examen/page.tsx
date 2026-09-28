@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import { esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
+import { esHabilidadPracticable, NOMBRES_HABILIDAD, usaNombreDigito } from "@/lib/ejercicios/generador";
 import ExamenClient from "@/components/examen-client";
 
 export default async function ExamenPage({
@@ -42,7 +42,11 @@ export default async function ExamenPage({
     return (
       <MensajeCentrado
         titulo="Examen bloqueado"
-        mensaje="Primero aprueba los 15 ejercicios (5 dígitos × 3 sets) de esta habilidad."
+        mensaje={
+          usaNombreDigito(habilidad)
+            ? "Primero aprueba los 15 ejercicios (5 dígitos × 3 sets) de esta habilidad."
+            : "Primero aprueba los 15 ejercicios (5 niveles × 3 sets) de esta habilidad."
+        }
         habilidad={habilidad}
       />
     );
