@@ -1,0 +1,32 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, Json } from "@/lib/supabase/database.types";
+
+export type TipoAccion =
+  | "autorizar_examen"
+  | "cancelar_autorizacion"
+  | "cambiar_estado"
+  | "abrir_habilidad"
+  | "revisar_alerta"
+  | "deshacer_revision";
+
+export const ETIQUETAS_ACCION: Record<TipoAccion, string> = {
+  autorizar_examen: "Autorizó un examen",
+  cancelar_autorizacion: "Canceló o rechazó una solicitud de examen",
+  cambiar_estado: "Cambió el estado de un estudiante",
+  abrir_habilidad: "Abrió una habilidad",
+  revisar_alerta: "Revisó una alerta",
+  deshacer_revision: "Volvió a abrir una alerta",
+};
+
+// Deja constancia de una accion del administrador. Un fallo al registrar no interrumpe la accion.
+export async function registrarAccion(
+  supabase: SupabaseClient<Database>,
+  adminId: string,
+  tipo: TipoAccion,
+  estudianteId: string | null,
+  detalle: Record<string, Json | undefined> = {}
+): Promise<void> {
+  await supabase
+    .from("acciones_admin")
+    .insert({ admin_id: adminId, tipo, estudiante_id: estudianteId, detalle: detalle as Json });
+}

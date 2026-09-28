@@ -10,7 +10,7 @@ export default async function ResumenPage() {
     supabase.from("vista_estudiantes_admin").select("id", { count: "exact", head: true }),
     supabase.from("vista_estudiantes_admin").select("id", { count: "exact", head: true }).gte("fecha_ultimo_acceso", hace7),
     supabase.from("autorizaciones_examen").select("id", { count: "exact", head: true }).eq("estado", "solicitado"),
-    supabase.from("vista_sesiones_sospechosas").select("sesion_id", { count: "exact", head: true }).eq("sospechosa", true),
+    supabase.from("vista_sesiones_sospechosas").select("sesion_id", { count: "exact", head: true }).eq("sospechosa", true).is("revision_estado", null),
     supabase
       .from("vista_estudiantes_admin")
       .select("id, nombre, alertas, solicitudes_abiertas, fecha_ultimo_acceso")

@@ -32,3 +32,21 @@ export function tiempoRelativo(iso: string | null | undefined): string {
 export function haceDias(n: number): string {
   return new Date(Date.now() - n * 86_400_000).toISOString();
 }
+
+// Fecha y hora actuales en ISO
+export function ahoraIso(): string {
+  return new Date().toISOString();
+}
+
+// Los ultimos n dias (YYYY-MM-DD, hora de Lima) en orden, terminando hoy
+export function ultimosDias(n: number): string[] {
+  const hoyLima = Date.now() - 5 * 3_600_000;
+  return Array.from({ length: n }, (_, i) => new Date(hoyLima - (n - 1 - i) * 86_400_000).toISOString().slice(0, 10));
+}
+
+// "2026-09-28" -> "28 sep"
+export function diaCorto(dia: string): string {
+  const [, m, d] = dia.split("-");
+  const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  return `${Number(d)} ${meses[Number(m) - 1]}`;
+}

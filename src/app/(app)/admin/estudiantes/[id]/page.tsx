@@ -64,6 +64,7 @@ export default async function FichaEstudiantePage({
       .select("*")
       .eq("estudiante_id", id)
       .eq("sospechosa", true)
+      .is("revision_estado", null)
       .order("inicio", { ascending: false })
       .limit(10),
   ]);
@@ -122,6 +123,14 @@ export default async function FichaEstudiantePage({
             <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{estudiante.nombre}</h1>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">{estudiante.email ?? "Sin correo"}</p>
           </div>
+          <div className="flex flex-col items-end gap-3">
+            <Link
+              href={`/admin/estudiantes/${id}/informe`}
+              target="_blank"
+              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              Informe imprimible
+            </Link>
           <FormularioAccion accion={cambiarEstadoEstudiante} className="flex flex-col items-end gap-1">
             <input type="hidden" name="id" value={id} />
             <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
@@ -146,6 +155,7 @@ export default async function FichaEstudiantePage({
               </button>
             </label>
           </FormularioAccion>
+          </div>
         </div>
 
         <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
@@ -287,7 +297,12 @@ export default async function FichaEstudiantePage({
       {/* Alertas */}
       {(sospechosas.data ?? []).length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-medium text-zinc-800 dark:text-zinc-200">Sesiones sospechosas</h2>
+          <h2 className="mb-3 text-lg font-medium text-zinc-800 dark:text-zinc-200">
+            Sesiones sospechosas sin revisar{" "}
+            <Link href="/admin/alertas" className="text-sm font-normal text-blue-600 underline-offset-2 hover:underline dark:text-blue-400">
+              revisarlas
+            </Link>
+          </h2>
           <div className="overflow-x-auto rounded-xl border border-red-200 dark:border-red-900">
             <table className="w-full text-left text-sm">
               <thead className="bg-red-50 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { EstadoAccion } from "@/components/formulario-accion";
+import { registrarAccion } from "@/lib/admin-log";
 
 const ESTADOS = ["activo", "inactivo", "suspendido"] as const;
 type Estado = (typeof ESTADOS)[number];
@@ -14,6 +15,11 @@ export async function cambiarEstadoEstudiante(_previo: EstadoAccion, formData: F
   if (!id || !ESTADOS.includes(estado)) return { error: "Datos no válidos." };
 
   const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Tu sesión expiró. Vuelve a iniciar sesión." };
+
   const { data, error } = await supabase
     .from("perfiles")
     .update({ estado })
@@ -24,6 +30,7 @@ export async function cambiarEstadoEstudiante(_previo: EstadoAccion, formData: F
   revalidatePath(`/admin/estudiantes/${id}`);
   revalidatePath("/admin/estudiantes");
   if (error || !data || data.length === 0) return { error: "No se pudo cambiar el estado." };
+  await registrarAccion(supabase, user.id, "cambiar_estado", id, { estado });
   return null;
 }
 
@@ -34,6 +41,11 @@ export async function abrirHabilidad(_previo: EstadoAccion, formData: FormData):
   if (!estudianteId || !habilidadId) return { error: "Datos no válidos." };
 
   const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Tu sesión expiró. Vuelve a iniciar sesión." };
+
   const { data, error } = await supabase
     .from("progreso_habilidad")
     .update({ desbloqueada: true })
@@ -51,6 +63,7 @@ export async function abrirHabilidad(_previo: EstadoAccion, formData: FormData):
     .eq("numero_ejercicio", 1);
 
   revalidatePath(`/admin/estudiantes/${estudianteId}`);
+  await registrarAccion(supabase, user.id, "abrir_habilidad", estudianteId, { habilidad_id: habilidadId });
   if (errorSet) return { error: "Se abrió la habilidad, pero no su primer ejercicio." };
   return null;
 }

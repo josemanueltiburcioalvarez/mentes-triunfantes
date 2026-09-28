@@ -8,6 +8,8 @@ const SECCIONES = [
   { href: "/admin/estudiantes", texto: "Estudiantes" },
   { href: "/admin/examenes", texto: "Exámenes", insignia: "solicitudes" as const },
   { href: "/admin/alertas", texto: "Alertas", insignia: "alertas" as const },
+  { href: "/admin/reportes", texto: "Reportes" },
+  { href: "/admin/registro", texto: "Registro" },
 ];
 
 export default function AdminNav({ solicitudes, alertas }: { solicitudes: number; alertas: number }) {
@@ -15,7 +17,7 @@ export default function AdminNav({ solicitudes, alertas }: { solicitudes: number
   const cuentas = { solicitudes, alertas };
 
   return (
-    <nav className="mb-6 flex flex-wrap gap-1 border-b border-zinc-200 dark:border-zinc-800" aria-label="Secciones del panel">
+    <nav className="mb-6 flex flex-wrap gap-1 print:hidden border-b border-zinc-200 dark:border-zinc-800" aria-label="Secciones del panel">
       {SECCIONES.map((s) => {
         const activa = s.exacto ? ruta === s.href : ruta.startsWith(s.href);
         const n = s.insignia ? cuentas[s.insignia] : 0;

@@ -12,6 +12,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      acciones_admin: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          detalle: Json
+          estudiante_id: string | null
+          id: string
+          tipo: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          detalle?: Json
+          estudiante_id?: string | null
+          id?: string
+          tipo: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          detalle?: Json
+          estudiante_id?: string | null
+          id?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
+      revisiones_alerta: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          estado: string
+          nota: string | null
+          sesion_id: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          estado: string
+          nota?: string | null
+          sesion_id: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          estado?: string
+          nota?: string | null
+          sesion_id?: string
+        }
+        Relationships: []
+      }
       autorizaciones_examen: {
         Row: {
           autorizado_at: string | null
@@ -645,6 +696,34 @@ export type Database = {
         }
         Relationships: []
       }
+      vista_reporte_habilidades: {
+        Row: {
+          dominio_promedio: number | null
+          estudiantes_activos: number | null
+          estudiantes_habilitados: number | null
+          examenes_aprobados: number | null
+          examenes_rendidos: number | null
+          habilidad: string | null
+          habilidad_id: string | null
+          habilidad_orden: number | null
+          nivel: string | null
+          nivel_orden: number | null
+          pct_correctas: number | null
+          respuestas: number | null
+          segundos_promedio: number | null
+        }
+        Relationships: []
+      }
+      vista_actividad_diaria: {
+        Row: {
+          correctas: number | null
+          dia: string | null
+          estudiantes_activos: number | null
+          respuestas: number | null
+          sesiones: number | null
+        }
+        Relationships: []
+      }
       vista_estudiantes_admin: {
         Row: {
           alertas: number | null
@@ -673,6 +752,9 @@ export type Database = {
           nivel_nombre: string | null
           requerian_marcas: number | null
           respuestas_rapidas: number | null
+          revision_estado: string | null
+          revision_fecha: string | null
+          revision_nota: string | null
           segundos_promedio: number | null
           sesion_id: string | null
           sin_marcas: number | null

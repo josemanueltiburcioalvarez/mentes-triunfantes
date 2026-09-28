@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // insignias del menu: solicitudes de examen abiertas y sesiones sospechosas
   const [{ count: solicitudes }, { count: alertas }] = await Promise.all([
     supabase.from("autorizaciones_examen").select("id", { count: "exact", head: true }).eq("estado", "solicitado"),
-    supabase.from("vista_sesiones_sospechosas").select("sesion_id", { count: "exact", head: true }).eq("sospechosa", true),
+    supabase.from("vista_sesiones_sospechosas").select("sesion_id", { count: "exact", head: true }).eq("sospechosa", true).is("revision_estado", null),
   ]);
 
   return (
