@@ -47,18 +47,28 @@ export function digitosTopeResta(a: number, b: number): number[] {
   });
 }
 
-// Llevadas del producto parcial por la cifra de unidades del multiplicador.
+// Llevadas de a × una cifra (0-9) del multiplicador.
 // marcas[k] = llevada saliente de la columna k, escrita sobre la columna k+1 (columnas 0..cifras-2).
-export function marcasMultiplicacion(a: number, b: number): number[] {
-  const unidades = b % 10;
+function marcasProductoParcial(a: number, cifraMultiplicador: number): number[] {
   const cifras = String(a).length;
   const marcas: number[] = [];
   let llevada = 0;
   for (let j = 0; j < cifras - 1; j++) {
-    llevada = Math.floor((Number(digitoEn(a, j)) * unidades + llevada) / 10);
+    llevada = Math.floor((Number(digitoEn(a, j)) * cifraMultiplicador + llevada) / 10);
     marcas.push(llevada);
   }
   return marcas;
+}
+
+// Llevadas del producto parcial por la cifra de unidades del multiplicador.
+export function marcasMultiplicacion(a: number, b: number): number[] {
+  return marcasProductoParcial(a, b % 10);
+}
+
+// Llevadas del producto parcial por la cifra de decenas del multiplicador (multiplicador de 2 cifras):
+// son llevadas distintas a las del producto por las unidades, asi que se piden y revisan por separado.
+export function marcasMultiplicacionDecenas(a: number, b: number): number[] {
+  return marcasProductoParcial(a, Math.floor(b / 10) % 10);
 }
 
 // Productos parciales: [a * unidades, a * decenas?]
