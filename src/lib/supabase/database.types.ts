@@ -705,6 +705,7 @@ export type Database = {
         | "potencia_enteros"
         | "raiz_enteros"
         | "ecuaciones"
+        | "combinadas_enteros"
       rol_usuario: "estudiante" | "profesor" | "admin"
       tipo_sesion: "practica" | "evaluacion" | "evaluacion_habilidad"
     }

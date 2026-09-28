@@ -28,6 +28,9 @@ export default function Pregunta(props: Props) {
   if (ejercicio.operacion === "combinadas" && ejercicio.expresion) {
     return <CombinadasPaso {...comunes} expresion={ejercicio.expresion} />;
   }
+  if (ejercicio.operacion === "combinadas_enteros" && ejercicio.expresion) {
+    return <CombinadasPaso {...comunes} expresion={ejercicio.expresion} conSignos />;
+  }
 
   switch (ejercicio.operacion) {
     case "suma_enteros":

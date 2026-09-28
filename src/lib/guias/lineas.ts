@@ -203,13 +203,31 @@ export function guiaRaizGrande(raiz: number): PasoGuia[] {
 }
 
 // ---------------------------------------------------------------- operaciones combinadas
-export function guiaCombinada(tokens: Token[]): PasoGuia[] {
-  const resolucion = pasosResolucion(tokens);
+const textoNum = (v: number) => (v < 0 ? `−${-v}` : String(v));
+
+export function guiaCombinada(tokens: Token[], conSignos = false): PasoGuia[] {
+  const resolucion = pasosResolucion(tokens, conSignos);
   if (!resolucion) return [];
   const inicial = aTexto(tokens);
 
-  const pasos: PasoGuia[] = [
-    {
+  const pasos: PasoGuia[] = [];
+  if (conSignos) {
+    pasos.push({
+      titulo: "Cuida el signo en cada paso",
+      texto:
+        "Las operaciones combinadas con signos siguen **el mismo orden** de siempre, pero cada cuenta se hace con la regla de los signos: " +
+        "al multiplicar o dividir, signos iguales dan **+** y signos diferentes dan **−**; al sumar o restar, recuerda que restar un negativo es sumar.",
+      escena: lineas(
+        L(inicial, "foco"),
+        L(""),
+        L("(+) × (+) = +      (−) × (−) = +"),
+        L("(+) × (−) = −      (−) × (+) = −"),
+        L("(el signo de ÷ funciona igual)"),
+        L("a − (−b) = a + b")
+      ),
+    });
+  }
+  pasos.push({
       titulo: "Hay un orden para resolver",
       texto:
         "Cuando una cuenta mezcla varias operaciones no se resuelve de corrido, de izquierda a derecha: hay un **orden**. " +
@@ -224,13 +242,12 @@ export function guiaCombinada(tokens: Token[]): PasoGuia[] {
         L("4.º  Sumas y restas"),
         L("(mismo nivel: de izquierda a derecha)", "apagado")
       ),
-    },
-  ];
+    });
 
   const historia: string[] = [inicial];
   resolucion.forEach((p) => {
     const r = p.reduccion;
-    const cuenta = `${r.operacion} = **${r.valor}**`;
+    const cuenta = `${r.operacion} = **${textoNum(r.valor)}**`;
     let titulo: string;
     let texto: string;
     if (p.dentroDeParentesis) {
@@ -265,7 +282,7 @@ export function guiaCombinada(tokens: Token[]): PasoGuia[] {
   const valor = ultimo[0].t === "num" ? ultimo[0].v : 0;
   pasos.push({
     titulo: "Resultado",
-    texto: `El resultado es **${valor}**. Si hubieras resuelto de corrido, de izquierda a derecha, te habría salido otro número.`,
+    texto: `El resultado es **${textoNum(valor)}**. Si hubieras resuelto de corrido, de izquierda a derecha, te habría salido otro número.`,
     escena: lineas(...historia.map((l, i) => L(l, i === historia.length - 1 ? "resultado" : "apagado"))),
   });
   return pasos;

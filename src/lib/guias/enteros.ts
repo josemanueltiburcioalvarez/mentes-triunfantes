@@ -310,6 +310,18 @@ export function guiaRaizExiste(): PasoGuia[] {
       escena: lineas(L("∛(−27)", "foco"), L("(−3) × (−3) × (−3) = −27"), L("∛(−27) = (−3)", "resultado")),
     },
     {
+      titulo: "Índice par o impar: cuarta y quinta",
+      texto:
+        "La regla depende de si el índice es **par** (2, 4) o **impar** (3, 5). Con índice **par** un negativo no tiene raíz: ∜(−16) **no existe**. " +
+        "Con índice **impar** sí existe y conserva el signo: ⁵√(−32) = **−2**, porque (−2) × (−2) × (−2) × (−2) × (−2) = −32.",
+      escena: lineas(
+        L("∜16 = 2        (2⁴ = 16)"),
+        L("∜(−16)         no existe (índice par)", "foco"),
+        L("⁵√32 = 2       (2⁵ = 32)"),
+        L("⁵√(−32) = −2   (índice impar)", "foco")
+      ),
+    },
+    {
       titulo: "Compruebas multiplicando",
       texto:
         "Como siempre, la raíz se comprueba multiplicando. Con los números sin signo: 3 × 3 × 3 = 27. Eso es lo que escribirás en vertical.",

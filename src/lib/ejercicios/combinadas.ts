@@ -25,12 +25,15 @@ export const superindice = (n: number) =>
     .map((d) => SUPERINDICES[Number(d)])
     .join("");
 
+// numero para mostrar dentro de una cuenta: los negativos van entre parentesis, (−5)
+export const numeroTexto = (v: number) => (v < 0 ? `(−${-v})` : String(v));
+
 export function aTexto(tokens: Token[]): string {
   return tokens
     .map((k) => {
       switch (k.t) {
         case "num":
-          return String(k.v);
+          return numeroTexto(k.v);
         case "op":
           return ` ${k.v} `;
         case "lp":
@@ -111,7 +114,7 @@ export function candidatas(tokens: Token[]): Reduccion[] {
         hasta: i + 1,
         indiceClic: i,
         valor: calcular(izq.v, k.v, der.v),
-        operacion: `${izq.v} ${k.v} ${der.v}`,
+        operacion: `${numeroTexto(izq.v)} ${k.v} ${numeroTexto(der.v)}`,
         permitida: !motivo,
         motivo,
         categoria: prec(k.v) === 1 ? "aditiva" : "multiplicativa",
@@ -125,7 +128,7 @@ export function candidatas(tokens: Token[]): Reduccion[] {
         hasta: i,
         indiceClic: i,
         valor: base.v ** k.e,
-        operacion: `${base.v}${superindice(k.e)}`,
+        operacion: `${numeroTexto(base.v)}${superindice(k.e)}`,
         permitida: !motivo,
         motivo,
         categoria: "potencia",
@@ -175,8 +178,8 @@ export interface PasoResolucion {
 }
 
 // Resolucion canonica (primera operacion permitida de izquierda a derecha). null si algun paso
-// no da un entero >= 0 o si queda atascada.
-export function pasosResolucion(inicial: Token[]): PasoResolucion[] | null {
+// no da un entero (>= 0, salvo que se permitan negativos) o si queda atascada.
+export function pasosResolucion(inicial: Token[], permitirNegativos = false): PasoResolucion[] | null {
   let tokens = limpiar(inicial);
   const pasos: PasoResolucion[] = [];
   for (let guarda = 0; guarda < 30; guarda++) {
@@ -184,7 +187,7 @@ export function pasosResolucion(inicial: Token[]): PasoResolucion[] | null {
     const posibles = candidatas(tokens).filter((c) => c.permitida);
     if (posibles.length === 0) return null;
     const elegida = posibles[0];
-    if (!Number.isInteger(elegida.valor) || elegida.valor < 0) return null;
+    if (!Number.isInteger(elegida.valor) || (!permitirNegativos && elegida.valor < 0)) return null;
     const despues = aplicar(tokens, elegida);
     const abiertos = tokens.slice(0, elegida.desde).filter((k) => k.t === "lp").length;
     const cerrados = tokens.slice(0, elegida.desde).filter((k) => k.t === "rp").length;
@@ -194,8 +197,8 @@ export function pasosResolucion(inicial: Token[]): PasoResolucion[] | null {
   return null;
 }
 
-export function resultadoFinal(tokens: Token[]): number | null {
-  const pasos = pasosResolucion(tokens);
+export function resultadoFinal(tokens: Token[], permitirNegativos = false): number | null {
+  const pasos = pasosResolucion(tokens, permitirNegativos);
   if (!pasos) return null;
   const ultimo = pasos.length ? pasos[pasos.length - 1].despues : limpiar(tokens);
   return ultimo.length === 1 && ultimo[0].t === "num" ? ultimo[0].v : null;
@@ -398,17 +401,43 @@ const TOPE_VALOR: Record<TamanoNumeros, number> = { 1: 999, 2: 20000, 3: 100000 
 // numero mas grande que puede aparecer escrito en el enunciado
 const TOPE_NUMERO: Record<TamanoNumeros, number> = { 1: 99, 2: 999, 3: 9999 };
 
-export function generarCombinada(digito: number, tamano: TamanoNumeros = 1): { tokens: Token[]; respuesta: number } {
+// Vuelve negativos al azar algunos numeros de una expresion (nunca el radicando de una raiz). Las
+// divisiones siguen siendo exactas y las raices, de numeros positivos.
+function ponerSignos(tokens: Token[]): Token[] {
+  const copia: Token[] = tokens.map((k) => ({ ...k }));
+  const candidatos = copia.flatMap((k, i) => (k.t === "num" && copia[i - 1]?.t !== "sqrt" ? [i] : []));
+  let alguno = false;
+  candidatos.forEach((i) => {
+    if (Math.random() < 0.4) {
+      const k = copia[i] as { t: "num"; v: number };
+      k.v = -k.v;
+      alguno = true;
+    }
+  });
+  if (!alguno && candidatos.length > 0) {
+    const k = copia[candidatos[entre(0, candidatos.length - 1)]] as { t: "num"; v: number };
+    k.v = -k.v;
+  }
+  return copia;
+}
+
+export function generarCombinada(
+  digito: number,
+  tamano: TamanoNumeros = 1,
+  conSignos = false
+): { tokens: Token[]; respuesta: number } {
   for (let intento = 0; intento < 500; intento++) {
-    const tokens = constructor(digito, tamano);
-    const pasos = pasosResolucion(tokens);
+    const base = constructor(digito, tamano);
+    const tokens = conSignos ? ponerSignos(base) : base;
+    const pasos = pasosResolucion(tokens, conSignos);
     if (!pasos || pasos.length < 2) continue;
-    if (pasos.some((p) => p.reduccion.valor > TOPE_VALOR[tamano])) continue;
+    if (pasos.some((p) => Math.abs(p.reduccion.valor) > TOPE_VALOR[tamano])) continue;
     // los numeros del enunciado respetan el tamano pedido (2 a 3 cifras o 3 a 4 cifras)
-    if (tamano > 1 && tokens.some((k) => k.t === "num" && k.v > TOPE_NUMERO[tamano])) continue;
-    const final = resultadoFinal(tokens);
-    if (final === null || final < 1) continue;
+    if (tamano > 1 && tokens.some((k) => k.t === "num" && Math.abs(k.v) > TOPE_NUMERO[tamano])) continue;
+    const final = resultadoFinal(tokens, conSignos);
+    if (final === null || (conSignos ? final === 0 : final < 1)) continue;
     return { tokens, respuesta: final };
   }
+  if (conSignos) return { tokens: [N(3), op("+"), N(-4), op("×"), N(5)], respuesta: -17 };
   return { tokens: [N(3), op("+"), N(4), op("×"), N(5)], respuesta: 23 };
 }

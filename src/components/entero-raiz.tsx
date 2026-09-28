@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Json } from "@/lib/supabase/database.types";
-import { NO_EXISTE, type EnteroRaiz as DatosRaiz } from "@/lib/ejercicios/enteros";
+import { NO_EXISTE, SIMBOLO_RAIZ, type EnteroRaiz as DatosRaiz } from "@/lib/ejercicios/enteros";
 import VerticalRaiz from "./vertical-raiz";
 import { BotonResponder, Mensaje, Opciones, OPCIONES_SIGNO, conSigno, type Opcion } from "./entero-comun";
 import type { PropsComunes, RespuestaPregunta } from "./tipos-pregunta";
@@ -34,7 +34,8 @@ export default function EnteroRaiz({
   const [detalleRaiz, setDetalleRaiz] = useState<string | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
 
-  const simbolo = indice === 3 ? "∛" : "√";
+  const simbolo = SIMBOLO_RAIZ[indice];
+  const impar = indice % 2 === 1;
   const cuerpo = radicando < 0 ? `(−${magnitudRadicando})` : String(radicando);
   const expresion = `${menosAfuera ? "−" : ""}${simbolo}${cuerpo}`;
 
@@ -48,10 +49,10 @@ export default function EnteroRaiz({
     if ((id === "si") !== existe) {
       fallar(
         existe
-          ? indice === 3
-            ? "Las raíces cúbicas sí existen para números negativos: (−2)³ = −8, por eso ∛(−8) = −2."
-            : `Sí existe: ${magnitudRaiz} × ${magnitudRaiz} = ${magnitudRadicando}.`
-          : "Ningún número multiplicado por sí mismo da un resultado negativo (+ por + da +, y − por − también da +), así que la raíz cuadrada de un negativo no existe en los enteros."
+          ? impar
+            ? "Las raíces de índice impar (cúbica, quinta) sí existen para números negativos: (−2)³ = −8, por eso ∛(−8) = −2."
+            : `Sí existe: ${Array(indice).fill(magnitudRaiz).join(" × ")} = ${magnitudRadicando}.`
+          : "Un número elevado a un exponente par (2, 4...) nunca da un resultado negativo: los negativos se cancelan de dos en dos. Por eso la raíz de índice par de un negativo no existe en los enteros."
       );
       return;
     }
@@ -75,9 +76,9 @@ export default function EnteroRaiz({
       fallar(
         menosAfuera
           ? "Primero se calcula la raíz (con su signo) y después el menos de afuera cambia el signo de ese resultado."
-          : indice === 3
-            ? "En la raíz cúbica el resultado tiene el mismo signo que el número de adentro."
-            : "La raíz cuadrada da un resultado positivo."
+          : impar
+            ? "En una raíz de índice impar (cúbica, quinta) el resultado tiene el mismo signo que el número de adentro."
+            : "Una raíz de índice par (cuadrada, cuarta) da un resultado positivo."
       );
       return;
     }

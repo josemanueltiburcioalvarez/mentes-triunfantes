@@ -6,6 +6,7 @@ import {
   generarPotenciaEntera,
   generarRaizEntera,
   generarSumaRestaEnteros,
+  SIMBOLO_RAIZ,
   type EnteroPotencia,
   type EnteroRaiz,
 } from "./enteros";
@@ -27,6 +28,7 @@ export const HABILIDADES_PRACTICABLES = [
   "potencia_enteros",
   "raiz_enteros",
   "ecuaciones",
+  "combinadas_enteros",
 ] as const;
 
 export type HabilidadPracticable = (typeof HABILIDADES_PRACTICABLES)[number];
@@ -55,7 +57,8 @@ export type OperacionVertical =
   | "division_enteros"
   | "potencia_enteros"
   | "raiz_enteros"
-  | "ecuacion";
+  | "ecuacion"
+  | "combinadas_enteros";
 
 export interface EjercicioGenerado {
   enunciado: string;
@@ -223,7 +226,7 @@ const RANGO_RAIZ: Record<number, [number, number]> = {
   3: [31, 99],
 };
 
-export const SIMBOLO_RAIZ: Record<2 | 3 | 4 | 5, string> = { 2: "√", 3: "∛", 4: "∜", 5: "⁵√" };
+export { SIMBOLO_RAIZ };
 
 function generarRaiz(digito: number): EjercicioGenerado {
   let indice: 2 | 3 | 4 | 5 = 2;
@@ -293,6 +296,12 @@ function generarRaizConSigno(digito: number): EjercicioGenerado {
   };
 }
 
+function generarCombinadasEnteros(digito: number, nivel: number): EjercicioGenerado {
+  const tamano = (nivel === 2 || nivel === 3 ? nivel : 1) as TamanoNumeros;
+  const { tokens, respuesta } = generarCombinada(digito, tamano, true);
+  return { enunciado: `${aTexto(tokens)} =`, respuesta, operacion: "combinadas_enteros", expresion: tokens };
+}
+
 function generarEcuaciones(digito: number, nivel: number): EjercicioGenerado {
   const e = generarEcuacion(digito, (nivel === 2 || nivel === 3 ? nivel : 1) as NivelEcuacion);
   return { enunciado: `Resuelve: ${e.texto}`, respuesta: e.solucion, operacion: "ecuacion", ecuacion: e };
@@ -333,6 +342,8 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
       return generarRaizConSigno(digito);
     case "ecuaciones":
       return generarEcuaciones(digito, nivel);
+    case "combinadas_enteros":
+      return generarCombinadasEnteros(digito, nivel);
   }
 }
 
@@ -342,7 +353,9 @@ const TEXTO_TAMANO = ["", "números de 1 cifra", "números de 2 a 3 cifras", "n�
 export function descripcionDigito(habilidad: HabilidadPracticable, digito: number, numero?: number): string {
   const base = descripcionBase(habilidad, digito);
   if (!numero) return base;
-  if (habilidad === "operaciones_combinadas") return `${base} · ${TEXTO_TAMANO[numero]}`;
+  if (habilidad === "operaciones_combinadas" || habilidad === "combinadas_enteros") {
+    return `${base} · ${TEXTO_TAMANO[numero]}`;
+  }
   if (habilidad === "ecuaciones") return `${base} · ${["", "números pequeños", "números de 2 cifras", "números de 3 cifras"][numero]}`;
   if ((habilidad === "suma_enteros" || habilidad === "resta_enteros") && digito >= 4) {
     const cifras = numero + 1;
@@ -399,6 +412,15 @@ function descripcionBase(habilidad: HabilidadPracticable, digito: number): strin
       return DESCRIPCIONES_ENTEROS[habilidad][digito];
     case "ecuaciones":
       return DESCRIPCIONES_ECUACIONES[digito];
+    case "combinadas_enteros":
+      return [
+        "",
+        "Multiplicar antes de sumar o restar, con números negativos",
+        "Varias operaciones con signos (y de izquierda a derecha)",
+        "Con paréntesis y números negativos",
+        "Paréntesis y varias operaciones con signos",
+        "Con potencias y raíces, y bases negativas",
+      ][digito];
     default:
       return RANGOS_SUMA_RESTA[digito].descripcion;
   }
@@ -485,6 +507,7 @@ export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {
   potencia_enteros: "Potencia con signos",
   raiz_enteros: "Raíz con signos",
   ecuaciones: "Ecuaciones",
+  combinadas_enteros: "Operaciones combinadas con signos",
 };
 
 // Texto de la respuesta correcta para guardar y mostrar (los negativos con signo menos tipografico).

@@ -119,26 +119,21 @@ export function generarPotenciaEntera(digito: number): EnteroPotencia {
         exponente = 3;
       }
       break;
-    case 4: {
-      const v = entre(0, 2);
-      if (v === 0) {
-        base = signoAleatorio() * entre(5, 12);
-        exponente = 3;
-      } else if (v === 1) {
-        base = signoAleatorio() * entre(2, 9);
+    case 4:
+      // exponentes 4 y 5 con bases chicas, positivas o negativas
+      if (Math.random() < 0.6) {
+        base = signoAleatorio() * entre(2, 6);
         exponente = 4;
       } else {
-        base = -entre(2, 5);
+        base = signoAleatorio() * entre(2, 4);
         exponente = 5;
       }
       break;
-    }
     default: {
-      // el signo dentro y fuera del parentesis: −b² , (−b)² , −b³ , (−b)³
-      const v = entre(0, 3);
-      const maximo = v < 2 ? 15 : 9;
-      exponente = v < 2 ? 2 : 3;
-      if (v % 2 === 0) {
+      // el signo dentro y fuera del parentesis con exponente 2, 3, 4 o 5: −b² , (−b)³ , −b⁴ ...
+      exponente = entre(2, 5);
+      const maximo = { 2: 15, 3: 9, 4: 5, 5: 4 }[exponente] as number;
+      if (Math.random() < 0.5) {
         base = entre(2, maximo); // el menos esta afuera
         parentesis = false;
       } else {
@@ -158,13 +153,15 @@ export interface EnteroRaiz {
   enunciado: string;
   respuesta: number; // NO_EXISTE si no existe en los enteros
   respuestaTexto?: string;
-  indice: 2 | 3;
+  indice: 2 | 3 | 4 | 5;
   radicando: number;
   menosAfuera: boolean;
 }
 
+export const SIMBOLO_RAIZ: Record<2 | 3 | 4 | 5, string> = { 2: "√", 3: "∛", 4: "∜", 5: "⁵√" };
+
 export function generarRaizEntera(digito: number): EnteroRaiz {
-  let indice: 2 | 3 = 2;
+  let indice: 2 | 3 | 4 | 5 = 2;
   let raiz: number;
   let negativo = false;
   let menosAfuera = false;
@@ -183,25 +180,43 @@ export function generarRaizEntera(digito: number): EnteroRaiz {
       negativo = Math.random() < 0.3;
       break;
     case 4:
-      indice = 3;
-      raiz = entre(6, 15);
-      negativo = Math.random() < 0.5;
-      break;
-    default:
-      menosAfuera = true;
-      if (Math.random() < 0.55) {
-        raiz = entre(2, 25);
+      // raiz cuarta (2 a 6) y quinta (2 a 4): la cuarta de un negativo no existe
+      if (Math.random() < 0.5) {
+        indice = 4;
+        raiz = entre(2, 6);
+        negativo = Math.random() < 0.3;
       } else {
+        indice = 5;
+        raiz = entre(2, 4);
+        negativo = Math.random() < 0.5;
+      }
+      break;
+    default: {
+      // con el signo menos afuera: −√, −∛, −∜, −⁵√ (siempre con un radicando que existe)
+      menosAfuera = true;
+      const v = Math.random();
+      if (v < 0.35) {
+        raiz = entre(2, 25);
+      } else if (v < 0.6) {
         indice = 3;
         raiz = entre(2, 10);
         negativo = Math.random() < 0.5;
+      } else if (v < 0.8) {
+        indice = 4;
+        raiz = entre(2, 6);
+      } else {
+        indice = 5;
+        raiz = entre(2, 4);
+        negativo = Math.random() < 0.5;
       }
+    }
   }
   const potencia = raiz ** indice;
   const radicando = negativo ? -potencia : potencia;
-  const existe = !(indice === 2 && radicando < 0);
-  const valor = existe ? (indice === 3 ? Math.sign(radicando) * raiz : raiz) * (menosAfuera ? -1 : 1) : NO_EXISTE;
-  const simbolo = indice === 3 ? "∛" : "√";
+  const impar = indice % 2 === 1;
+  const existe = impar || radicando > 0;
+  const valor = existe ? (impar ? Math.sign(radicando) * raiz : raiz) * (menosAfuera ? -1 : 1) : NO_EXISTE;
+  const simbolo = SIMBOLO_RAIZ[indice];
   const cuerpo = radicando < 0 ? `(−${-radicando})` : String(radicando);
   return {
     enunciado: `${menosAfuera ? "−" : ""}${simbolo}${cuerpo} =`,
@@ -251,15 +266,15 @@ export const DESCRIPCIONES_ENTEROS: Record<string, string[]> = {
     "Cuadrados de números negativos (hasta 20)",
     "Cubos de números negativos (hasta 12)",
     "Cuadrados y cubos, positivos y negativos",
-    "Exponentes 3, 4 y 5, con base positiva o negativa",
-    "El signo dentro y fuera del paréntesis: (−3)², −3², (−2)³, −2³",
+    "Exponentes 4 y 5, con base positiva o negativa",
+    "El signo dentro y fuera del paréntesis: (−3)², −3², (−2)⁴, −2⁵",
   ],
   raiz_enteros: [
     "",
     "Raíz cuadrada hasta 225 (¿existe o no?)",
     "Raíz cúbica de 8 a 512, positiva y negativa",
     "Raíces cuadradas hasta 625",
-    "Raíces cúbicas hasta 3 375",
-    "Con signo menos afuera: −√49, −∛(−27)",
+    "Raíz cuarta y quinta: ∜16, ⁵√(−32)",
+    "Con signo menos afuera: −√49, −∛(−27), −⁵√32",
   ],
 };

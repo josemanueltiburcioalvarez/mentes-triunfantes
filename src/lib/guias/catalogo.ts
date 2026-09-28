@@ -198,6 +198,23 @@ export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
           pasos: guiaRaizSuperior(),
         },
       ];
+    case "combinadas_enteros":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "El orden y los signos",
+          resumen: "Multiplicar antes de sumar, cuidando el signo de cada resultado.",
+          pasos: guiaCombinada([n(5), o("+"), n(-3), o("×"), n(4)], true),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Con paréntesis y potencias de negativos",
+          resumen: "Paréntesis primero, luego potencias; una base negativa con exponente par da positivo.",
+          pasos: guiaCombinada([LP, n(-4), o("+"), n(1), RP, pow(2), o("−"), n(6), o("×"), n(-2)], true),
+        },
+      ];
     case "operaciones_combinadas":
       return [
         {

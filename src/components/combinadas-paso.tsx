@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { aplicar, aTexto, candidatas, superindice, type Reduccion, type Token } from "@/lib/ejercicios/combinadas";
+import {
+  aplicar,
+  aTexto,
+  candidatas,
+  numeroTexto,
+  superindice,
+  type Reduccion,
+  type Token,
+} from "@/lib/ejercicios/combinadas";
+import { aNumero, limpiarEntero } from "./entero-comun";
 import { BOTON_RESPONDER, soloDigitos, type PropsComunes } from "./tipos-pregunta";
 
 interface PasoHecho {
@@ -13,10 +22,11 @@ interface PasoHecho {
 // (respetando la jerarquia) y escribe su resultado; la linea se reescribe sola.
 export default function CombinadasPaso({
   expresion,
+  conSignos = false,
   bloqueado,
   enviando,
   onResponder,
-}: PropsComunes & { expresion: Token[] }) {
+}: PropsComunes & { expresion: Token[]; conSignos?: boolean }) {
   const [tokens, setTokens] = useState<Token[]>(expresion);
   const [lineas, setLineas] = useState<string[]>([]);
   const [pendiente, setPendiente] = useState<Reduccion | null>(null);
@@ -59,7 +69,7 @@ export default function CombinadasPaso({
   function confirmar(e: React.FormEvent) {
     e.preventDefault();
     if (!pendiente || entrada === "" || inactivo) return;
-    if (Number(entrada) !== pendiente.valor) {
+    if ((conSignos ? aNumero(entrada) : Number(entrada)) !== pendiente.valor) {
       setErroresCuenta((n) => n + 1);
       setMensaje(`${pendiente.operacion} no da ${entrada}. Revisa la cuenta.`);
       return;
@@ -77,8 +87,9 @@ export default function CombinadasPaso({
     if (final === null || bloqueado) return;
     const errores = erroresOrden + erroresCuenta;
     onResponder({
-      respuestaDada: String(final),
-      valor: errores === 0 ? final : -1,
+      respuestaDada: String(final).replace("-", "−"),
+      // con signos la respuesta puede ser -1, asi que el marcador de error es NaN
+      valor: errores === 0 ? final : conSignos ? NaN : -1,
       pasos: {
         modo: "combinadas",
         expresion: aTexto(expresion),
@@ -123,7 +134,7 @@ export default function CombinadasPaso({
           if (k.t === "num")
             return (
               <span key={i} className={`px-0.5 ${resaltado}`}>
-                {k.v}
+                {numeroTexto(k.v)}
               </span>
             );
           if (k.t === "lp" || k.t === "rp")
@@ -156,11 +167,11 @@ export default function CombinadasPaso({
             inputMode="numeric"
             autoFocus
             value={entrada}
-            onChange={(e) => setEntrada(soloDigitos(e.target.value, 7))}
+            onChange={(e) => setEntrada(conSignos ? limpiarEntero(e.target.value, 7) : soloDigitos(e.target.value, 7))}
             aria-label="Resultado de la operación"
             className="h-11 w-24 rounded-lg border border-zinc-300 px-2 text-center font-mono text-xl outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-800"
           />
-          <button type="submit" disabled={entrada === ""} className={BOTON_RESPONDER}>
+          <button type="submit" disabled={entrada === "" || entrada === "−"} className={BOTON_RESPONDER}>
             OK
           </button>
         </form>
