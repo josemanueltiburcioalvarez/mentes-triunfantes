@@ -21,6 +21,12 @@ export default function VerticalAditiva({
 }: PropsComunes & { operacion: "suma" | "resta"; a: number; b: number }) {
   const n = numColumnas(operacion, a, b);
   const esResta = operacion === "resta";
+  const cifras = Math.max(String(a).length, String(b).length);
+  // Desde el digito 2, la ultima llevada (la que se convierte en la primera cifra del resultado, sin
+  // que sobre ninguna columna mas por sumar) se coloca directa en el resultado, sin casilla de marca.
+  // En el digito 1 esa es la unica llevada del ejercicio y sigue siendo el punto del ejercicio, asi que
+  // se mantiene.
+  const sumaSinMarcaFinal = !esResta && cifras >= 2;
   // resultado[c] = casilla de la columna c (0 = derecha).
   // Suma: marcas[k] = llevada sobre la columna k+1. Resta: marcas[c] = cifra nueva de arriba en la
   // columna c despues de prestar (14, 8...), de hasta 2 cifras.
@@ -55,7 +61,8 @@ export default function VerticalAditiva({
     if (bloqueado || !valido) return;
 
     const digitos = resultado.slice(0, altoLleno + 1).reverse().join("");
-    const esperadas = esResta ? digitosTopeResta(a, b) : marcasEsperadas(operacion, a, b);
+    const esperadasCompletas = esResta ? digitosTopeResta(a, b) : marcasEsperadas(operacion, a, b);
+    const esperadas = sumaSinMarcaFinal ? esperadasCompletas.slice(0, -1) : esperadasCompletas;
     // en la resta, una casilla vacia significa que la cifra de arriba no cambio
     const escritas = marcas.map((m, k) => (m === "" ? (esResta ? Number(digitoEn(a, k)) : 0) : Number(m)));
 
@@ -120,7 +127,7 @@ export default function VerticalAditiva({
               aria-label={`Cifra nueva de arriba, columna ${c + 1}`}
               className={CAJA_TOPE}
             />
-          ) : c >= 1 ? (
+          ) : c >= 1 && !(sumaSinMarcaFinal && c === n - 1) ? (
             <input
               key={`m${c}`}
               type="text"
@@ -132,7 +139,7 @@ export default function VerticalAditiva({
               className={CAJA_MARCA}
             />
           ) : (
-            <div key="m0" />
+            <div key={`m${c}`} />
           )
         )}
 
@@ -174,7 +181,9 @@ export default function VerticalAditiva({
 
       <p className="max-w-xs text-xs text-zinc-400 dark:text-zinc-500">
         {operacion === "suma"
-          ? "Escribe el resultado de derecha a izquierda. Si llevas, anótalo en las casillas de arriba: las llevadas se revisan."
+          ? sumaSinMarcaFinal
+            ? "Escribe el resultado de derecha a izquierda. Si llevas, anótalo en las casillas de arriba: las llevadas se revisan. La última, la que ya no se suma con nada más, se coloca directa en el resultado."
+            : "Escribe el resultado de derecha a izquierda. Si llevas, anótalo en la casilla de arriba: la llevada se revisa."
           : "Escribe el resultado de derecha a izquierda. Si una cifra de arriba es menor, pide prestado: anota arriba la cifra nueva (la que presta baja 1, la que recibe suma 10: 4 pasa a 14 y 9 pasa a 8). Se revisa."}
       </p>
 
