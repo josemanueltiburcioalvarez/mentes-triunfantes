@@ -401,7 +401,7 @@ function descripcionBase(habilidad: HabilidadPracticable, digito: number): strin
         "Varias operaciones (y de izquierda a derecha)",
         "Con paréntesis",
         "Paréntesis y varias operaciones",
-        "Con potencias y raíces",
+        "Todo junto: paréntesis, potencias y raíces",
       ][digito];
     case "suma_enteros":
     case "resta_enteros":
@@ -419,7 +419,7 @@ function descripcionBase(habilidad: HabilidadPracticable, digito: number): strin
         "Varias operaciones con signos (y de izquierda a derecha)",
         "Con paréntesis y números negativos",
         "Paréntesis y varias operaciones con signos",
-        "Con potencias y raíces, y bases negativas",
+        "Todo junto con signos: paréntesis, potencias y raíces",
       ][digito];
     default:
       return RANGOS_SUMA_RESTA[digito].descripcion;

@@ -208,6 +208,12 @@ export function resultadoFinal(tokens: Token[], permitirNegativos = false): numb
 const entre = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 const N = num;
 
+// Un divisor (2 a 12) que divida exacto a n; null si no hay ninguno.
+function divisorDe(n: number): number | null {
+  const ds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter((k) => n % k === 0);
+  return ds.length ? ds[entre(0, ds.length - 1)] : null;
+}
+
 // Tamano de los numeros segun el ejercicio (1, 2 o 3) del digito:
 // 1 = una cifra, 2 = de 2 a 3 cifras, 3 = de 3 a 4 cifras.
 export type TamanoNumeros = 1 | 2 | 3;
@@ -221,7 +227,6 @@ function constructorEscalado(digito: number, m: 2 | 3): Token[] {
   const Q = () => (m === 2 ? entre(12, 99) : entre(100, 999)); // cociente
   const S = () => entre(2, 9); // multiplicador o divisor de una cifra
   const D = () => entre(2, 6);
-  const B = () => (m === 2 ? entre(10, 30) : entre(31, 99)); // base de 2 cifras
   const cuadrados =
     m === 2
       ? [100, 121, 144, 169, 196, 225, 256, 289, 324, 361, 400, 441, 484, 529, 576, 625, 676, 729, 784, 841, 900]
@@ -285,7 +290,17 @@ function constructorEscalado(digito: number, m: 2 | 3): Token[] {
       return [N(t1 + t2 + sub(TMAX)), op("−"), LP, N(t1), op("+"), N(t2), RP];
     }
     case 4: {
-      const v = entre(0, 3);
+      const v = entre(0, 5);
+      if (v === 4) {
+        const d = D();
+        const suma = d * Q();
+        const x = entre(1, suma - 1);
+        return [LP, N(x), op("+"), N(suma - x), RP, op("÷"), N(d), op("×"), N(S()), op("−"), N(sub(TMAX))];
+      }
+      if (v === 5) {
+        const d = D();
+        return [N(S()), op("×"), LP, N(T()), op("−"), N(sub(TMAX)), RP, op("+"), N(d * Q()), op("÷"), N(d), op("−"), N(sub(TMAX))];
+      }
       if (v === 0) return [LP, N(T()), op("+"), N(T()), RP, op("×"), LP, N(entre(6, 15)), op("−"), N(entre(1, 5)), RP];
       if (v === 1) {
         const d = D();
@@ -300,19 +315,31 @@ function constructorEscalado(digito: number, m: 2 | 3): Token[] {
       return [LP, N(x), op("+"), N(suma - x), RP, op("÷"), N(d), op("+"), N(M()), op("×"), N(S())];
     }
     default: {
+      // "todo junto": suma o resta, multiplicacion, division, parentesis, potencia y raiz en una sola expresion
+      const P2 = m === 2 ? entre(6, 20) : entre(20, 60); // base que se eleva al cuadrado
+      const P3 = m === 2 ? entre(3, 9) : entre(5, 15); // base que se eleva al cubo
       const v = entre(0, 4);
-      if (v === 0) return [N(T()), op("+"), N(B()), pow(2), op("×"), N(S())];
-      if (v === 1) {
-        const suma = m === 2 ? entre(10, 30) : entre(20, 60);
-        const x = entre(1, suma - 1);
-        const cuad = suma * suma;
-        const divisores = [2, 3, 4, 5, 6, 8, 9, 10, 12].filter((k) => cuad % k === 0);
-        return [LP, N(x), op("+"), N(suma - x), RP, pow(2), op("÷"), N(divisores[entre(0, divisores.length - 1)])];
+      if (v === 0) {
+        const k = D();
+        return [LP, SQRT, N(cuadrado()), op("+"), N(P2), pow(2), RP, op("×"), N(S()), op("−"), N(k * Q()), op("÷"), N(k)];
       }
-      if (v === 2) return [SQRT, N(cuadrado()), op("+"), N(M()), op("×"), N(S())];
-      if (v === 3) return [N(B()), pow(2), op("−"), SQRT, N(cuadrado())];
-      const x = m === 2 ? entre(12, 30) : entre(20, 60);
-      return [LP, N(x), op("−"), N(entre(1, 9)), RP, pow(2), op("×"), N(S()), op("+"), N(T())];
+      if (v === 1) {
+        const k = D();
+        return [N(M()), op("×"), LP, N(P2), pow(2), op("−"), SQRT, N(cuadrado()), RP, op("+"), N(k * Q()), op("÷"), N(k)];
+      }
+      if (v === 2) {
+        const k = divisorDe(P3 ** 3) ?? 1;
+        return [SQRT, N(cuadrado()), op("×"), LP, N(T()), op("+"), N(T()), RP, op("−"), N(P3), pow(3), op("÷"), N(k)];
+      }
+      if (v === 3) {
+        const b = entre(2, 40);
+        const k = divisorDe(P2 * P2) ?? 1;
+        return [LP, N(P2 + b), op("−"), N(b), RP, pow(2), op("÷"), N(k), op("+"), SQRT, N(cuadrado()), op("×"), N(S())];
+      }
+      const r = cuadrado();
+      const total = Math.sqrt(r) + P3 ** 3;
+      const k = divisorDe(total) ?? 1;
+      return [N(total / k + sub(TMAX)), op("−"), LP, SQRT, N(r), op("+"), N(P3), pow(3), RP, op("÷"), N(k), op("+"), N(S()), op("×"), N(S())];
     }
   }
 }
@@ -362,7 +389,17 @@ function constructor(digito: number, tamano: TamanoNumeros = 1): Token[] {
       return [N(entre(30, 60)), op("−"), LP, N(a), op("+"), N(b), RP];
     }
     case 4: {
-      const v = entre(0, 3);
+      const v = entre(0, 5);
+      if (v === 4) {
+        const d = entre(2, 5);
+        const suma = d * entre(2, 6);
+        const x = entre(1, suma - 1);
+        return [LP, N(x), op("+"), N(suma - x), RP, op("÷"), N(d), op("×"), N(c), op("−"), N(entre(1, 9))];
+      }
+      if (v === 5) {
+        const d = entre(2, 5);
+        return [N(a), op("×"), LP, N(entre(6, 12)), op("−"), N(entre(1, 5)), RP, op("+"), N(d * entre(2, 8)), op("÷"), N(d), op("−"), N(entre(1, 9))];
+      }
       if (v === 0) return [LP, N(a), op("+"), N(b), RP, op("×"), LP, N(entre(6, 12)), op("−"), N(entre(1, 5)), RP];
       if (v === 1) {
         const divisor = entre(2, 5);
@@ -377,21 +414,33 @@ function constructor(digito: number, tamano: TamanoNumeros = 1): Token[] {
       }
     }
     default: {
+      // "todo junto": suma o resta, multiplicacion, division, parentesis, potencia y raiz en una sola expresion
+      const R = () => [16, 25, 36, 49, 64, 81][entre(0, 5)];
       const v = entre(0, 4);
-      if (v === 0) return [N(entre(2, 12)), op("+"), N(entre(2, 5)), pow(2), op("×"), N(entre(2, 5))];
+      if (v === 0) {
+        const k = entre(2, 5);
+        return [LP, SQRT, N(R()), op("+"), N(entre(2, 5)), pow(2), RP, op("×"), N(entre(2, 5)), op("−"), N(k * entre(2, 9)), op("÷"), N(k)];
+      }
       if (v === 1) {
-        const suma = entre(3, 8);
-        const x = entre(1, suma - 1);
-        const cuadrado = suma * suma;
-        const divisores = [2, 3, 4, 5, 6, 8, 9].filter((k) => cuadrado % k === 0);
-        return [LP, N(x), op("+"), N(suma - x), RP, pow(2), op("÷"), N(divisores[entre(0, divisores.length - 1)])];
+        const k = entre(2, 5);
+        return [N(a), op("×"), LP, N(entre(3, 8)), pow(2), op("−"), SQRT, N(R()), RP, op("+"), N(k * entre(2, 9)), op("÷"), N(k)];
       }
       if (v === 2) {
-        const raiz = [16, 25, 36, 49, 64, 81][entre(0, 5)];
-        return [SQRT, N(raiz), op("+"), N(a), op("×"), N(b)];
+        const p = entre(2, 5);
+        const k = divisorDe(p ** 3) ?? 1;
+        return [SQRT, N(R()), op("×"), LP, N(entre(1, 6)), op("+"), N(entre(1, 6)), RP, op("−"), N(p), pow(3), op("÷"), N(k)];
       }
-      if (v === 3) return [N(entre(4, 9)), pow(2), op("−"), SQRT, N([16, 25, 36, 49][entre(0, 3)])];
-      return [LP, N(entre(6, 12)), op("−"), N(entre(1, 5)), RP, pow(2), op("×"), N(entre(2, 4)), op("+"), N(entre(1, 9))];
+      if (v === 3) {
+        const sdif = entre(2, 9);
+        const b2 = entre(1, 8);
+        const k = divisorDe(sdif * sdif) ?? 1;
+        return [LP, N(sdif + b2), op("−"), N(b2), RP, pow(2), op("÷"), N(k), op("+"), SQRT, N(R()), op("×"), N(entre(2, 5))];
+      }
+      const r = R();
+      const p = entre(2, 4);
+      const total = Math.sqrt(r) + p ** 3;
+      const k = divisorDe(total) ?? 1;
+      return [N(total / k + entre(1, 30)), op("−"), LP, SQRT, N(r), op("+"), N(p), pow(3), RP, op("÷"), N(k), op("+"), N(entre(2, 5)), op("×"), N(entre(2, 5))];
     }
   }
 }
@@ -431,6 +480,8 @@ export function generarCombinada(
     const tokens = conSignos ? ponerSignos(base) : base;
     const pasos = pasosResolucion(tokens, conSignos);
     if (!pasos || pasos.length < 2) continue;
+    // nada de dividir entre 1
+    if (tokens.some((k, i) => k.t === "op" && k.v === "÷" && tokens[i + 1]?.t === "num" && Math.abs((tokens[i + 1] as { v: number }).v) === 1)) continue;
     if (pasos.some((p) => Math.abs(p.reduccion.valor) > TOPE_VALOR[tamano])) continue;
     // los numeros del enunciado respetan el tamano pedido (2 a 3 cifras o 3 a 4 cifras)
     if (tamano > 1 && tokens.some((k) => k.t === "num" && Math.abs(k.v) > TOPE_NUMERO[tamano])) continue;
