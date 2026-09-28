@@ -345,6 +345,7 @@ export type Database = {
       perfiles: {
         Row: {
           created_at: string
+          email: string | null
           estado: Database["public"]["Enums"]["estado_usuario"]
           fecha_ultimo_acceso: string | null
           grado_escolar: string | null
@@ -354,6 +355,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          email?: string | null
           estado?: Database["public"]["Enums"]["estado_usuario"]
           fecha_ultimo_acceso?: string | null
           grado_escolar?: string | null
@@ -363,6 +365,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          email?: string | null
           estado?: Database["public"]["Enums"]["estado_usuario"]
           fecha_ultimo_acceso?: string | null
           grado_escolar?: string | null
@@ -639,6 +642,23 @@ export type Database = {
           profesor_nombre: string | null
           progreso_promedio: number | null
           ultima_actividad_estudiantes: string | null
+        }
+        Relationships: []
+      }
+      vista_estudiantes_admin: {
+        Row: {
+          alertas: number | null
+          avance: number | null
+          created_at: string | null
+          email: string | null
+          estado: Database["public"]["Enums"]["estado_usuario"] | null
+          fecha_ultimo_acceso: string | null
+          grado_escolar: string | null
+          id: string | null
+          nivel_actual: string | null
+          nivel_orden: number | null
+          nombre: string | null
+          solicitudes_abiertas: number | null
         }
         Relationships: []
       }
