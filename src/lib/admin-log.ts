@@ -11,7 +11,9 @@ export type TipoAccion =
   | "promover_profesor"
   | "quitar_profesor"
   | "asignar_estudiante"
-  | "desasignar_estudiante";
+  | "desasignar_estudiante"
+  | "registrar_pago"
+  | "cancelar_suscripcion";
 
 export const ETIQUETAS_ACCION: Record<TipoAccion, string> = {
   autorizar_examen: "Autorizó un examen",
@@ -24,6 +26,8 @@ export const ETIQUETAS_ACCION: Record<TipoAccion, string> = {
   quitar_profesor: "Quitó el rol de profesor",
   asignar_estudiante: "Asignó un estudiante a un profesor",
   desasignar_estudiante: "Quitó un estudiante de un profesor",
+  registrar_pago: "Registró un pago",
+  cancelar_suscripcion: "Canceló una suscripción",
 };
 
 // Deja constancia de una accion del administrador. Un fallo al registrar no interrumpe la accion.

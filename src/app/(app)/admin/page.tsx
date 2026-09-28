@@ -6,11 +6,12 @@ export default async function ResumenPage() {
   const supabase = await crearClienteServidor();
   const hace7 = haceDias(7);
 
-  const [total, activos, solicitudes, alertas, atencion, examenes] = await Promise.all([
+  const [total, activos, solicitudes, alertas, ingresos, atencion, examenes] = await Promise.all([
     supabase.from("vista_estudiantes_admin").select("id", { count: "exact", head: true }),
     supabase.from("vista_estudiantes_admin").select("id", { count: "exact", head: true }).gte("fecha_ultimo_acceso", hace7),
     supabase.from("autorizaciones_examen").select("id", { count: "exact", head: true }).eq("estado", "solicitado"),
     supabase.from("vista_sesiones_sospechosas").select("sesion_id", { count: "exact", head: true }).eq("sospechosa", true).is("revision_estado", null),
+    supabase.from("vista_ingresos").select("vencidas, por_vencer_7_dias").maybeSingle(),
     supabase
       .from("vista_estudiantes_admin")
       .select("id, nombre, alertas, solicitudes_abiertas, fecha_ultimo_acceso")
@@ -31,13 +32,20 @@ export default async function ResumenPage() {
     { titulo: "Activos esta semana", valor: activos.count ?? 0, ayuda: "entraron en los últimos 7 días", href: "/admin/estudiantes?orden=reciente" },
     { titulo: "Exámenes por autorizar", valor: solicitudes.count ?? 0, ayuda: "solicitudes esperando el enlace de Meet", href: "/admin/examenes", alerta: (solicitudes.count ?? 0) > 0 },
     { titulo: "Sesiones sospechosas", valor: alertas.count ?? 0, ayuda: "para revisar", href: "/admin/alertas", alerta: (alertas.count ?? 0) > 0 },
+    {
+      titulo: "Suscripciones vencidas",
+      valor: ingresos.data?.vencidas ?? 0,
+      ayuda: `${ingresos.data?.por_vencer_7_dias ?? 0} más vencen en 7 días`,
+      href: "/admin/suscripciones",
+      alerta: (ingresos.data?.vencidas ?? 0) > 0,
+    },
   ];
 
   return (
     <div className="flex flex-col gap-8">
       <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Resumen</h1>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {tarjetas.map((t) => (
           <Link
             key={t.titulo}

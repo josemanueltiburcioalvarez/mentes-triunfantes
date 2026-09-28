@@ -12,6 +12,7 @@ const GRUPOS: Record<string, { texto: string; tipos: TipoAccion[] }> = {
   estudiantes: { texto: "Estudiantes", tipos: ["cambiar_estado", "abrir_habilidad"] },
   alertas: { texto: "Alertas", tipos: ["revisar_alerta", "deshacer_revision"] },
   profesores: { texto: "Profesores", tipos: ["promover_profesor", "quitar_profesor", "asignar_estudiante", "desasignar_estudiante"] },
+  suscripciones: { texto: "Suscripciones", tipos: ["registrar_pago", "cancelar_suscripcion"] },
 };
 
 // Tipos de accion donde estudiante_id en realidad guarda el id de un profesor (no de un estudiante).
@@ -72,6 +73,10 @@ export default async function RegistroPage({
       case "asignar_estudiante":
       case "desasignar_estudiante":
         return `Profesor: ${typeof d.profesor_id === "string" ? (nombrePersona.get(d.profesor_id) ?? "—") : "—"}`;
+      case "registrar_pago":
+        return `${String(d.meses ?? "")} mes${d.meses === 1 ? "" : "es"} · S/ ${String(d.monto ?? "")} · ${String(d.metodo_pago ?? "")} · hasta ${String(d.fecha_fin ?? "")}`;
+      case "cancelar_suscripcion":
+        return "";
       default:
         return "";
     }

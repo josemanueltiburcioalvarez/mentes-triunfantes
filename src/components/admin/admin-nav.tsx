@@ -9,13 +9,22 @@ const SECCIONES = [
   { href: "/admin/profesores", texto: "Profesores" },
   { href: "/admin/examenes", texto: "Exámenes", insignia: "solicitudes" as const },
   { href: "/admin/alertas", texto: "Alertas", insignia: "alertas" as const },
+  { href: "/admin/suscripciones", texto: "Suscripciones", insignia: "suscripciones" as const },
   { href: "/admin/reportes", texto: "Reportes" },
   { href: "/admin/registro", texto: "Registro" },
 ];
 
-export default function AdminNav({ solicitudes, alertas }: { solicitudes: number; alertas: number }) {
+export default function AdminNav({
+  solicitudes,
+  alertas,
+  suscripciones,
+}: {
+  solicitudes: number;
+  alertas: number;
+  suscripciones: number;
+}) {
   const ruta = usePathname();
-  const cuentas = { solicitudes, alertas };
+  const cuentas = { solicitudes, alertas, suscripciones };
 
   return (
     <nav className="mb-6 flex flex-wrap gap-1 print:hidden border-b border-zinc-200 dark:border-zinc-800" aria-label="Secciones del panel">

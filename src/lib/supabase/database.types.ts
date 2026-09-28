@@ -686,6 +686,24 @@ export type Database = {
         }
         Relationships: []
       }
+      vista_suscripciones_admin: {
+        Row: {
+          dias_restantes: number | null
+          email: string | null
+          estado_actual: string | null
+          estado_registrado: Database["public"]["Enums"]["estado_suscripcion"] | null
+          estudiante_id: string | null
+          fecha_fin: string | null
+          fecha_inicio: string | null
+          fecha_pago: string | null
+          metodo_pago: string | null
+          monto: number | null
+          nombre: string | null
+          referencia_pago: string | null
+          suscripcion_id: string | null
+        }
+        Relationships: []
+      }
       vista_resumen_profesor: {
         Row: {
           estudiantes_activos: number | null

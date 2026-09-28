@@ -89,6 +89,8 @@ update public.perfiles set rol = 'admin' where email = 'tu-correo@ejemplo.com';
   (el resto de la base de datos no es visible para él: lo hace cumplir la seguridad por fila).
 - **Exámenes**: solicitudes; se autorizan pegando el enlace de Meet.
 - **Alertas**: sesiones sospechosas, para marcar como revisadas o descartadas con una nota.
+- **Suscripciones**: no hay pasarela de pago; se registra cada cobro (efectivo, Yape/Plin, transferencia) a mano después de
+  recibirlo. El estado (activa, vencida, cancelada, sin pagos) se calcula por fecha, sin necesidad de un cron.
 - **Reportes**: rendimiento por habilidad, actividad de 30 días, exportación a Excel (CSV) e informe imprimible por estudiante.
 - **Registro**: quién hizo qué en el panel.
 
@@ -147,5 +149,6 @@ npx tsc --noEmit # comprobación de tipos
 ## Pendiente
 
 - Contenido de **Atajos** y **Razonamiento** (sin él no se puede solicitar la evaluación del nivel Experto).
-- Pantalla de suscripciones/pagos; la base de datos ya la soporta (tabla `suscripciones`, vista `vista_ingresos`).
+- Las suscripciones son solo de seguimiento: una suscripción vencida no bloquea el acceso del estudiante. Si se quiere
+  que sí lo bloquee, hay que cruzarlo con `estado` en `perfiles` o con el proxy.
 - Pruebas automáticas.
