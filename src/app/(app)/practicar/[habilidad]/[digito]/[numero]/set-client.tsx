@@ -13,6 +13,9 @@ import {
 import Pregunta, { type RespuestaPregunta } from "@/components/pregunta";
 
 const TOTAL_EJERCICIOS = 10;
+// probabilidad de intentar traer un ejercicio curado por el admin en vez de uno generado (solo atajos/razonamiento)
+const PROB_EJERCICIO_CURADO = 0.35;
+const HABILIDADES_CON_CURADOS = new Set(["atajos", "razonamiento"]);
 
 interface Props {
   habilidadId: string;
@@ -50,11 +53,35 @@ export default function SetPracticaClient({
   const [enviando, setEnviando] = useState(false);
   // enunciados ya vistos en este set, para no repetir ejercicios
   const vistos = useRef(new Set<string>());
+  // ids de ejercicios curados (tabla "ejercicios") ya usados en este set
+  const idsCurados = useRef(new Set<string>());
   // aviso no bloqueante cuando no se pudo guardar una respuesta o el cierre de la sesion
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
 
   const [correctos, setCorrectos] = useState(0);
   const [terminado, setTerminado] = useState(false);
+
+  // en atajos/razonamiento, a veces trae un ejercicio curado por el admin (tabla "ejercicios");
+  // el estudiante no puede leer esa tabla directamente (RLS), por eso se pide de a uno con una funcion.
+  async function obtenerSiguienteEjercicio(): Promise<EjercicioGenerado> {
+    if (HABILIDADES_CON_CURADOS.has(nombreHabilidad) && Math.random() < PROB_EJERCICIO_CURADO) {
+      const { data } = await supabase.rpc("obtener_ejercicio_curado", {
+        p_habilidad_id: habilidadId,
+        p_dificultad: digito,
+        p_excluir: [...idsCurados.current],
+      });
+      const fila = data?.[0];
+      if (fila && !vistos.current.has(fila.enunciado)) {
+        const valor = Number(fila.respuesta.replace(",", "."));
+        if (Number.isFinite(valor)) {
+          idsCurados.current.add(fila.id);
+          vistos.current.add(fila.enunciado);
+          return { enunciado: fila.enunciado, respuesta: valor, explicacion: fila.explicacion ?? undefined };
+        }
+      }
+    }
+    return generarEjercicioNuevo(nombreHabilidad, digito, vistos.current, numeroEjercicio);
+  }
 
   useEffect(() => {
     let cancelado = false;
@@ -77,7 +104,9 @@ export default function SetPracticaClient({
         return;
       }
       setSesionId(data.id);
-      setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current, numeroEjercicio));
+      const siguiente = await obtenerSiguienteEjercicio();
+      if (cancelado) return;
+      setEjercicio(siguiente);
       setInicioEjercicio(Date.now());
     }
     iniciarSesion();
@@ -115,7 +144,11 @@ export default function SetPracticaClient({
     }
 
     if (esCorrecto) setCorrectos((c) => c + 1);
-    setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: textoRespuesta(ejercicio), detalle: r.detalle });
+    setRetroalimentacion({
+      correcto: esCorrecto,
+      respuestaCorrecta: textoRespuesta(ejercicio),
+      detalle: r.detalle ?? ejercicio.explicacion,
+    });
   }
 
   async function siguiente() {
@@ -139,8 +172,10 @@ export default function SetPracticaClient({
     }
     setErrorGuardado(null);
     setNumeroPregunta((n) => n + 1);
-    setEjercicio(generarEjercicioNuevo(nombreHabilidad, digito, vistos.current, numeroEjercicio));
+    setEjercicio(null);
     setRetroalimentacion(null);
+    const siguiente = await obtenerSiguienteEjercicio();
+    setEjercicio(siguiente);
     setInicioEjercicio(Date.now());
   }
 

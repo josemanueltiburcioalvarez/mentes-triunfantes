@@ -7,6 +7,7 @@ const SECCIONES = [
   { href: "/admin", texto: "Resumen", exacto: true },
   { href: "/admin/estudiantes", texto: "Estudiantes" },
   { href: "/admin/profesores", texto: "Profesores" },
+  { href: "/admin/contenido", texto: "Contenido" },
   { href: "/admin/examenes", texto: "Exámenes", insignia: "solicitudes" as const },
   { href: "/admin/alertas", texto: "Alertas", insignia: "alertas" as const },
   { href: "/admin/suscripciones", texto: "Suscripciones", insignia: "suscripciones" as const },

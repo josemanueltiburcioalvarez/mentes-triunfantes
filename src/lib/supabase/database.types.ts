@@ -798,6 +798,10 @@ export type Database = {
     }
     Functions: {
       es_profesor_de: { Args: { p_estudiante_id: string }; Returns: boolean }
+      obtener_ejercicio_curado: {
+        Args: { p_habilidad_id: string; p_dificultad: number; p_excluir?: string[] }
+        Returns: { id: string; enunciado: string; respuesta: string; explicacion: string | null }[]
+      }
       rol_actual: {
         Args: never
         Returns: Database["public"]["Enums"]["rol_usuario"]

@@ -61,6 +61,8 @@ as $$
     when 'raiz_enteros' then 5.0 * p_digito + 6.0
     when 'ecuaciones' then 6.0 * p_digito + 6.0
     when 'combinadas_enteros' then 4.0 * p_digito + 10.0
+    when 'atajos' then 4.0 * p_digito + 4.0
+    when 'razonamiento' then 6.0 * p_digito + 15.0
     else 3.0 * p_digito + 2.0
   end
 $$;
@@ -146,6 +148,33 @@ end;
 $$;
 create trigger validar_habilidad_ejercicio_trigger before insert or update on public.ejercicios
   for each row execute function public.validar_habilidad_ejercicio();
+
+-- El estudiante no puede leer la tabla "ejercicios" (RLS), asi que pide uno a la vez con esta funcion,
+-- que no expone el resto del banco de atajos/razonamiento.
+create or replace function public.obtener_ejercicio_curado(
+  p_habilidad_id uuid,
+  p_dificultad smallint,
+  p_excluir uuid[] default '{}'
+)
+returns table (id uuid, enunciado text, respuesta text, explicacion text)
+language sql
+security definer
+set search_path to 'public'
+stable
+as $$
+  select e.id, e.enunciado, e.respuesta, e.explicacion
+  from ejercicios e
+  where auth.uid() is not null
+    and e.habilidad_id = p_habilidad_id
+    and e.dificultad = p_dificultad
+    and not (e.id = any (p_excluir))
+  order by random()
+  limit 1;
+$$;
+
+revoke execute on function public.obtener_ejercicio_curado(uuid, smallint, uuid[]) from public;
+revoke execute on function public.obtener_ejercicio_curado(uuid, smallint, uuid[]) from anon;
+grant execute on function public.obtener_ejercicio_curado(uuid, smallint, uuid[]) to authenticated;
 
 -- ---------------------------------------------------------------- sesiones e intentos
 -- Una sesion nueva empieza vacia, con la hora del servidor y, si es practica, sobre un ejercicio desbloqueado.

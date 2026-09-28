@@ -11,6 +11,8 @@ import {
   type EnteroRaiz,
 } from "./enteros";
 import { DESCRIPCIONES_ECUACIONES, generarEcuacion, type Ecuacion, type NivelEcuacion } from "./ecuaciones";
+import { DESCRIPCIONES_ATAJOS, generarAtajo } from "./atajos";
+import { DESCRIPCIONES_RAZONAMIENTO, generarRazonamiento } from "./razonamiento";
 
 export const HABILIDADES_PRACTICABLES = [
   "suma",
@@ -29,6 +31,8 @@ export const HABILIDADES_PRACTICABLES = [
   "raiz_enteros",
   "ecuaciones",
   "combinadas_enteros",
+  "atajos",
+  "razonamiento",
 ] as const;
 
 export type HabilidadPracticable = (typeof HABILIDADES_PRACTICABLES)[number];
@@ -76,6 +80,8 @@ export interface EjercicioGenerado {
   ecuacion?: Ecuacion;
   // texto para mostrar la respuesta correcta cuando no es un numero (ej. "no existe en los enteros")
   respuestaTexto?: string;
+  // texto opcional que se muestra despues de responder (solo en ejercicios curados por el admin)
+  explicacion?: string;
 }
 
 export interface EjercicioConDigito extends EjercicioGenerado {
@@ -307,6 +313,16 @@ function generarEcuaciones(digito: number, nivel: number): EjercicioGenerado {
   return { enunciado: `Resuelve: ${e.texto}`, respuesta: e.solucion, operacion: "ecuacion", ecuacion: e };
 }
 
+function generarAtajoEjercicio(digito: number): EjercicioGenerado {
+  const a = generarAtajo(digito);
+  return { enunciado: a.enunciado, respuesta: a.respuesta };
+}
+
+function generarRazonamientoEjercicio(digito: number): EjercicioGenerado {
+  const p = generarRazonamiento(digito);
+  return { enunciado: p.enunciado, respuesta: p.respuesta };
+}
+
 // nivel = numero de ejercicio (1 a 3) dentro del digito. Cambia el tamano de los numeros en las
 // operaciones combinadas (1 cifra / 2 a 3 / 3 a 4), las ecuaciones (pequenos / 2 cifras / 3 cifras) y la
 // suma y resta con signos de los digitos 4 y 5 (2 / 3 / 4 cifras).
@@ -344,6 +360,10 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
       return generarEcuaciones(digito, nivel);
     case "combinadas_enteros":
       return generarCombinadasEnteros(digito, nivel);
+    case "atajos":
+      return generarAtajoEjercicio(digito);
+    case "razonamiento":
+      return generarRazonamientoEjercicio(digito);
   }
 }
 
@@ -421,6 +441,10 @@ function descripcionBase(habilidad: HabilidadPracticable, digito: number): strin
         "Paréntesis y varias operaciones con signos",
         "Todo junto con signos: paréntesis, potencias y raíces",
       ][digito];
+    case "atajos":
+      return DESCRIPCIONES_ATAJOS[digito];
+    case "razonamiento":
+      return DESCRIPCIONES_RAZONAMIENTO[digito];
     default:
       return RANGOS_SUMA_RESTA[digito].descripcion;
   }
@@ -508,6 +532,8 @@ export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {
   raiz_enteros: "Raíz con signos",
   ecuaciones: "Ecuaciones",
   combinadas_enteros: "Operaciones combinadas con signos",
+  atajos: "Atajos",
+  razonamiento: "Razonamiento",
 };
 
 // Texto de la respuesta correcta para guardar y mostrar (los negativos con signo menos tipografico).

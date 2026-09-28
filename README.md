@@ -87,6 +87,9 @@ update public.perfiles set rol = 'admin' where email = 'tu-correo@ejemplo.com';
 - **Profesores**: promueve una cuenta ya registrada a profesor (escribiendo su correo) y le asigna estudiantes. Un
   profesor entra con su propia cuenta a `/profesor` y ve, en modo solo lectura, el progreso de sus estudiantes asignados
   (el resto de la base de datos no es visible para él: lo hace cumplir la seguridad por fila).
+- **Contenido**: ejercicios de **Atajos** y **Razonamiento** que el administrador escribe a mano (enunciado, respuesta y una
+  explicación opcional). Se mezclan al azar con los que la aplicación genera sola; no hace falta llenar nada para que la
+  habilidad funcione, es solo para enriquecerla con problemas curados.
 - **Exámenes**: solicitudes; se autorizan pegando el enlace de Meet.
 - **Alertas**: sesiones sospechosas, para marcar como revisadas o descartadas con una nota.
 - **Suscripciones**: no hay pasarela de pago; se registra cada cobro (efectivo, Yape/Plin, transferencia) a mano después de
@@ -148,7 +151,8 @@ npx tsc --noEmit # comprobación de tipos
 
 ## Pendiente
 
-- Contenido de **Atajos** y **Razonamiento** (sin él no se puede solicitar la evaluación del nivel Experto).
 - Las suscripciones son solo de seguimiento: una suscripción vencida no bloquea el acceso del estudiante. Si se quiere
   que sí lo bloquee, hay que cruzarlo con `estado` en `perfiles` o con el proxy.
 - Pruebas automáticas.
+- Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
+  hay que activarlo a mano en cada proyecto nuevo.

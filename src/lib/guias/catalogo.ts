@@ -85,6 +85,66 @@ const GUIA_TABLA: Guia = {
   ],
 };
 
+const GUIA_ATAJOS: Guia = {
+  tipo: "consejos",
+  numero: 1,
+  titulo: "Trucos para multiplicar más rápido",
+  resumen: "Un atajo distinto por cada dígito: multiplicar por 10/100/1000, por 5/25/50, por 11, cuadrados terminados en 5 y números cercanos a 100.",
+  secciones: [
+    {
+      titulo: "Multiplicar por 10, 100 y 1000",
+      texto: "Al número le agregas tantos ceros como tenga el 10, el 100 o el 1000.",
+      ejemplo: "47 × 100 = 4700",
+    },
+    {
+      titulo: "Multiplicar por 5, 25 y 50",
+      texto: "5 es la mitad de 10; 25 es la cuarta parte de 100; 50 es la mitad de 100. Multiplica por el número redondo y saca la parte.",
+      ejemplo: "48 × 5 = (48 × 10) ÷ 2 = 480 ÷ 2 = 240",
+    },
+    {
+      titulo: "Multiplicar por 11",
+      texto: "En un número de dos cifras, suma las dos cifras y ponla en el medio (si la suma pasa de 9, esa llevada sube a la cifra de la izquierda).",
+      ejemplo: "43 × 11: 4 + 3 = 7 → 473",
+    },
+    {
+      titulo: "Cuadrado de un número terminado en 5",
+      texto: "Multiplica la decena por la decena siguiente y agrégale 25 al final.",
+      ejemplo: "35² : 3 × 4 = 12 → 1225",
+    },
+    {
+      titulo: "Números cercanos a 100",
+      texto: "Para multiplicar dos números cercanos a 100, o para (a + b) × (a − b), calcula a² − b² en vez de multiplicar todo.",
+      ejemplo: "98 × 97 ≈ usa que están cerca de 100; (23 + 3) × (23 − 3) = 23² − 3² = 529 − 9 = 520",
+    },
+  ],
+};
+
+const GUIA_RAZONAMIENTO: Guia = {
+  tipo: "consejos",
+  numero: 1,
+  titulo: "Cómo resolver un problema paso a paso",
+  resumen: "El truco no está en la cuenta, sino en entender qué pide el problema antes de calcular.",
+  secciones: [
+    {
+      titulo: "1. Lee con calma",
+      texto: "Lee el problema completo antes de calcular nada. Vuelve a leerlo si algo no queda claro.",
+    },
+    {
+      titulo: "2. Identifica los datos y la pregunta",
+      texto: "Anota (aunque sea mentalmente) los números que te dan y qué es exactamente lo que te preguntan al final.",
+    },
+    {
+      titulo: "3. Elige la operación",
+      texto: "¿Estás juntando cantidades (suma), quitando (resta), repitiendo grupos (multiplicación) o repartiendo en partes iguales (división)? Algunos problemas necesitan más de un paso.",
+      ejemplo: "Compraste 3 cuadernos a 12 soles y pagaste con 50: primero multiplicas (3 × 12 = 36) y luego restas (50 − 36 = 14)",
+    },
+    {
+      titulo: "4. Comprueba tu respuesta",
+      texto: "Vuelve a leer la pregunta y revisa que tu número tenga sentido con la situación (por ejemplo, que no sea más grande de lo que empezó si regalaron algo).",
+    },
+  ],
+};
+
 export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
   switch (habilidad) {
     case "suma":
@@ -215,6 +275,10 @@ export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
           pasos: guiaCombinada([LP, n(-4), o("+"), n(1), RP, pow(2), o("−"), n(6), o("×"), n(-2)], true),
         },
       ];
+    case "atajos":
+      return [GUIA_ATAJOS];
+    case "razonamiento":
+      return [GUIA_RAZONAMIENTO];
     case "operaciones_combinadas":
       return [
         {
