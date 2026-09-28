@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Lock } from "lucide-react";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { esHabilidadPracticable, HABILIDADES_PRACTICABLES, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
+import { estiloNivel } from "@/lib/estilos-nivel";
+import { ICONOS_HABILIDAD } from "@/lib/iconos-habilidad";
 import FormularioAccion from "@/components/formulario-accion";
 import { solicitarEvaluacionNivel } from "./acciones";
 
@@ -92,12 +95,17 @@ export default async function DashboardPage() {
           const todosExamenesAprobados = habilidadesDelNivel.every((h) => idsExamenesAprobados.has(h.id));
           const nivelAprobado = nivelFila ? idsNivelesAprobados.has(nivelFila.id) : false;
           const autorizacion = (autorizacionesNivel ?? []).find((a) => a.nivel_id === nivelFila?.id);
+          const estilo = estiloNivel(nivel.orden);
+          const aprobadasDelNivel = habilidadesDelNivel.filter((h) => idsExamenesAprobados.has(h.id)).length;
 
           return (
             <section key={nivel.nombre}>
-              <h2 className="mb-3 text-lg font-medium text-zinc-800 dark:text-zinc-200">
-                {nivel.nombre}
-              </h2>
+              <div className="mb-3 flex items-center gap-2">
+                <h2 className={`text-lg font-semibold ${estilo.textoTitulo}`}>{nivel.nombre}</h2>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${estilo.badge}`}>
+                  {aprobadasDelNivel}/{habilidadesDelNivel.length}
+                </span>
+              </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 {nivel.habilidades
                   .slice()
@@ -111,26 +119,35 @@ export default async function DashboardPage() {
                     const dominio = Math.round(h.porcentaje_dominio ?? 0);
                     const desbloqueada = h.desbloqueada ?? false;
                     const tienePractica = esHabilidadPracticable(nombreHabilidad);
+                    const Icono = ICONOS_HABILIDAD[nombreHabilidad];
 
                     return (
                       <div
                         key={nombreHabilidad}
-                        className={`rounded-xl border p-4 ${
+                        className={`rounded-xl border p-4 transition-shadow ${
                           desbloqueada
-                            ? "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                            ? `${estilo.borde} ${estilo.fondoTarjeta} hover:shadow-md`
                             : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
                         }`}
                       >
-                        <div className="mb-2 flex items-center justify-between">
+                        <div className="mb-3 flex items-center gap-2">
+                          <span
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                              desbloqueada
+                                ? `${estilo.iconoFondo} ${estilo.iconoColor}`
+                                : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                            }`}
+                          >
+                            {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                          </span>
                           <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                             {NOMBRES_LEGIBLES[nombreHabilidad]}
                           </span>
-                          {!desbloqueada && <span className="text-xs text-zinc-400">🔒</span>}
                         </div>
 
                         <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                           <div
-                            className="h-full rounded-full bg-emerald-500"
+                            className={`h-full rounded-full ${desbloqueada ? estilo.barra : "bg-zinc-300 dark:bg-zinc-700"}`}
                             style={{ width: `${dominio}%` }}
                           />
                         </div>
@@ -168,7 +185,7 @@ export default async function DashboardPage() {
                   className={`mt-3 rounded-xl border p-4 text-center ${
                     nivelAprobado
                       ? "border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40"
-                      : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                      : `${estilo.borde} ${estilo.fondoTarjeta}`
                   }`}
                 >
                   <div className="mb-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
