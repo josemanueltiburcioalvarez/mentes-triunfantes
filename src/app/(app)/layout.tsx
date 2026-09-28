@@ -10,6 +10,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   let nombre = "";
   let esAdmin = false;
+  let esProfesor = false;
   if (user) {
     const { data: perfil } = await supabase
       .from("perfiles")
@@ -18,16 +19,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .single();
     nombre = perfil?.nombre ?? "";
     esAdmin = perfil?.rol === "admin";
+    esProfesor = perfil?.rol === "profesor";
   }
+  const inicio = esAdmin ? "/admin" : esProfesor ? "/profesor" : "/dashboard";
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 dark:bg-black">
       <header className="print:hidden flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <Link
-          href={esAdmin ? "/admin" : "/dashboard"}
-          className="text-lg font-semibold text-zinc-900 dark:text-zinc-50"
-        >
-          Mentes Triunfantes{esAdmin ? " · Admin" : ""}
+        <Link href={inicio} className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+          Mentes Triunfantes{esAdmin ? " · Admin" : esProfesor ? " · Profesor" : ""}
         </Link>
         <div className="flex items-center gap-4">
           {nombre && (

@@ -27,6 +27,7 @@ export default async function DashboardPage() {
 
   const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", user.id).single();
   if (perfil?.rol === "admin") redirect("/admin");
+  if (perfil?.rol === "profesor") redirect("/profesor");
 
   const { data: filas } = await supabase
     .from("vista_resumen_estudiante")

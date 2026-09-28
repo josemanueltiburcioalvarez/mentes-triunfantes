@@ -11,7 +11,11 @@ const GRUPOS: Record<string, { texto: string; tipos: TipoAccion[] }> = {
   examenes: { texto: "Exámenes", tipos: ["autorizar_examen", "cancelar_autorizacion"] },
   estudiantes: { texto: "Estudiantes", tipos: ["cambiar_estado", "abrir_habilidad"] },
   alertas: { texto: "Alertas", tipos: ["revisar_alerta", "deshacer_revision"] },
+  profesores: { texto: "Profesores", tipos: ["promover_profesor", "quitar_profesor", "asignar_estudiante", "desasignar_estudiante"] },
 };
+
+// Tipos de accion donde estudiante_id en realidad guarda el id de un profesor (no de un estudiante).
+const SUJETO_ES_PROFESOR = new Set<TipoAccion>(["promover_profesor", "quitar_profesor"]);
 
 export default async function RegistroPage({
   searchParams,
@@ -29,7 +33,16 @@ export default async function RegistroPage({
   const acciones = data ?? [];
 
   // nombres de las personas, habilidades y niveles que aparecen en esta pagina
-  const idsPersonas = [...new Set(acciones.flatMap((a) => [a.admin_id, a.estudiante_id]).filter((x): x is string => !!x))];
+  const idsPersonas = [
+    ...new Set(
+      acciones
+        .flatMap((a) => {
+          const d = (a.detalle ?? {}) as Record<string, unknown>;
+          return [a.admin_id, a.estudiante_id, typeof d.profesor_id === "string" ? d.profesor_id : null];
+        })
+        .filter((x): x is string => !!x)
+    ),
+  ];
   const [personas, habilidades, niveles] = await Promise.all([
     idsPersonas.length ? supabase.from("perfiles").select("id, nombre").in("id", idsPersonas) : Promise.resolve({ data: [] }),
     supabase.from("habilidades").select("id, nombre"),
@@ -54,6 +67,11 @@ export default async function RegistroPage({
         return objeto;
       case "revisar_alerta":
         return `${d.estado === "descartada" ? "Descartada" : "Revisada"}${d.nota ? `: ${String(d.nota)}` : ""}`;
+      case "promover_profesor":
+        return `Correo: ${String(d.email ?? "")}`;
+      case "asignar_estudiante":
+      case "desasignar_estudiante":
+        return `Profesor: ${typeof d.profesor_id === "string" ? (nombrePersona.get(d.profesor_id) ?? "—") : "—"}`;
       default:
         return "";
     }
@@ -71,7 +89,7 @@ export default async function RegistroPage({
     <div>
       <h1 className="mb-1 text-xl font-semibold text-zinc-900 dark:text-zinc-50">Registro de acciones</h1>
       <p className="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
-        Quién hizo qué en el panel: autorizaciones de examen, cambios de estado, habilidades abiertas y alertas revisadas.
+        Quién hizo qué en el panel: autorizaciones de examen, cambios de estado, habilidades abiertas, alertas revisadas y profesores.
       </p>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -97,28 +115,34 @@ export default async function RegistroPage({
                 <th className="px-3 py-2">Fecha</th>
                 <th className="px-3 py-2">Administrador</th>
                 <th className="px-3 py-2">Acción</th>
-                <th className="px-3 py-2">Estudiante</th>
+                <th className="px-3 py-2">Estudiante o profesor</th>
                 <th className="px-3 py-2">Detalle</th>
               </tr>
             </thead>
             <tbody>
-              {acciones.map((a) => (
-                <tr key={a.id} className="border-t border-zinc-200 bg-white align-top dark:border-zinc-800 dark:bg-zinc-950">
-                  <td className="px-3 py-2 whitespace-nowrap">{formatearFecha(a.created_at)}</td>
-                  <td className="px-3 py-2">{a.admin_id ? (nombrePersona.get(a.admin_id) ?? "—") : "—"}</td>
-                  <td className="px-3 py-2">{ETIQUETAS_ACCION[a.tipo as TipoAccion] ?? a.tipo}</td>
-                  <td className="px-3 py-2">
-                    {a.estudiante_id ? (
-                      <Link href={`/admin/estudiantes/${a.estudiante_id}`} className="underline-offset-2 hover:underline">
-                        {nombrePersona.get(a.estudiante_id) ?? "Estudiante"}
-                      </Link>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-zinc-600 dark:text-zinc-300">{detalleTexto(a)}</td>
-                </tr>
-              ))}
+              {acciones.map((a) => {
+                const esProfesor = SUJETO_ES_PROFESOR.has(a.tipo as TipoAccion);
+                return (
+                  <tr key={a.id} className="border-t border-zinc-200 bg-white align-top dark:border-zinc-800 dark:bg-zinc-950">
+                    <td className="px-3 py-2 whitespace-nowrap">{formatearFecha(a.created_at)}</td>
+                    <td className="px-3 py-2">{a.admin_id ? (nombrePersona.get(a.admin_id) ?? "—") : "—"}</td>
+                    <td className="px-3 py-2">{ETIQUETAS_ACCION[a.tipo as TipoAccion] ?? a.tipo}</td>
+                    <td className="px-3 py-2">
+                      {a.estudiante_id ? (
+                        <Link
+                          href={esProfesor ? `/admin/profesores/${a.estudiante_id}` : `/admin/estudiantes/${a.estudiante_id}`}
+                          className="underline-offset-2 hover:underline"
+                        >
+                          {nombrePersona.get(a.estudiante_id) ?? (esProfesor ? "Profesor" : "Estudiante")}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-zinc-600 dark:text-zinc-300">{detalleTexto(a)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

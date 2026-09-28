@@ -84,6 +84,9 @@ update public.perfiles set rol = 'admin' where email = 'tu-correo@ejemplo.com';
 - **Resumen**: cifras del día y quién necesita atención.
 - **Estudiantes**: buscador por nombre o correo, filtros (nivel, estado, actividad, alertas, examen pendiente), orden y
   paginación; **ficha** de cada estudiante con su progreso, exámenes, sesiones, cambio de estado y apertura de habilidades.
+- **Profesores**: promueve una cuenta ya registrada a profesor (escribiendo su correo) y le asigna estudiantes. Un
+  profesor entra con su propia cuenta a `/profesor` y ve, en modo solo lectura, el progreso de sus estudiantes asignados
+  (el resto de la base de datos no es visible para él: lo hace cumplir la seguridad por fila).
 - **Exámenes**: solicitudes; se autorizan pegando el enlace de Meet.
 - **Alertas**: sesiones sospechosas, para marcar como revisadas o descartadas con una nota.
 - **Reportes**: rendimiento por habilidad, actividad de 30 días, exportación a Excel (CSV) e informe imprimible por estudiante.
@@ -144,5 +147,5 @@ npx tsc --noEmit # comprobación de tipos
 ## Pendiente
 
 - Contenido de **Atajos** y **Razonamiento** (sin él no se puede solicitar la evaluación del nivel Experto).
-- Pantallas de profesores (asignar estudiantes) y de suscripciones/pagos; la base de datos ya las soporta.
+- Pantalla de suscripciones/pagos; la base de datos ya la soporta (tabla `suscripciones`, vista `vista_ingresos`).
 - Pruebas automáticas.

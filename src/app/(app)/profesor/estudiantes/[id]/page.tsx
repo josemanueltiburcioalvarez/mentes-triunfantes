@@ -1,6 +1,6 @@
 import FichaEstudiante from "@/components/estudiante/ficha-estudiante";
 
-export default async function FichaEstudiantePage({
+export default async function FichaEstudianteProfesorPage({
   params,
   searchParams,
 }: {
@@ -16,12 +16,10 @@ export default async function FichaEstudiantePage({
     <FichaEstudiante
       id={id}
       pagina={pagina}
-      volverHref="/admin/estudiantes"
-      volverTexto="Volver a estudiantes"
-      rutaBase={`/admin/estudiantes/${id}`}
-      soloLectura={false}
-      alertasHref="/admin/alertas"
-      examenesHref="/admin/examenes"
+      volverHref="/profesor"
+      volverTexto="Volver a mis estudiantes"
+      rutaBase={`/profesor/estudiantes/${id}`}
+      soloLectura
     />
   );
 }
