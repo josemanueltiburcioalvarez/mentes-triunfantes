@@ -25,22 +25,18 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", user.id).single();
-  if (perfil?.rol === "admin") redirect("/admin");
-  if (perfil?.rol === "profesor") redirect("/profesor");
-
-  const { data: filas } = await supabase
-    .from("vista_resumen_estudiante")
-    .select("*")
-    .eq("estudiante_id", user.id);
-
+  // todas las consultas viajan juntas (en vez de esperar el rol y el resumen antes de lanzar el resto)
   const [
+    { data: perfil },
+    { data: filas },
     { data: nivelesTabla },
     { data: habilidadesTabla },
     { data: examenesHabilidad },
     { data: evaluacionesNivel },
     { data: autorizacionesNivel },
   ] = await Promise.all([
+    supabase.from("perfiles").select("rol").eq("id", user.id).single(),
+    supabase.from("vista_resumen_estudiante").select("*").eq("estudiante_id", user.id),
     supabase.from("niveles").select("id, nombre, orden"),
     supabase.from("habilidades").select("id, nivel_id, nombre"),
     supabase.from("evaluaciones_habilidad").select("habilidad_id").eq("estudiante_id", user.id).eq("aprobado", true),
@@ -52,6 +48,9 @@ export default async function DashboardPage() {
       .not("nivel_id", "is", null)
       .in("estado", ["solicitado", "autorizado"]),
   ]);
+
+  if (perfil?.rol === "admin") redirect("/admin");
+  if (perfil?.rol === "profesor") redirect("/profesor");
 
   const idsExamenesAprobados = new Set((examenesHabilidad ?? []).map((e) => e.habilidad_id));
   const idsNivelesAprobados = new Set((evaluacionesNivel ?? []).map((e) => e.nivel_id));
