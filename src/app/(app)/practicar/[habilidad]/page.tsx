@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CheckCircle2, Circle, Lock, XCircle } from "lucide-react";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
 import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD, usaNombreDigito } from "@/lib/ejercicios/generador";
@@ -61,7 +62,7 @@ export default async function PracticarPage({
   const [{ data: progresoEjercicios }, { data: evaluaciones }, { data: autorizacionAbierta }] = await Promise.all([
     supabase
       .from("progreso_ejercicio")
-      .select("digito, numero_ejercicio, desbloqueado, aprobado, mejor_puntaje")
+      .select("digito, numero_ejercicio, desbloqueado, aprobado, mejor_puntaje, intentos")
       .eq("estudiante_id", user.id)
       .eq("habilidad_id", habilidadFila.id),
     supabase
@@ -135,25 +136,43 @@ export default async function PracticarPage({
                 const estado = mapaProgreso.get(`${digito}-${numero}`);
                 const desbloqueado = estado?.desbloqueado ?? false;
                 const aprobado = estado?.aprobado ?? false;
+                const intentos = estado?.intentos ?? 0;
+                // desbloqueado, ya lo intento y no aprobo: mostrar el puntaje en rojo para que sepa
+                // que tiene que volver a intentarlo (antes no se mostraba nada y parecia "sin hacer").
+                const noAprobado = desbloqueado && !aprobado && intentos > 0;
 
                 const contenido = (
                   <div
                     className={`rounded-xl border p-4 text-center ${
                       aprobado
                         ? "border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40"
-                        : desbloqueado
-                          ? "border-zinc-200 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
-                          : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
+                        : noAprobado
+                          ? "border-red-200 bg-red-50 hover:border-red-300 dark:border-red-900 dark:bg-red-950/30"
+                          : desbloqueado
+                            ? "border-zinc-200 bg-white hover:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-900"
+                            : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
                     }`}
                   >
                     <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
                       Ejercicio {numero}
                     </div>
-                    <div className="mt-1 text-lg">
-                      {aprobado ? "✅" : desbloqueado ? "10" : "🔒"}
+                    <div className="mt-1 flex justify-center">
+                      {aprobado ? (
+                        <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                      ) : noAprobado ? (
+                        <XCircle className="h-6 w-6 text-red-500 dark:text-red-400" />
+                      ) : desbloqueado ? (
+                        <Circle className="h-6 w-6 text-zinc-300 dark:text-zinc-700" />
+                      ) : (
+                        <Lock className="h-5 w-5 text-zinc-400" />
+                      )}
                     </div>
-                    {aprobado && (
-                      <div className="mt-1 text-xs text-emerald-700 dark:text-emerald-400">
+                    {(aprobado || noAprobado) && (
+                      <div
+                        className={`mt-1 text-xs ${
+                          aprobado ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                        }`}
+                      >
                         {Math.round(estado!.mejor_puntaje)}%
                       </div>
                     )}
