@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Lock } from "lucide-react";
+import { ChevronRight, Lock } from "lucide-react";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { esHabilidadPracticable, HABILIDADES_PRACTICABLES, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
 import { estiloNivel } from "@/lib/estilos-nivel";
@@ -106,79 +106,144 @@ export default async function DashboardPage() {
                   {aprobadasDelNivel}/{habilidadesDelNivel.length}
                 </span>
               </div>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {nivel.habilidades
+              {(() => {
+                const habilidadesOrdenadas = nivel.habilidades
                   .slice()
                   .sort(
                     (a, b) =>
                       ORDEN_HABILIDADES.indexOf(a.habilidad_nombre as (typeof ORDEN_HABILIDADES)[number]) -
                       ORDEN_HABILIDADES.indexOf(b.habilidad_nombre as (typeof ORDEN_HABILIDADES)[number])
-                  )
-                  .map((h) => {
-                    const nombreHabilidad = h.habilidad_nombre as (typeof ORDEN_HABILIDADES)[number];
-                    const dominio = Math.round(h.porcentaje_dominio ?? 0);
-                    const desbloqueada = h.desbloqueada ?? false;
-                    const tienePractica = esHabilidadPracticable(nombreHabilidad);
-                    const Icono = ICONOS_HABILIDAD[nombreHabilidad];
+                  );
+                return (
+                  <>
+                    {/* celular: lista compacta de accesos, una fila por habilidad */}
+                    <div className="flex flex-col gap-2 sm:hidden">
+                      {habilidadesOrdenadas.map((h) => {
+                        const nombreHabilidad = h.habilidad_nombre as (typeof ORDEN_HABILIDADES)[number];
+                        const dominio = Math.round(h.porcentaje_dominio ?? 0);
+                        const desbloqueada = h.desbloqueada ?? false;
+                        const tienePractica = esHabilidadPracticable(nombreHabilidad);
+                        const Icono = ICONOS_HABILIDAD[nombreHabilidad];
+                        const puedeEntrar = desbloqueada && tienePractica;
 
-                    return (
-                      <div
-                        key={nombreHabilidad}
-                        className={`rounded-xl border p-4 transition-shadow ${
-                          desbloqueada
-                            ? `${estilo.borde} ${estilo.fondoTarjeta} hover:shadow-md`
-                            : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
-                        }`}
-                      >
-                        <div className="mb-3 flex items-center gap-2">
-                          <span
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                        const fila = (
+                          <div
+                            className={`flex items-center gap-3 rounded-xl border p-3 transition-colors ${
                               desbloqueada
-                                ? `${estilo.iconoFondo} ${estilo.iconoColor}`
-                                : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                                ? `${estilo.borde} ${estilo.fondoTarjeta} ${puedeEntrar ? "active:brightness-95" : ""}`
+                                : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
                             }`}
                           >
-                            {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                          </span>
-                          <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                            {NOMBRES_LEGIBLES[nombreHabilidad]}
-                          </span>
-                        </div>
-
-                        <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                          <div
-                            className={`h-full rounded-full ${desbloqueada ? estilo.barra : "bg-zinc-300 dark:bg-zinc-700"}`}
-                            style={{ width: `${dominio}%` }}
-                          />
-                        </div>
-                        <div className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
-                          {dominio}% de dominio
-                        </div>
-
-                        {desbloqueada && tienePractica ? (
-                          <div className="flex items-center gap-3">
-                            <Link
-                              href={`/practicar/${nombreHabilidad}`}
-                              className="inline-block rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                            <span
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                                desbloqueada
+                                  ? `${estilo.iconoFondo} ${estilo.iconoColor}`
+                                  : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                              }`}
                             >
-                              Practicar
-                            </Link>
-                            <Link
-                              href={`/guia/${nombreHabilidad}/1`}
-                              className="text-xs text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
-                            >
-                              Ver guía
-                            </Link>
+                              {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                {NOMBRES_LEGIBLES[nombreHabilidad]}
+                              </div>
+                              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                <div
+                                  className={`h-full rounded-full ${desbloqueada ? estilo.barra : "bg-zinc-300 dark:bg-zinc-700"}`}
+                                  style={{ width: `${dominio}%` }}
+                                />
+                              </div>
+                            </div>
+                            {puedeEntrar ? (
+                              <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" />
+                            ) : (
+                              <span className="shrink-0 text-[10px] font-medium text-zinc-400">
+                                {desbloqueada ? "Pronto" : ""}
+                              </span>
+                            )}
                           </div>
-                        ) : desbloqueada ? (
-                          <span className="text-xs text-zinc-400">Próximamente</span>
+                        );
+
+                        return puedeEntrar ? (
+                          <Link key={nombreHabilidad} href={`/practicar/${nombreHabilidad}`}>
+                            {fila}
+                          </Link>
                         ) : (
-                          <span className="text-xs text-zinc-400">Bloqueada</span>
-                        )}
-                      </div>
-                    );
-                  })}
-              </div>
+                          <div key={nombreHabilidad}>{fila}</div>
+                        );
+                      })}
+                    </div>
+
+                    {/* tablet/escritorio: tarjetas con la practica y la guia a la vista */}
+                    <div className="hidden gap-3 sm:grid sm:grid-cols-3">
+                      {habilidadesOrdenadas.map((h) => {
+                        const nombreHabilidad = h.habilidad_nombre as (typeof ORDEN_HABILIDADES)[number];
+                        const dominio = Math.round(h.porcentaje_dominio ?? 0);
+                        const desbloqueada = h.desbloqueada ?? false;
+                        const tienePractica = esHabilidadPracticable(nombreHabilidad);
+                        const Icono = ICONOS_HABILIDAD[nombreHabilidad];
+
+                        return (
+                          <div
+                            key={nombreHabilidad}
+                            className={`rounded-xl border p-4 transition-shadow ${
+                              desbloqueada
+                                ? `${estilo.borde} ${estilo.fondoTarjeta} hover:shadow-md`
+                                : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
+                            }`}
+                          >
+                            <div className="mb-3 flex items-center gap-2">
+                              <span
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                  desbloqueada
+                                    ? `${estilo.iconoFondo} ${estilo.iconoColor}`
+                                    : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                                }`}
+                              >
+                                {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                              </span>
+                              <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                                {NOMBRES_LEGIBLES[nombreHabilidad]}
+                              </span>
+                            </div>
+
+                            <div className="mb-3 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                              <div
+                                className={`h-full rounded-full ${desbloqueada ? estilo.barra : "bg-zinc-300 dark:bg-zinc-700"}`}
+                                style={{ width: `${dominio}%` }}
+                              />
+                            </div>
+                            <div className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
+                              {dominio}% de dominio
+                            </div>
+
+                            {desbloqueada && tienePractica ? (
+                              <div className="flex items-center gap-3">
+                                <Link
+                                  href={`/practicar/${nombreHabilidad}`}
+                                  className="inline-block rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                                >
+                                  Practicar
+                                </Link>
+                                <Link
+                                  href={`/guia/${nombreHabilidad}/1`}
+                                  className="text-xs text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
+                                >
+                                  Ver guía
+                                </Link>
+                              </div>
+                            ) : desbloqueada ? (
+                              <span className="text-xs text-zinc-400">Próximamente</span>
+                            ) : (
+                              <span className="text-xs text-zinc-400">Bloqueada</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
 
               {nivelListoParaEvaluar && nivelFila && (
                 <div
