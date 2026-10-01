@@ -17,6 +17,14 @@ export function formatearFecha(iso: string | null | undefined): string {
   return new Date(iso).toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
 }
 
+// Para columnas "date" (sin hora) como fecha_inicio/fecha_fin: arma la fecha con los componentes
+// locales en vez de parsear "AAAA-MM-DD" como medianoche UTC, que con UTC-5 muestra el dia anterior.
+export function formatearSoloFecha(fecha: string | null | undefined): string {
+  if (!fecha) return "-";
+  const [anio, mes, dia] = fecha.split("-").map(Number);
+  return new Date(anio, mes - 1, dia).toLocaleDateString("es-PE", { dateStyle: "short" });
+}
+
 // "hoy", "ayer", "hace 5 días"... para el ultimo acceso
 export function tiempoRelativo(iso: string | null | undefined): string {
   if (!iso) return "nunca";

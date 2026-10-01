@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { cerrarSesion } from "./acciones";
+import { formatearSoloFecha } from "@/lib/admin";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await crearClienteServidor();
@@ -11,15 +12,26 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   let nombre = "";
   let esAdmin = false;
   let esProfesor = false;
+  // una suscripcion vencida o cancelada bloquea el acceso del estudiante (no "sin_pagos": a un
+  // estudiante recien registrado no se le corta el acceso antes de que el admin le registre el primer pago).
+  let bloqueoSuscripcion: { vencida: boolean; fechaFin: string | null } | null = null;
+
   if (user) {
-    const { data: perfil } = await supabase
-      .from("perfiles")
-      .select("nombre, rol")
-      .eq("id", user.id)
-      .single();
+    const [{ data: perfil }, { data: suscripcion }] = await Promise.all([
+      supabase.from("perfiles").select("nombre, rol").eq("id", user.id).single(),
+      supabase
+        .from("vista_suscripciones_admin")
+        .select("estado_actual, fecha_fin")
+        .eq("estudiante_id", user.id)
+        .maybeSingle(),
+    ]);
     nombre = perfil?.nombre ?? "";
     esAdmin = perfil?.rol === "admin";
     esProfesor = perfil?.rol === "profesor";
+
+    if (!esAdmin && !esProfesor && (suscripcion?.estado_actual === "vencida" || suscripcion?.estado_actual === "cancelada")) {
+      bloqueoSuscripcion = { vencida: suscripcion.estado_actual === "vencida", fechaFin: suscripcion.fecha_fin };
+    }
   }
   const inicio = esAdmin ? "/admin" : esProfesor ? "/profesor" : "/dashboard";
 
@@ -43,7 +55,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </form>
         </div>
       </header>
-      <main className="flex flex-1 flex-col">{children}</main>
+      <main className="flex flex-1 flex-col">
+        {bloqueoSuscripcion ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+            <h1 className="text-xl font-semibold text-zinc-800 dark:text-zinc-200">
+              {bloqueoSuscripcion.vencida ? "Tu suscripción venció" : "Tu suscripción fue cancelada"}
+            </h1>
+            <p className="max-w-sm text-sm text-zinc-500 dark:text-zinc-400">
+              {bloqueoSuscripcion.vencida && bloqueoSuscripcion.fechaFin
+                ? `Venció el ${formatearSoloFecha(bloqueoSuscripcion.fechaFin)}. `
+                : ""}
+              Contacta al administrador para renovarla y recuperar el acceso.
+            </p>
+          </div>
+        ) : (
+          children
+        )}
+      </main>
     </div>
   );
 }

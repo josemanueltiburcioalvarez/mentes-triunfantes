@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
-import { formatearFecha } from "@/lib/admin";
+import { formatearSoloFecha } from "@/lib/admin";
 import FormularioAccion from "@/components/formulario-accion";
 import FormRegistrarPago from "@/components/admin/form-registrar-pago";
 import { cancelarSuscripcion } from "./acciones";
@@ -74,7 +74,7 @@ export default async function SuscripcionesPage() {
 
                 {s.suscripcion_id && (
                   <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
-                    {formatearFecha(s.fecha_inicio)} a {formatearFecha(s.fecha_fin)}
+                    {formatearSoloFecha(s.fecha_inicio)} a {formatearSoloFecha(s.fecha_fin)}
                     {s.estado_actual === "activa" && typeof s.dias_restantes === "number" && ` · ${s.dias_restantes} día${s.dias_restantes === 1 ? "" : "s"} restantes`}
                     {" · S/ "}
                     {Number(s.monto).toFixed(2)} · {s.metodo_pago}

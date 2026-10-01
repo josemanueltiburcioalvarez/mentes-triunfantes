@@ -93,7 +93,10 @@ update public.perfiles set rol = 'admin' where email = 'tu-correo@ejemplo.com';
 - **Exámenes**: solicitudes; se autorizan pegando el enlace de Meet.
 - **Alertas**: sesiones sospechosas, para marcar como revisadas o descartadas con una nota.
 - **Suscripciones**: no hay pasarela de pago; se registra cada cobro (efectivo, Yape/Plin, transferencia) a mano después de
-  recibirlo. El estado (activa, vencida, cancelada, sin pagos) se calcula por fecha, sin necesidad de un cron.
+  recibirlo. El estado (activa, vencida, cancelada, sin pagos) se calcula por fecha, sin necesidad de un cron. Una suscripción
+  **vencida o cancelada le bloquea el acceso al estudiante** (cubre el día de vencimiento completo, recién al día siguiente
+  se bloquea); un estudiante que nunca tuvo un pago registrado ("sin pagos") no se bloquea, para no trabarlo antes de que el
+  admin le registre el primero.
 - **Reportes**: rendimiento por habilidad, actividad de 30 días, exportación a Excel (CSV) e informe imprimible por estudiante.
 - **Registro**: quién hizo qué en el panel.
 
@@ -151,8 +154,6 @@ npx tsc --noEmit # comprobación de tipos
 
 ## Pendiente
 
-- Las suscripciones son solo de seguimiento: una suscripción vencida no bloquea el acceso del estudiante. Si se quiere
-  que sí lo bloquee, hay que cruzarlo con `estado` en `perfiles` o con el proxy.
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.
