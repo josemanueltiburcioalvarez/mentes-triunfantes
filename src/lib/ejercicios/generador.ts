@@ -515,6 +515,48 @@ export function generarExamenNivel(habilidades: HabilidadPracticable[]): Ejercic
   );
 }
 
+// Habilidades que entran en el examen de ubicacion (operaciones basicas hasta raiz y algunas
+// combinadas; secundaria ademas suma ecuaciones y numeros con signo). Digitos 1 a 3: es diagnostico,
+// no tiene sentido empezar con los numeros mas dificiles de una habilidad que recien se va a evaluar.
+const HABILIDADES_UBICACION_PRIMARIA: HabilidadPracticable[] = [
+  "suma",
+  "resta",
+  "tabla_multiplicacion",
+  "multiplicacion",
+  "division",
+  "potencia",
+  "raiz",
+  "operaciones_combinadas",
+];
+const HABILIDADES_UBICACION_SECUNDARIA: HabilidadPracticable[] = [
+  ...HABILIDADES_UBICACION_PRIMARIA,
+  "ecuaciones",
+  "suma_enteros",
+  "resta_enteros",
+  "multiplicacion_enteros",
+  "division_enteros",
+  "potencia_enteros",
+  "raiz_enteros",
+  "combinadas_enteros",
+];
+
+// Examen de ubicacion: 20 preguntas mezclando las habilidades de la modalidad, dando una vuelta
+// completa a la lista antes de subir de digito.
+export function generarExamenUbicacion(modalidad: "primaria" | "secundaria"): EjercicioConDigito[] {
+  const habilidades = modalidad === "secundaria" ? HABILIDADES_UBICACION_SECUNDARIA : HABILIDADES_UBICACION_PRIMARIA;
+  const TOTAL = 20;
+  const vistosPorHabilidad = new Map<HabilidadPracticable, Set<string>>();
+  const preguntas: EjercicioConDigito[] = [];
+  for (let i = 0; i < TOTAL; i++) {
+    const habilidad = habilidades[i % habilidades.length];
+    const digito = Math.min(3, 1 + Math.floor(i / habilidades.length));
+    if (!vistosPorHabilidad.has(habilidad)) vistosPorHabilidad.set(habilidad, new Set());
+    const vistos = vistosPorHabilidad.get(habilidad)!;
+    preguntas.push({ ...generarEjercicioNuevo(habilidad, digito, vistos), digito, habilidad });
+  }
+  return mezclar(preguntas);
+}
+
 export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {
   suma: "Suma",
   resta: "Resta",

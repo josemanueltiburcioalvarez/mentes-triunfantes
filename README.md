@@ -155,11 +155,11 @@ npx tsc --noEmit # comprobación de tipos
 
 ## Pendiente
 
-- **Modalidad primaria/secundaria** (en curso): la base de datos ya existe (`perfiles.modalidad`/`edad`/`grado_escolar`,
-  el currículo de Secundaria, la función `aplicar_examen_ubicacion`), pero falta: la pantalla de onboarding
-  (nombre/edad/grado) que se le pide al estudiante antes de entrar, la pantalla del examen de ubicación en sí,
-  la edición del propio perfil, y que el dashboard/admin filtren por la modalidad de cada estudiante en vez de
-  mostrar siempre el currículo de primaria. Secundaria Avanzado/Experto todavía no están definidos.
+- **Modalidad primaria/secundaria** (en curso): ya funciona de punta a punta — al entrar por primera vez, el
+  estudiante completa su perfil (nombre, edad, año escolar, de ahí se deduce la modalidad) y rinde el examen de
+  ubicación de 20 preguntas, que desbloquea su punto de partida según el puntaje. Falta: que el estudiante pueda
+  editar su propio perfil después, que el admin pueda ver/filtrar por modalidad en el panel, y definir Avanzado y
+  Experto de Secundaria (por ahora solo tiene Básico e Intermedio).
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

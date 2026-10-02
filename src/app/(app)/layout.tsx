@@ -2,6 +2,8 @@ import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { cerrarSesion } from "./acciones";
 import { formatearSoloFecha } from "@/lib/admin";
+import CompletarPerfilForm from "@/components/completar-perfil-form";
+import ExamenUbicacionClient from "@/components/examen-ubicacion-client";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await crearClienteServidor();
@@ -12,24 +14,33 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   let nombre = "";
   let esAdmin = false;
   let esProfesor = false;
+  let perfilIncompleto = false;
+  let modalidad: "primaria" | "secundaria" | null = null;
+  let faltaExamenUbicacion = false;
   // una suscripcion vencida o cancelada bloquea el acceso del estudiante (no "sin_pagos": a un
   // estudiante recien registrado no se le corta el acceso antes de que el admin le registre el primer pago).
   let bloqueoSuscripcion: { vencida: boolean; fechaFin: string | null } | null = null;
 
   if (user) {
-    const [{ data: perfil }, { data: suscripcion }] = await Promise.all([
-      supabase.from("perfiles").select("nombre, rol").eq("id", user.id).single(),
+    const [{ data: perfil }, { data: suscripcion }, { data: ubicacion }] = await Promise.all([
+      supabase.from("perfiles").select("nombre, rol, grado_escolar, modalidad").eq("id", user.id).single(),
       supabase
         .from("vista_suscripciones_admin")
         .select("estado_actual, fecha_fin")
         .eq("estudiante_id", user.id)
         .maybeSingle(),
+      supabase.from("evaluaciones_ubicacion").select("id").eq("estudiante_id", user.id).maybeSingle(),
     ]);
     nombre = perfil?.nombre ?? "";
     esAdmin = perfil?.rol === "admin";
     esProfesor = perfil?.rol === "profesor";
+    modalidad = perfil?.modalidad ?? null;
 
-    if (!esAdmin && !esProfesor && (suscripcion?.estado_actual === "vencida" || suscripcion?.estado_actual === "cancelada")) {
+    const esEstudiante = !esAdmin && !esProfesor;
+    perfilIncompleto = esEstudiante && !perfil?.grado_escolar;
+    faltaExamenUbicacion = esEstudiante && !perfilIncompleto && !ubicacion;
+
+    if (esEstudiante && (suscripcion?.estado_actual === "vencida" || suscripcion?.estado_actual === "cancelada")) {
       bloqueoSuscripcion = { vencida: suscripcion.estado_actual === "vencida", fechaFin: suscripcion.fecha_fin };
     }
   }
@@ -56,7 +67,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </header>
       <main className="flex flex-1 flex-col">
-        {bloqueoSuscripcion ? (
+        {perfilIncompleto ? (
+          <CompletarPerfilForm />
+        ) : faltaExamenUbicacion && modalidad ? (
+          <ExamenUbicacionClient modalidad={modalidad} />
+        ) : bloqueoSuscripcion ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
             <h1 className="text-xl font-semibold text-zinc-800 dark:text-zinc-200">
               {bloqueoSuscripcion.vencida ? "Tu suscripción venció" : "Tu suscripción fue cancelada"}
