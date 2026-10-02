@@ -14,7 +14,7 @@ export default async function ReportesPage() {
   const dias = ultimosDias(DIAS_GRAFICO);
 
   const [habilidades, actividad, estudiantes] = await Promise.all([
-    supabase.from("vista_reporte_habilidades").select("*").order("nivel_orden").order("habilidad_orden"),
+    supabase.from("vista_reporte_habilidades").select("*").order("modalidad").order("nivel_orden").order("habilidad_orden"),
     supabase.from("vista_actividad_diaria").select("*").gte("dia", dias[0]),
     supabase.from("vista_estudiantes_admin").select("id", { count: "exact", head: true }),
   ]);
@@ -118,6 +118,7 @@ export default async function ReportesPage() {
             <thead className="bg-zinc-100 text-xs text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
               <tr>
                 <th className="px-3 py-2">Habilidad</th>
+                <th className="px-3 py-2">Modalidad</th>
                 <th className="px-3 py-2">Nivel</th>
                 <th className="px-3 py-2">Habilitados</th>
                 <th className="px-3 py-2">Dominio prom.</th>
@@ -131,6 +132,9 @@ export default async function ReportesPage() {
               {filas.map((h) => (
                 <tr key={h.habilidad_id} className="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
                   <td className="px-3 py-2 font-medium">{NOMBRES_HABILIDAD[h.habilidad ?? ""] ?? h.habilidad}</td>
+                  <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">
+                    {h.modalidad === "secundaria" ? "Secundaria" : "Primaria"}
+                  </td>
                   <td className="px-3 py-2 text-zinc-500 dark:text-zinc-400">{h.nivel}</td>
                   <td className="px-3 py-2">{h.estudiantes_habilitados}</td>
                   <td className="px-3 py-2">{Math.round(Number(h.dominio_promedio ?? 0))}%</td>

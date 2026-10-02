@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { formatearFecha, NOMBRES_HABILIDAD, TIPOS_SESION, tiempoRelativo } from "@/lib/admin";
+import { nombreGrado } from "@/lib/grados";
 import FormularioAccion from "@/components/formulario-accion";
 import Paginacion from "@/components/admin/paginacion";
 import { abrirHabilidad, cambiarEstadoEstudiante } from "@/app/(app)/admin/estudiantes/acciones";
@@ -182,6 +183,12 @@ export default async function FichaEstudiante({
         </div>
 
         <dl className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+          <Dato
+            titulo="Modalidad"
+            valor={estudiante.modalidad === "secundaria" ? "Secundaria" : estudiante.modalidad === "primaria" ? "Primaria" : "—"}
+          />
+          <Dato titulo="Grado" valor={nombreGrado(estudiante.grado_escolar)} />
+          <Dato titulo="Edad" valor={estudiante.edad != null ? String(estudiante.edad) : "—"} />
           <Dato titulo="Nivel actual" valor={estudiante.nivel_actual ?? "—"} />
           <Dato titulo="Avance general" valor={`${avance}%`} />
           <Dato titulo="Último acceso" valor={tiempoRelativo(estudiante.fecha_ultimo_acceso)} ayuda={formatearFecha(estudiante.fecha_ultimo_acceso)} />

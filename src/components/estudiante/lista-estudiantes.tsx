@@ -18,6 +18,7 @@ export default async function ListaEstudiantes({ searchParams, basePath }: { sea
   const filtros = {
     q: uno(sp.q).trim().slice(0, 60),
     nivel: ["1", "2", "3", "4"].includes(uno(sp.nivel)) ? uno(sp.nivel) : "",
+    modalidad: ["primaria", "secundaria"].includes(uno(sp.modalidad)) ? uno(sp.modalidad) : "",
     estado: ["activo", "inactivo", "suspendido"].includes(uno(sp.estado)) ? uno(sp.estado) : "",
     inactivo: ["7", "15", "30"].includes(uno(sp.inactivo)) ? uno(sp.inactivo) : "",
     alerta: ["alertas", "examen"].includes(uno(sp.alerta)) ? uno(sp.alerta) : "",
@@ -34,6 +35,7 @@ export default async function ListaEstudiantes({ searchParams, basePath }: { sea
     if (t) consulta = consulta.or(`nombre.ilike.%${t}%,email.ilike.%${t}%`);
   }
   if (filtros.nivel) consulta = consulta.eq("nivel_orden", Number(filtros.nivel));
+  if (filtros.modalidad) consulta = consulta.eq("modalidad", filtros.modalidad as "primaria" | "secundaria");
   if (filtros.estado) consulta = consulta.eq("estado", filtros.estado as "activo" | "inactivo" | "suspendido");
   if (filtros.inactivo) {
     const limite = haceDias(Number(filtros.inactivo));
@@ -90,6 +92,7 @@ export default async function ListaEstudiantes({ searchParams, basePath }: { sea
             <thead className="bg-zinc-100 text-xs text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
               <tr>
                 <th className="px-3 py-2">Estudiante</th>
+                <th className="px-3 py-2">Modalidad</th>
                 <th className="px-3 py-2">Nivel</th>
                 <th className="px-3 py-2">Avance</th>
                 <th className="px-3 py-2">Último acceso</th>
@@ -111,6 +114,21 @@ export default async function ListaEstudiantes({ searchParams, basePath }: { sea
                       {e.nombre}
                     </Link>
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">{e.email ?? "—"}</div>
+                  </td>
+                  <td className="px-3 py-2">
+                    {e.modalidad ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          e.modalidad === "secundaria"
+                            ? "bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-300"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                        }`}
+                      >
+                        {e.modalidad === "secundaria" ? "Secundaria" : "Primaria"}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-zinc-400">—</span>
+                    )}
                   </td>
                   <td className="px-3 py-2">{e.nivel_actual ?? "—"}</td>
                   <td className="px-3 py-2">

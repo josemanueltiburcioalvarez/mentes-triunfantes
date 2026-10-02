@@ -35,15 +35,23 @@ from perfiles p
   ) actividad on true
 where p.rol = 'estudiante';
 
+-- el progreso promedio solo cuenta las habilidades de la propia modalidad del estudiante (la primera
+-- habilidad de cada modalidad queda desbloqueada para todos desde el alta, antes de elegir modalidad,
+-- asi que sin este filtro se promediaba con habilidades que ni siquiera practica).
 create view public.vista_resumen_profesor with (security_invoker = true) as
 select prof.id as profesor_id,
   prof.nombre as profesor_nombre,
   count(distinct pe.estudiante_id) filter (where pe.activo) as estudiantes_activos,
-  round(avg(ph.porcentaje_dominio), 2) as progreso_promedio,
+  round(avg(ph.porcentaje_dominio) filter (
+    where n.modalidad = coalesce(est.modalidad, 'primaria'::modalidad_estudiante)
+  ), 2) as progreso_promedio,
   max(ph.ultima_practica) as ultima_actividad_estudiantes
 from perfiles prof
   join profesor_estudiante pe on pe.profesor_id = prof.id
+  join perfiles est on est.id = pe.estudiante_id
   left join progreso_habilidad ph on ph.estudiante_id = pe.estudiante_id
+  left join habilidades h on h.id = ph.habilidad_id
+  left join niveles n on n.id = h.nivel_id
 where prof.rol = 'profesor'
 group by prof.id, prof.nombre;
 
@@ -113,7 +121,8 @@ select b.sesion_id, b.estudiante_id, b.estudiante_nombre, b.habilidad_nombre, b.
 from base b
   left join public.revisiones_alerta r on r.sesion_id = b.sesion_id;
 
--- Una fila por estudiante para el listado del panel de administracion.
+-- Una fila por estudiante para el listado del panel de administracion. nivel_actual y avance se
+-- filtran por la propia modalidad del estudiante (ver comentario de vista_resumen_profesor arriba).
 create view public.vista_estudiantes_admin with (security_invoker = true) as
 select
   p.id, p.nombre, p.email, p.grado_escolar, p.estado, p.fecha_ultimo_acceso, p.created_at,
@@ -121,7 +130,8 @@ select
   na.nombre as nivel_actual,
   coalesce(av.avance, 0) as avance,
   coalesce(sol.n, 0) as solicitudes_abiertas,
-  coalesce(ale.n, 0) as alertas
+  coalesce(ale.n, 0) as alertas,
+  p.modalidad, p.edad
 from public.perfiles p
 left join lateral (
   select n.orden, n.nombre
@@ -129,6 +139,7 @@ left join lateral (
   join public.habilidades h on h.id = ph.habilidad_id
   join public.niveles n on n.id = h.nivel_id
   where ph.estudiante_id = p.id and ph.desbloqueada
+    and n.modalidad = coalesce(p.modalidad, 'primaria'::modalidad_estudiante)
   order by n.orden desc
   limit 1
 ) na on true
@@ -136,7 +147,9 @@ left join lateral (
   select round(avg(ph.porcentaje_dominio), 1) as avance
   from public.progreso_habilidad ph
   join public.habilidades h on h.id = ph.habilidad_id
+  join public.niveles n on n.id = h.nivel_id
   where ph.estudiante_id = p.id and h.nombre::text not in ('atajos', 'razonamiento')
+    and n.modalidad = coalesce(p.modalidad, 'primaria'::modalidad_estudiante)
 ) av on true
 left join lateral (
   select count(*) as n
@@ -150,7 +163,9 @@ left join lateral (
 ) ale on true
 where p.rol = 'estudiante';
 
--- Rendimiento por habilidad (reportes del panel).
+-- Rendimiento por habilidad (reportes del panel). Ahora hay dos filas "Suma, Basico" (una por
+-- modalidad); estudiantes_habilitados/dominio_promedio solo cuentan a los estudiantes de esa
+-- modalidad (sin esto, la habilidad desbloqueada-para-todos-desde-el-alta inflaba el conteo).
 create view public.vista_reporte_habilidades with (security_invoker = true) as
 select
   h.id as habilidad_id,
@@ -165,13 +180,15 @@ select
   coalesce(resp.pct_correctas, 0) as pct_correctas,
   coalesce(resp.segundos, 0) as segundos_promedio,
   coalesce(ex.rendidos, 0) as examenes_rendidos,
-  coalesce(ex.aprobados, 0) as examenes_aprobados
+  coalesce(ex.aprobados, 0) as examenes_aprobados,
+  n.modalidad
 from public.habilidades h
 join public.niveles n on n.id = h.nivel_id
 left join lateral (
   select count(*) as n, round(avg(ph.porcentaje_dominio), 1) as dominio
   from public.progreso_habilidad ph
   join public.perfiles p on p.id = ph.estudiante_id and p.rol = 'estudiante'
+    and coalesce(p.modalidad, 'primaria'::modalidad_estudiante) = n.modalidad
   where ph.habilidad_id = h.id and ph.desbloqueada
 ) abiertas on true
 left join lateral (

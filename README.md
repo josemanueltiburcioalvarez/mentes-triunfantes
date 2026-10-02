@@ -157,9 +157,9 @@ npx tsc --noEmit # comprobación de tipos
 
 - **Modalidad primaria/secundaria** (en curso): ya funciona de punta a punta — al entrar por primera vez, el
   estudiante completa su perfil (nombre, edad, año escolar, de ahí se deduce la modalidad) y rinde el examen de
-  ubicación de 20 preguntas, que desbloquea su punto de partida según el puntaje. Falta: que el estudiante pueda
-  editar su propio perfil después, que el admin pueda ver/filtrar por modalidad en el panel, y definir Avanzado y
-  Experto de Secundaria (por ahora solo tiene Básico e Intermedio).
+  ubicación de 20 preguntas, que desbloquea su punto de partida según el puntaje. El panel de admin ya muestra y
+  filtra por modalidad (lista de estudiantes, ficha y reportes). Falta: que el estudiante pueda editar su propio
+  perfil después, y definir Avanzado y Experto de Secundaria (por ahora solo tiene Básico e Intermedio).
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

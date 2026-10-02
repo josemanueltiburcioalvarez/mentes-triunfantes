@@ -768,6 +768,7 @@ export type Database = {
           habilidad: string | null
           habilidad_id: string | null
           habilidad_orden: number | null
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"] | null
           nivel: string | null
           nivel_orden: number | null
           pct_correctas: number | null
@@ -791,11 +792,13 @@ export type Database = {
           alertas: number | null
           avance: number | null
           created_at: string | null
+          edad: number | null
           email: string | null
           estado: Database["public"]["Enums"]["estado_usuario"] | null
           fecha_ultimo_acceso: string | null
           grado_escolar: string | null
           id: string | null
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"] | null
           nivel_actual: string | null
           nivel_orden: number | null
           nombre: string | null

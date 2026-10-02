@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 export interface ValoresFiltro {
   q: string;
   nivel: string;
+  modalidad: string;
   estado: string;
   inactivo: string;
   alerta: string;
@@ -65,6 +66,14 @@ export default function FiltrosEstudiantes({ inicial }: { inicial: ValoresFiltro
         </select>
       </label>
       <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+        Modalidad
+        <select value={valores.modalidad} onChange={cambiar("modalidad")} className={CAMPO}>
+          <option value="">Todas</option>
+          <option value="primaria">Primaria</option>
+          <option value="secundaria">Secundaria</option>
+        </select>
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
         Estado
         <select value={valores.estado} onChange={cambiar("estado")} className={CAMPO}>
           <option value="">Todos</option>
@@ -103,7 +112,9 @@ export default function FiltrosEstudiantes({ inicial }: { inicial: ValoresFiltro
       {hayFiltros && (
         <button
           type="button"
-          onClick={() => setValores({ q: "", nivel: "", estado: "", inactivo: "", alerta: "", orden: valores.orden })}
+          onClick={() =>
+            setValores({ q: "", nivel: "", modalidad: "", estado: "", inactivo: "", alerta: "", orden: valores.orden })
+          }
           className="pb-2 text-sm text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400"
         >
           Limpiar filtros
