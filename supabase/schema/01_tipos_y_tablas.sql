@@ -13,10 +13,10 @@ create type public.nombre_habilidad as enum (
   'suma', 'resta', 'tabla_multiplicacion', 'multiplicacion', 'division', 'potencia', 'raiz',
   'operaciones_combinadas', 'atajos', 'razonamiento',
   'suma_enteros', 'resta_enteros', 'multiplicacion_enteros', 'division_enteros',
-  'potencia_enteros', 'raiz_enteros', 'ecuaciones', 'combinadas_enteros'
+  'potencia_enteros', 'raiz_enteros', 'ecuaciones', 'combinadas_enteros', 'sistemas_ecuaciones'
 );
--- Primaria (el curriculo original) y Secundaria (un segundo curriculo, por ahora solo con Basico e
--- Intermedio) agrupan las mismas habilidades en niveles distintos. Se deduce del grado escolar.
+-- Primaria (el curriculo original) y Secundaria (un segundo curriculo) agrupan las mismas
+-- habilidades en niveles distintos. Se deduce del grado escolar.
 create type public.modalidad_estudiante as enum ('primaria', 'secundaria');
 
 -- ---------------------------------------------------------------- tablas

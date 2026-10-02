@@ -11,6 +11,7 @@ import {
   type EnteroRaiz,
 } from "./enteros";
 import { DESCRIPCIONES_ECUACIONES, generarEcuacion, type Ecuacion, type NivelEcuacion } from "./ecuaciones";
+import { DESCRIPCIONES_SISTEMAS, generarSistema, type SistemaEcuaciones } from "./sistemas-ecuaciones";
 import { DESCRIPCIONES_ATAJOS, generarAtajo } from "./atajos";
 import { DESCRIPCIONES_RAZONAMIENTO, generarRazonamiento } from "./razonamiento";
 
@@ -31,6 +32,7 @@ export const HABILIDADES_PRACTICABLES = [
   "raiz_enteros",
   "ecuaciones",
   "combinadas_enteros",
+  "sistemas_ecuaciones",
   "atajos",
   "razonamiento",
 ] as const;
@@ -62,7 +64,8 @@ export type OperacionVertical =
   | "potencia_enteros"
   | "raiz_enteros"
   | "ecuacion"
-  | "combinadas_enteros";
+  | "combinadas_enteros"
+  | "sistema_ecuaciones";
 
 export interface EjercicioGenerado {
   enunciado: string;
@@ -78,6 +81,8 @@ export interface EjercicioGenerado {
   raizEntera?: EnteroRaiz;
   // ecuaciones
   ecuacion?: Ecuacion;
+  // sistema de ecuaciones (2 incognitas)
+  sistema?: SistemaEcuaciones;
   // texto para mostrar la respuesta correcta cuando no es un numero (ej. "no existe en los enteros")
   respuestaTexto?: string;
   // texto opcional que se muestra despues de responder (solo en ejercicios curados por el admin)
@@ -313,6 +318,11 @@ function generarEcuaciones(digito: number, nivel: number): EjercicioGenerado {
   return { enunciado: `Resuelve: ${e.texto}`, respuesta: e.solucion, operacion: "ecuacion", ecuacion: e };
 }
 
+function generarSistemaEjercicio(digito: number): EjercicioGenerado {
+  const s = generarSistema(digito);
+  return { enunciado: `Resuelve: ${s.texto1} y ${s.texto2}`, respuesta: s.solucionX, operacion: "sistema_ecuaciones", sistema: s };
+}
+
 function generarAtajoEjercicio(digito: number): EjercicioGenerado {
   const a = generarAtajo(digito);
   return { enunciado: a.enunciado, respuesta: a.respuesta };
@@ -360,6 +370,8 @@ export function generarEjercicio(habilidad: HabilidadPracticable, digito: number
       return generarEcuaciones(digito, nivel);
     case "combinadas_enteros":
       return generarCombinadasEnteros(digito, nivel);
+    case "sistemas_ecuaciones":
+      return generarSistemaEjercicio(digito);
     case "atajos":
       return generarAtajoEjercicio(digito);
     case "razonamiento":
@@ -441,6 +453,8 @@ function descripcionBase(habilidad: HabilidadPracticable, digito: number): strin
         "Paréntesis y varias operaciones con signos",
         "Todo junto con signos: paréntesis, potencias y raíces",
       ][digito];
+    case "sistemas_ecuaciones":
+      return DESCRIPCIONES_SISTEMAS[digito];
     case "atajos":
       return DESCRIPCIONES_ATAJOS[digito];
     case "razonamiento":
@@ -574,6 +588,7 @@ export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {
   raiz_enteros: "Raíz con signos",
   ecuaciones: "Ecuaciones",
   combinadas_enteros: "Operaciones combinadas con signos",
+  sistemas_ecuaciones: "Sistemas de ecuaciones",
   atajos: "Atajos",
   razonamiento: "Razonamiento",
 };

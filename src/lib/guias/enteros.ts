@@ -433,3 +433,58 @@ export function guiaEcuacionAmbosLados(): PasoGuia[] {
     },
   ];
 }
+
+// ---------------------------------------------------------------- sistemas de ecuaciones
+export function guiaSistemaDirecto(): PasoGuia[] {
+  return [
+    {
+      titulo: "Dos ecuaciones, dos incógnitas",
+      texto:
+        "Un sistema tiene dos ecuaciones con **x** e **y**. La idea es **eliminar una letra sumando las dos ecuaciones**, para quedarte con una sola incógnita.",
+      escena: lineas(L("2x + y = 11", "foco"), L("x − y = 1", "foco"), L(""), L("si sumo las dos, la y se cancela")),
+    },
+    {
+      titulo: "Súmalas y la y desaparece",
+      texto:
+        "La primera tiene **+y** y la segunda **−y**: al sumar, se cancelan. Queda una ecuación solo con x.",
+      escena: lineas(L("2x + y = 11", "apagado"), L("x − y = 1", "apagado"), L("(2x + y) + (x − y) = 11 + 1", "foco"), L("3x = 12")),
+    },
+    {
+      titulo: "Resuelve la x y sustituye",
+      texto: "Divido entre 3: x = 4. Ahora sustituyo x = 4 en cualquiera de las dos ecuaciones originales para hallar y.",
+      escena: lineas(L("3x = 12 → x = 4", "resultado"), L("x − y = 1 → 4 − y = 1 → y = 3", "resultado")),
+    },
+    {
+      titulo: "Comprueba en la otra ecuación",
+      texto: "Sustituyo x = 4 e y = 3 en la que no usé: 2 × 4 + 3 = 11 ✓. Coincide con lo que decía la ecuación.",
+      escena: lineas(L("2 × 4 + 3 = 11 ✓", "resultado")),
+    },
+  ];
+}
+
+export function guiaSistemaIgualar(): PasoGuia[] {
+  return [
+    {
+      titulo: "Cuando los coeficientes no coinciden",
+      texto:
+        "En **3x + 2y = 16** y **x − y = 2**, los coeficientes de y son 2 y −1: no se cancelan sumando directo. Primero hay que **igualarlos**.",
+      escena: lineas(L("3x + 2y = 16", "foco"), L("x − y = 2", "foco"), L(""), L("2 y −1 no son opuestos todavía")),
+    },
+    {
+      titulo: "Multiplica una ecuación completa",
+      texto:
+        "Multiplico **toda** la segunda ecuación por 2: así su −y se vuelve −2y, opuesto exacto del +2y de la primera. Ojo: se multiplican los dos lados y los dos términos.",
+      escena: lineas(L("x − y = 2", "apagado"), L("2 × (x − y) = 2 × 2", "foco"), L("2x − 2y = 4")),
+    },
+    {
+      titulo: "Ahora sí se cancelan",
+      texto: "Sumo la primera ecuación con la nueva: (3x + 2y) + (2x − 2y) = 16 + 4 → 5x = 20 → x = 4.",
+      escena: lineas(L("3x + 2y = 16", "apagado"), L("2x − 2y = 4", "apagado"), L("5x = 20 → x = 4", "resultado")),
+    },
+    {
+      titulo: "Sustituye y comprueba",
+      texto: "En x − y = 2: 4 − y = 2 → y = 2. Compruebo en la otra: 3 × 4 + 2 × 2 = 16 ✓.",
+      escena: lineas(L("x − y = 2 → y = 2", "resultado"), L("3 × 4 + 2 × 2 = 16 ✓", "resultado")),
+    },
+  ];
+}

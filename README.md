@@ -13,9 +13,9 @@ Construida con **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tail
 
 | Concepto | Detalle |
 |---|---|
-| **Modalidad** | Primaria o Secundaria, deducida del grado escolar que el estudiante elige al completar su perfil. Cada una tiene su propio currículo (mismas habilidades, agrupadas distinto en niveles) y su propio examen de ubicación de 20 preguntas que decide con qué nivel arranca. Secundaria por ahora solo tiene Básico e Intermedio definidos. |
-| **Niveles** | Básico, Intermedio, Avanzado y Experto (Secundaria: solo los dos primeros por ahora). Se pasa de nivel con una evaluación en vivo supervisada. |
-| **Habilidades** | Cada nivel tiene varias (suma, resta, tabla, multiplicación, división, potencia, raíz, operaciones combinadas, números con signo, ecuaciones…). Se desbloquean en orden. |
+| **Modalidad** | Primaria o Secundaria, deducida del grado escolar que el estudiante elige al completar su perfil. Cada una tiene su propio currículo (mismas habilidades, agrupadas distinto en niveles) y su propio examen de ubicación de 20 preguntas que decide con qué nivel arranca. |
+| **Niveles** | Básico, Intermedio, Avanzado y Experto, en las dos modalidades. Se pasa de nivel con una evaluación en vivo supervisada. |
+| **Habilidades** | Cada nivel tiene varias (suma, resta, tabla, multiplicación, división, potencia, raíz, operaciones combinadas, números con signo, ecuaciones, sistemas de ecuaciones…). Se desbloquean en orden. |
 | **Dígitos** | Cada habilidad tiene 5 grupos de dificultad (en suma y resta, el número de cifras). |
 | **Ejercicios** | Cada dígito tiene 3 ejercicios de 10 preguntas. Se aprueban con **80 %** y se desbloquean en secuencia. |
 | **Examen final** | 20 preguntas mezcladas de la habilidad, 80 % para aprobar. Solo se puede rendir con una autorización del administrador y un enlace de Meet. Desbloquea la siguiente habilidad. |
@@ -156,12 +156,15 @@ npx tsc --noEmit # comprobación de tipos
 
 ## Pendiente
 
-- **Modalidad primaria/secundaria** (en curso): ya funciona de punta a punta — al entrar por primera vez, el
-  estudiante completa su perfil (nombre, edad, año escolar, de ahí se deduce la modalidad) y rinde el examen de
-  ubicación de 20 preguntas, que desbloquea su punto de partida según el puntaje. El panel de admin ya muestra y
-  filtra por modalidad (lista de estudiantes, ficha y reportes), y el estudiante puede corregir su propio nombre,
-  edad y año escolar después desde "Mi perfil" (`/perfil`). Falta: definir Avanzado y Experto de Secundaria (por
-  ahora solo tiene Básico e Intermedio).
+- **Modalidad primaria/secundaria**: completa — al entrar por primera vez, el estudiante completa su perfil (nombre,
+  edad, año escolar, de ahí se deduce la modalidad) y rinde el examen de ubicación de 20 preguntas, que desbloquea
+  su punto de partida según el puntaje. Las dos modalidades tienen sus 4 niveles definidos (Secundaria: Avanzado es
+  Ecuaciones, Experto es Sistemas de ecuaciones + Atajos + Razonamiento). El panel de admin muestra y filtra por
+  modalidad (lista de estudiantes, ficha y reportes), y el estudiante puede corregir su propio nombre, edad y año
+  escolar después desde "Mi perfil" (`/perfil`).
+  - Pendiente menor: la ficha de un estudiante (`ficha-estudiante.tsx`) agrupa el progreso por **nombre** de nivel,
+    así que "Avanzado"/"Experto" de Primaria y de Secundaria aparecen mezclados bajo el mismo encabezado (no es un
+    error de datos — el avance y los reportes ya están bien separados por modalidad — solo una mejora visual pendiente).
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

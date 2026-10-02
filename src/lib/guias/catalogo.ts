@@ -16,6 +16,8 @@ import {
   guiaReglaSignosMultiplicar,
   guiaRestasSeguidas,
   guiaRestaSignosOpuesto,
+  guiaSistemaDirecto,
+  guiaSistemaIgualar,
   guiaSumaSignosDiferentes,
   guiaSumaSignosIguales,
 } from "./enteros";
@@ -420,6 +422,23 @@ export function guiasDe(habilidad: HabilidadPracticable): Guia[] {
           titulo: "La x en los dos lados",
           resumen: "Juntar las x y resolver, incluso con soluciones negativas.",
           pasos: guiaEcuacionAmbosLados(),
+        },
+      ];
+    case "sistemas_ecuaciones":
+      return [
+        {
+          tipo: "pasos",
+          numero: 1,
+          titulo: "Eliminar sumando las ecuaciones",
+          resumen: "Cuando una letra ya tiene coeficientes opuestos, sumar las dos ecuaciones la cancela.",
+          pasos: guiaSistemaDirecto(),
+        },
+        {
+          tipo: "pasos",
+          numero: 2,
+          titulo: "Cuando hay que igualar primero",
+          resumen: "Multiplicar una ecuación completa para que los coeficientes queden opuestos antes de sumar.",
+          pasos: guiaSistemaIgualar(),
         },
       ];
   }

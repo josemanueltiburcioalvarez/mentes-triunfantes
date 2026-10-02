@@ -14,6 +14,7 @@ import EnteroMultDiv from "./entero-mult-div";
 import EnteroPotencia from "./entero-potencia";
 import EnteroRaiz from "./entero-raiz";
 import EcuacionPasos from "./ecuacion-pasos";
+import SistemaEcuacionesPasos from "./sistema-ecuaciones-pasos";
 
 export type { RespuestaPregunta };
 
@@ -64,6 +65,9 @@ export default function Pregunta(props: Props) {
       break;
     case "ecuacion":
       if (ejercicio.ecuacion) return <EcuacionPasos {...comunes} ecuacion={ejercicio.ecuacion} />;
+      break;
+    case "sistema_ecuaciones":
+      if (ejercicio.sistema) return <SistemaEcuacionesPasos {...comunes} sistema={ejercicio.sistema} />;
       break;
   }
 

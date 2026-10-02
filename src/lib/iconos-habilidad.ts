@@ -1,6 +1,7 @@
 import {
   Brain,
   Divide,
+  GitMerge,
   Minus,
   Plus,
   Puzzle,
@@ -33,6 +34,7 @@ export const ICONOS_HABILIDAD: Record<HabilidadPracticable, LucideIcon> = {
   raiz_enteros: Radical,
   ecuaciones: Scale,
   combinadas_enteros: Puzzle,
+  sistemas_ecuaciones: GitMerge,
   atajos: Zap,
   razonamiento: Brain,
 };

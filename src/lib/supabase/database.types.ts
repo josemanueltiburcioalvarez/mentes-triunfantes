@@ -882,6 +882,7 @@ export type Database = {
         | "raiz_enteros"
         | "ecuaciones"
         | "combinadas_enteros"
+        | "sistemas_ecuaciones"
       rol_usuario: "estudiante" | "profesor" | "admin"
       tipo_sesion: "practica" | "evaluacion" | "evaluacion_habilidad"
     }

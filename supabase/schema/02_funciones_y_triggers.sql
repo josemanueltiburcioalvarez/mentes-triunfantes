@@ -63,6 +63,7 @@ as $$
     when 'combinadas_enteros' then 4.0 * p_digito + 10.0
     when 'atajos' then 4.0 * p_digito + 4.0
     when 'razonamiento' then 6.0 * p_digito + 15.0
+    when 'sistemas_ecuaciones' then 10.0 * p_digito + 20.0
     else 3.0 * p_digito + 2.0
   end
 $$;
