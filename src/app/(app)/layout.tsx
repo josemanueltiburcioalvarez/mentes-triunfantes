@@ -56,6 +56,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           {nombre && (
             <span className="text-sm text-zinc-600 dark:text-zinc-400">Hola, {nombre}</span>
           )}
+          {!esAdmin && !esProfesor && !perfilIncompleto && !faltaExamenUbicacion && (
+            <Link href="/perfil" className="text-sm text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400">
+              Mi perfil
+            </Link>
+          )}
           <form action={cerrarSesion}>
             <button
               type="submit"

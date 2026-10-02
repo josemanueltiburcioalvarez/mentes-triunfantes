@@ -2,7 +2,7 @@
 
 import { useActionState, type ReactNode } from "react";
 
-export type EstadoAccion = { error?: string } | null;
+export type EstadoAccion = { error?: string; ok?: string } | null;
 
 // Formulario para server actions que pueden fallar: muestra el error debajo y bloquea los botones
 // mientras se procesa.
@@ -24,6 +24,11 @@ export default function FormularioAccion({
       {estado?.error && (
         <p role="alert" className="w-full max-w-xs text-sm text-red-600">
           {estado.error}
+        </p>
+      )}
+      {estado?.ok && (
+        <p role="status" className="w-full max-w-xs text-sm text-emerald-600 dark:text-emerald-400">
+          {estado.ok}
         </p>
       )}
     </form>
