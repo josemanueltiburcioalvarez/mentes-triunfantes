@@ -2,6 +2,7 @@ import Link from "next/link";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
 import { NOMBRES_HABILIDAD, descripcionDigito, esHabilidadPracticable } from "@/lib/ejercicios/generador";
+import { habilidadDelEstudiante } from "@/lib/habilidad-estudiante";
 import SetPracticaClient from "./set-client";
 
 
@@ -33,11 +34,7 @@ export default async function SetPracticaPage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: habilidadFila } = await supabase
-    .from("habilidades")
-    .select("id, nota_aprobacion")
-    .eq("nombre", nombreHabilidad)
-    .single();
+  const habilidadFila = await habilidadDelEstudiante(supabase, user.id, nombreHabilidad);
 
   if (!habilidadFila) {
     return <MensajeCentrado titulo="No encontrado" mensaje="Habilidad no encontrada." habilidad={habilidad} />;

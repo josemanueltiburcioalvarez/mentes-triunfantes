@@ -16,13 +16,15 @@ select p.id as estudiante_id,
 from perfiles p
   join progreso_habilidad ph on ph.estudiante_id = p.id
   join habilidades h on h.id = ph.habilidad_id
-  join niveles n on n.id = h.nivel_id
+  -- el mismo nivel (ej. "Basico") existe una vez por modalidad: sin este filtro se mezclan
+  join niveles n on n.id = h.nivel_id and n.modalidad = coalesce(p.modalidad, 'primaria'::modalidad_estudiante)
   left join lateral (
     select n2.nombre
     from progreso_habilidad ph2
       join habilidades h2 on h2.id = ph2.habilidad_id
       join niveles n2 on n2.id = h2.nivel_id
     where ph2.estudiante_id = p.id and ph2.desbloqueada
+      and n2.modalidad = coalesce(p.modalidad, 'primaria'::modalidad_estudiante)
     order by n2.orden desc
     limit 1
   ) nivel_actual on true

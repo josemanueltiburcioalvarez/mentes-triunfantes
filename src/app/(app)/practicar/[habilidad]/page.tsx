@@ -4,6 +4,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
 import { descripcionDigito, esHabilidadPracticable, NOMBRES_HABILIDAD, usaNombreDigito } from "@/lib/ejercicios/generador";
 import { guiasDe } from "@/lib/guias/catalogo";
+import { habilidadDelEstudiante } from "@/lib/habilidad-estudiante";
 import FormularioAccion from "@/components/formulario-accion";
 import { solicitarExamen } from "./acciones";
 
@@ -33,11 +34,7 @@ export default async function PracticarPage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: habilidadFila } = await supabase
-    .from("habilidades")
-    .select("id, nombre, nota_aprobacion")
-    .eq("nombre", nombreHabilidad)
-    .single();
+  const habilidadFila = await habilidadDelEstudiante(supabase, user.id, nombreHabilidad);
 
   if (!habilidadFila) {
     return <MensajeCentrado titulo="Habilidad no encontrada" mensaje="No se encontró en el catálogo." />;

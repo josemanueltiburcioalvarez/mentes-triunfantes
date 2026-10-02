@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { esHabilidadPracticable } from "@/lib/ejercicios/generador";
 import { crearClienteServidor } from "@/lib/supabase/server";
+import { habilidadDelEstudiante } from "@/lib/habilidad-estudiante";
 import type { EstadoAccion } from "@/components/formulario-accion";
 
 export async function solicitarExamen(_previo: EstadoAccion, formData: FormData): Promise<EstadoAccion> {
@@ -15,11 +16,7 @@ export async function solicitarExamen(_previo: EstadoAccion, formData: FormData)
   } = await supabase.auth.getUser();
   if (!user) return { error: "Tu sesión expiró. Vuelve a iniciar sesión." };
 
-  const { data: habilidadFila } = await supabase
-    .from("habilidades")
-    .select("id")
-    .eq("nombre", habilidad)
-    .single();
+  const habilidadFila = await habilidadDelEstudiante(supabase, user.id, habilidad);
   if (!habilidadFila) return { error: "No se encontró la habilidad." };
 
   // RLS exige haber aprobado los 15 sets y que no haya otra solicitud abierta.
