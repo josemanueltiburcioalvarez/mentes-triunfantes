@@ -15,13 +15,24 @@ create type public.nombre_habilidad as enum (
   'suma_enteros', 'resta_enteros', 'multiplicacion_enteros', 'division_enteros',
   'potencia_enteros', 'raiz_enteros', 'ecuaciones', 'combinadas_enteros'
 );
+-- Primaria (el curriculo original) y Secundaria (un segundo curriculo, por ahora solo con Basico e
+-- Intermedio) agrupan las mismas habilidades en niveles distintos. Se deduce del grado escolar.
+create type public.modalidad_estudiante as enum ('primaria', 'secundaria');
 
 -- ---------------------------------------------------------------- tablas
 create table public.perfiles (
   id uuid primary key references auth.users(id) on delete cascade,
   nombre text not null,
   rol public.rol_usuario not null default 'estudiante',
-  grado_escolar text,
+  -- 'primaria_1'..'primaria_6', 'secundaria_1'..'secundaria_5'; de aqui se deduce "modalidad"
+  grado_escolar text check (
+    grado_escolar is null or grado_escolar in (
+      'primaria_1', 'primaria_2', 'primaria_3', 'primaria_4', 'primaria_5', 'primaria_6',
+      'secundaria_1', 'secundaria_2', 'secundaria_3', 'secundaria_4', 'secundaria_5'
+    )
+  ),
+  modalidad public.modalidad_estudiante,
+  edad smallint check (edad between 3 and 25),
   estado public.estado_usuario not null default 'activo',
   fecha_ultimo_acceso timestamptz,
   created_at timestamptz not null default now(),
@@ -31,8 +42,10 @@ create table public.perfiles (
 create table public.niveles (
   id uuid primary key default gen_random_uuid(),
   nombre text not null,
-  orden smallint not null unique check (orden between 1 and 4),
-  nota_aprobacion numeric(5,2) not null default 80.00 check (nota_aprobacion between 0 and 100)
+  orden smallint not null check (orden between 1 and 4),
+  modalidad public.modalidad_estudiante not null,
+  nota_aprobacion numeric(5,2) not null default 80.00 check (nota_aprobacion between 0 and 100),
+  unique (modalidad, orden)
 );
 
 create table public.habilidades (
@@ -176,6 +189,17 @@ create table public.revisiones_alerta (
   estado text not null check (estado in ('revisada', 'descartada')),
   nota text,
   admin_id uuid references public.perfiles(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
+-- Examen de ubicacion: se rinde una sola vez (unique en estudiante_id), al completar el perfil.
+-- El puntaje decide hasta que nivel se desbloquea de entrada (ver aplicar_examen_ubicacion en 02).
+create table public.evaluaciones_ubicacion (
+  id uuid primary key default gen_random_uuid(),
+  estudiante_id uuid not null unique references public.perfiles(id) on delete cascade,
+  modalidad public.modalidad_estudiante not null,
+  puntaje smallint not null check (puntaje between 0 and 20),
+  nivel_inicial smallint not null check (nivel_inicial between 1 and 4),
   created_at timestamptz not null default now()
 );
 

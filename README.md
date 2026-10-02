@@ -13,7 +13,8 @@ Construida con **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tail
 
 | Concepto | Detalle |
 |---|---|
-| **Niveles** | Básico, Intermedio, Avanzado y Experto. Se pasa de nivel con una evaluación en vivo supervisada. |
+| **Modalidad** | Primaria o Secundaria, deducida del grado escolar que el estudiante elige al completar su perfil. Cada una tiene su propio currículo (mismas habilidades, agrupadas distinto en niveles) y su propio examen de ubicación de 20 preguntas que decide con qué nivel arranca. Secundaria por ahora solo tiene Básico e Intermedio definidos. |
+| **Niveles** | Básico, Intermedio, Avanzado y Experto (Secundaria: solo los dos primeros por ahora). Se pasa de nivel con una evaluación en vivo supervisada. |
 | **Habilidades** | Cada nivel tiene varias (suma, resta, tabla, multiplicación, división, potencia, raíz, operaciones combinadas, números con signo, ecuaciones…). Se desbloquean en orden. |
 | **Dígitos** | Cada habilidad tiene 5 grupos de dificultad (en suma y resta, el número de cifras). |
 | **Ejercicios** | Cada dígito tiene 3 ejercicios de 10 preguntas. Se aprueban con **80 %** y se desbloquean en secuencia. |
@@ -154,6 +155,11 @@ npx tsc --noEmit # comprobación de tipos
 
 ## Pendiente
 
+- **Modalidad primaria/secundaria** (en curso): la base de datos ya existe (`perfiles.modalidad`/`edad`/`grado_escolar`,
+  el currículo de Secundaria, la función `aplicar_examen_ubicacion`), pero falta: la pantalla de onboarding
+  (nombre/edad/grado) que se le pide al estudiante antes de entrar, la pantalla del examen de ubicación en sí,
+  la edición del propio perfil, y que el dashboard/admin filtren por la modalidad de cada estudiante en vez de
+  mostrar siempre el currículo de primaria. Secundaria Avanzado/Experto todavía no están definidos.
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

@@ -273,6 +273,41 @@ export type Database = {
           },
         ]
       }
+      evaluaciones_ubicacion: {
+        Row: {
+          created_at: string
+          estudiante_id: string
+          id: string
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"]
+          nivel_inicial: number
+          puntaje: number
+        }
+        Insert: {
+          created_at?: string
+          estudiante_id: string
+          id?: string
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"]
+          nivel_inicial: number
+          puntaje: number
+        }
+        Update: {
+          created_at?: string
+          estudiante_id?: string
+          id?: string
+          modalidad?: Database["public"]["Enums"]["modalidad_estudiante"]
+          nivel_inicial?: number
+          puntaje?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluaciones_ubicacion_estudiante_id_fkey"
+            columns: ["estudiante_id"]
+            isOneToOne: true
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habilidades: {
         Row: {
           id: string
@@ -375,18 +410,21 @@ export type Database = {
       niveles: {
         Row: {
           id: string
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"]
           nombre: string
           nota_aprobacion: number
           orden: number
         }
         Insert: {
           id?: string
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"]
           nombre: string
           nota_aprobacion?: number
           orden: number
         }
         Update: {
           id?: string
+          modalidad?: Database["public"]["Enums"]["modalidad_estudiante"]
           nombre?: string
           nota_aprobacion?: number
           orden?: number
@@ -396,31 +434,37 @@ export type Database = {
       perfiles: {
         Row: {
           created_at: string
+          edad: number | null
           email: string | null
           estado: Database["public"]["Enums"]["estado_usuario"]
           fecha_ultimo_acceso: string | null
           grado_escolar: string | null
           id: string
+          modalidad: Database["public"]["Enums"]["modalidad_estudiante"] | null
           nombre: string
           rol: Database["public"]["Enums"]["rol_usuario"]
         }
         Insert: {
           created_at?: string
+          edad?: number | null
           email?: string | null
           estado?: Database["public"]["Enums"]["estado_usuario"]
           fecha_ultimo_acceso?: string | null
           grado_escolar?: string | null
           id: string
+          modalidad?: Database["public"]["Enums"]["modalidad_estudiante"] | null
           nombre: string
           rol?: Database["public"]["Enums"]["rol_usuario"]
         }
         Update: {
           created_at?: string
+          edad?: number | null
           email?: string | null
           estado?: Database["public"]["Enums"]["estado_usuario"]
           fecha_ultimo_acceso?: string | null
           grado_escolar?: string | null
           id?: string
+          modalidad?: Database["public"]["Enums"]["modalidad_estudiante"] | null
           nombre?: string
           rol?: Database["public"]["Enums"]["rol_usuario"]
         }
@@ -797,6 +841,10 @@ export type Database = {
       }
     }
     Functions: {
+      aplicar_examen_ubicacion: {
+        Args: { p_puntaje: number }
+        Returns: { nivel_orden: number; nivel_nombre: string }[]
+      }
       es_profesor_de: { Args: { p_estudiante_id: string }; Returns: boolean }
       obtener_ejercicio_curado: {
         Args: { p_habilidad_id: string; p_dificultad: number; p_excluir?: string[] }
@@ -811,6 +859,7 @@ export type Database = {
       estado_autorizacion_examen: "solicitado" | "autorizado" | "usado" | "cancelado"
       estado_suscripcion: "pendiente" | "activa" | "vencida" | "cancelada"
       estado_usuario: "activo" | "inactivo" | "suspendido"
+      modalidad_estudiante: "primaria" | "secundaria"
       nombre_habilidad:
         | "suma"
         | "resta"

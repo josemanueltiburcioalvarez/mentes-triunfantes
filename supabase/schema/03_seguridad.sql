@@ -16,6 +16,7 @@ alter table public.autorizaciones_examen enable row level security;
 alter table public.suscripciones enable row level security;
 alter table public.acciones_admin enable row level security;
 alter table public.revisiones_alerta enable row level security;
+alter table public.evaluaciones_ubicacion enable row level security;
 
 -- ---------------------------------------------------------------- perfiles
 create policy perfiles_select on public.perfiles for select to authenticated
@@ -159,6 +160,13 @@ create policy revisiones_alerta_update on public.revisiones_alerta for update to
   using ((select rol_actual()) = 'admin') with check ((select rol_actual()) = 'admin');
 create policy revisiones_alerta_delete on public.revisiones_alerta for delete to authenticated
   using ((select rol_actual()) = 'admin');
+
+-- ---------------------------------------------------------------- examen de ubicacion
+-- Se inserta solo a traves de la funcion aplicar_examen_ubicacion (security definer), no hay
+-- policy de insert para el estudiante.
+create policy evaluaciones_ubicacion_select on public.evaluaciones_ubicacion for select to authenticated
+  using (estudiante_id = (select auth.uid()) or (select rol_actual()) = 'admin'
+         or ((select rol_actual()) = 'profesor' and es_profesor_de(estudiante_id)));
 
 -- ---------------------------------------------------------------- privilegios minimos
 -- Sin sesion (anon) no se toca ninguna tabla. Ademas se quitan permisos que la aplicacion nunca usa.

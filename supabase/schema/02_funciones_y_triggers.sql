@@ -114,6 +114,91 @@ $$;
 create trigger inicializar_progreso_estudiante_trigger after insert on public.perfiles
   for each row execute function public.inicializar_progreso_estudiante();
 
+-- ---------------------------------------------------------------- modalidad y examen de ubicacion
+-- La modalidad se deduce del grado escolar, no se pregunta aparte.
+create or replace function public.actualizar_modalidad_perfil()
+returns trigger
+language plpgsql
+set search_path to 'public'
+as $$
+begin
+  new.modalidad := case
+    when new.grado_escolar is null then null
+    when new.grado_escolar like 'primaria_%' then 'primaria'
+    else 'secundaria'
+  end;
+  return new;
+end;
+$$;
+create trigger actualizar_modalidad_perfil_trigger before insert or update of grado_escolar on public.perfiles
+  for each row execute function public.actualizar_modalidad_perfil();
+
+-- El estudiante no puede escribir directo en progreso_habilidad/progreso_ejercicio (RLS lo restringe
+-- a admin), asi que el resultado del examen de ubicacion se aplica con una funcion que valida todo
+-- server-side: cuantas preguntas, que modalidad tiene el estudiante, y hasta que nivel existe para
+-- esa modalidad (secundaria por ahora solo llega a Intermedio). No fabrica "aprobado": solo desbloquea
+-- el acceso a los niveles de abajo y el punto de partida en el nivel donde quedo ubicado.
+create or replace function public.aplicar_examen_ubicacion(p_puntaje smallint)
+returns table (nivel_orden smallint, nivel_nombre text)
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+declare
+  v_estudiante uuid := auth.uid();
+  v_modalidad public.modalidad_estudiante;
+  v_max_orden smallint;
+  v_objetivo smallint;
+begin
+  if v_estudiante is null then
+    raise exception 'No autenticado';
+  end if;
+  if p_puntaje is null or p_puntaje < 0 or p_puntaje > 20 then
+    raise exception 'Puntaje invalido';
+  end if;
+
+  select modalidad into v_modalidad from perfiles where id = v_estudiante;
+  if v_modalidad is null then
+    raise exception 'Completa tu perfil (grado escolar) antes de rendir el examen de ubicacion';
+  end if;
+
+  select max(orden) into v_max_orden from niveles where modalidad = v_modalidad;
+
+  v_objetivo := case
+    when p_puntaje >= 16 then least(4, v_max_orden)
+    when p_puntaje >= 11 then least(3, v_max_orden)
+    else 1
+  end;
+
+  insert into evaluaciones_ubicacion (estudiante_id, modalidad, puntaje, nivel_inicial)
+  values (v_estudiante, v_modalidad, p_puntaje, v_objetivo);
+
+  update progreso_habilidad ph
+  set desbloqueada = true
+  from habilidades h, niveles n
+  where ph.habilidad_id = h.id and h.nivel_id = n.id
+    and ph.estudiante_id = v_estudiante
+    and n.modalidad = v_modalidad
+    and n.orden <= v_objetivo;
+
+  update progreso_ejercicio pe
+  set desbloqueado = true
+  from habilidades h, niveles n
+  where pe.habilidad_id = h.id and h.nivel_id = n.id
+    and pe.estudiante_id = v_estudiante
+    and n.modalidad = v_modalidad
+    and n.orden <= v_objetivo
+    and pe.digito = 1 and pe.numero_ejercicio = 1;
+
+  return query
+    select n.orden, n.nombre from niveles n where n.modalidad = v_modalidad and n.orden = v_objetivo;
+end;
+$$;
+
+revoke execute on function public.aplicar_examen_ubicacion(smallint) from public;
+revoke execute on function public.aplicar_examen_ubicacion(smallint) from anon;
+grant execute on function public.aplicar_examen_ubicacion(smallint) to authenticated;
+
 -- Solo un admin puede cambiar el rol o el estado de un perfil.
 create or replace function public.proteger_campos_sensibles_perfil()
 returns trigger
