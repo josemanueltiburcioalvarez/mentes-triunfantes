@@ -504,6 +504,7 @@ begin
     from habilidades h
     join niveles n_actual on n_actual.id = new.nivel_id
     join niveles n_siguiente on n_siguiente.orden = n_actual.orden + 1
+      and n_siguiente.modalidad = n_actual.modalidad
     where h.nivel_id = n_siguiente.id and h.orden = 1;
 
     if found then

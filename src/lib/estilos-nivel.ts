@@ -8,6 +8,10 @@ export interface EstiloNivel {
   barra: string;
   iconoFondo: string;
   iconoColor: string;
+  // resplandor de la tarjeta y de la barra (solo se nota en modo oscuro / sobre el fondo)
+  brillo: string;
+  barraBrillo: string;
+  anillo: string;
 }
 
 const BASICO: EstiloNivel = {
@@ -18,6 +22,9 @@ const BASICO: EstiloNivel = {
   barra: "bg-emerald-500",
   iconoFondo: "bg-emerald-100 dark:bg-emerald-900",
   iconoColor: "text-emerald-600 dark:text-emerald-400",
+  brillo: "dark:shadow-[0_0_26px_-10px_rgba(16,185,129,0.6)]",
+  barraBrillo: "shadow-[0_0_10px_rgba(16,185,129,0.65)]",
+  anillo: "text-emerald-500 dark:text-emerald-400",
 };
 
 const INTERMEDIO: EstiloNivel = {
@@ -28,6 +35,9 @@ const INTERMEDIO: EstiloNivel = {
   barra: "bg-blue-500",
   iconoFondo: "bg-blue-100 dark:bg-blue-900",
   iconoColor: "text-blue-600 dark:text-blue-400",
+  brillo: "dark:shadow-[0_0_26px_-10px_rgba(59,130,246,0.6)]",
+  barraBrillo: "shadow-[0_0_10px_rgba(59,130,246,0.65)]",
+  anillo: "text-blue-500 dark:text-blue-400",
 };
 
 const AVANZADO: EstiloNivel = {
@@ -38,6 +48,9 @@ const AVANZADO: EstiloNivel = {
   barra: "bg-violet-500",
   iconoFondo: "bg-violet-100 dark:bg-violet-900",
   iconoColor: "text-violet-600 dark:text-violet-400",
+  brillo: "dark:shadow-[0_0_26px_-10px_rgba(139,92,246,0.6)]",
+  barraBrillo: "shadow-[0_0_10px_rgba(139,92,246,0.65)]",
+  anillo: "text-violet-500 dark:text-violet-400",
 };
 
 const EXPERTO: EstiloNivel = {
@@ -48,6 +61,9 @@ const EXPERTO: EstiloNivel = {
   barra: "bg-amber-500",
   iconoFondo: "bg-amber-100 dark:bg-amber-900",
   iconoColor: "text-amber-600 dark:text-amber-400",
+  brillo: "dark:shadow-[0_0_26px_-10px_rgba(245,158,11,0.6)]",
+  barraBrillo: "shadow-[0_0_10px_rgba(245,158,11,0.65)]",
+  anillo: "text-amber-500 dark:text-amber-400",
 };
 
 // por "orden" del nivel (1 a 4); si hay un quinto nivel algun dia, cae en el estilo de Experto.

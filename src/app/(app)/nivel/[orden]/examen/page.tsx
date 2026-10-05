@@ -23,10 +23,15 @@ export default async function ExamenNivelPage({
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  // hay un nivel con este orden por modalidad: se toma el de la modalidad del estudiante
+  const { data: perfil } = await supabase.from("perfiles").select("modalidad").eq("id", user.id).single();
+  if (!perfil?.modalidad) return <MensajeCentrado titulo="No encontrado" mensaje="Este nivel no existe." />;
+
   const { data: nivel } = await supabase
     .from("niveles")
     .select("id, nombre, nota_aprobacion")
     .eq("orden", orden)
+    .eq("modalidad", perfil.modalidad)
     .single();
   if (!nivel) return <MensajeCentrado titulo="No encontrado" mensaje="Este nivel no existe." />;
 
