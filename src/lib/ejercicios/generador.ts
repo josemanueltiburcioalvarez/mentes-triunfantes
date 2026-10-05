@@ -320,7 +320,14 @@ function generarEcuaciones(digito: number, nivel: number): EjercicioGenerado {
 
 function generarSistemaEjercicio(digito: number): EjercicioGenerado {
   const s = generarSistema(digito);
-  return { enunciado: `Resuelve: ${s.texto1} y ${s.texto2}`, respuesta: s.solucionX, operacion: "sistema_ecuaciones", sistema: s };
+  const signo = (v: number) => (v < 0 ? `−${-v}` : String(v));
+  return {
+    enunciado: `Resuelve: ${s.texto1} y ${s.texto2}`,
+    respuesta: s.solucionX,
+    respuestaTexto: `x = ${signo(s.solucionX)}, y = ${signo(s.solucionY)}`,
+    operacion: "sistema_ecuaciones",
+    sistema: s,
+  };
 }
 
 function generarAtajoEjercicio(digito: number): EjercicioGenerado {
@@ -488,45 +495,49 @@ export function generarEjercicioNuevo(
   return ejercicio;
 }
 
-function preguntasPorDigito(
-  habilidad: HabilidadPracticable,
-  cantidadPorDigito: number
-): EjercicioConDigito[] {
+// En los examenes pesan mas los digitos medios (2 a 4): el 1 es muy facil y el 5 es el mas duro. Con 20
+// preguntas da 1 / 5 / 6 / 5 / 3.
+const PESOS_DIGITO_EXAMEN = [1, 5, 6, 5, 3];
+
+// Reparte "total" preguntas entre los digitos 1 a 5 segun los pesos de arriba (resultado[0] es el digito 1).
+export function repartoDigitos(total: number): number[] {
+  const suma = PESOS_DIGITO_EXAMEN.reduce((a, b) => a + b, 0);
+  const cuotas = PESOS_DIGITO_EXAMEN.map((p) => (total * p) / suma);
+  const reparto = cuotas.map(Math.floor);
+  const faltan = total - reparto.reduce((a, b) => a + b, 0);
+  const porResto = cuotas
+    .map((c, i) => ({ i, resto: c - reparto[i] }))
+    .sort((a, b) => b.resto - a.resto || PESOS_DIGITO_EXAMEN[b.i] - PESOS_DIGITO_EXAMEN[a.i]);
+  for (let k = 0; k < faltan; k++) reparto[porResto[k].i]++;
+  return reparto;
+}
+
+// Tamano de los numeros (1 a 3) en las habilidades que lo usan: en examenes se inclina a los medianos y grandes.
+const NIVELES_EXAMEN = [1, 2, 2, 3, 3];
+
+function preguntasDeExamen(habilidad: HabilidadPracticable, total: number): EjercicioConDigito[] {
   const preguntas: EjercicioConDigito[] = [];
-  for (let digito = 1; digito <= 5; digito++) {
+  repartoDigitos(total).forEach((cantidad, indice) => {
+    const digito = indice + 1;
     const vistos = new Set<string>();
-    // en los examenes se mezclan los tres tamanos de numeros (el ejercicio 1, 2 y 3 de cada digito)
-    const desfase = Math.floor(Math.random() * 3);
-    for (let i = 0; i < cantidadPorDigito; i++) {
-      const nivel = ((i + desfase) % 3) + 1;
+    for (let i = 0; i < cantidad; i++) {
+      const nivel = NIVELES_EXAMEN[Math.floor(Math.random() * NIVELES_EXAMEN.length)];
       preguntas.push({ ...generarEjercicioNuevo(habilidad, digito, vistos, nivel), digito, habilidad });
     }
-  }
+  });
   return preguntas;
 }
 
-// Examen final de una habilidad: 4 preguntas de cada digito (20), mezcladas.
+// Examen final de una habilidad: 20 preguntas mezcladas, con mas peso en los digitos 2 a 4.
 export function generarExamenHabilidad(habilidad: HabilidadPracticable): EjercicioConDigito[] {
-  return mezclar(preguntasPorDigito(habilidad, 4));
+  return mezclar(preguntasDeExamen(habilidad, 20));
 }
 
-// Evaluacion de nivel, mezclada y de unas 30 preguntas como maximo: con pocas habilidades son 10 por
-// habilidad (2 de cada digito); con muchas (ej. Experto) se toma 1 pregunta de los digitos mas altos.
+// Evaluacion de nivel, mezclada y de unas 30 preguntas como maximo: hasta 10 por habilidad, repartidas
+// igual que en el examen final (con muchas habilidades, ej. Experto, quedan 3 de los digitos medios).
 export function generarExamenNivel(habilidades: HabilidadPracticable[]): EjercicioConDigito[] {
-  const porHabilidad = Math.min(10, Math.floor(30 / habilidades.length));
-  if (porHabilidad >= 10) {
-    return mezclar(habilidades.flatMap((habilidad) => preguntasPorDigito(habilidad, 2)));
-  }
-  const digitos = [5, 4, 3, 2, 1].slice(0, Math.max(1, porHabilidad));
-  return mezclar(
-    habilidades.flatMap((habilidad) =>
-      digitos.map((digito) => ({
-        ...generarEjercicio(habilidad, digito, 1 + Math.floor(Math.random() * 3)),
-        digito,
-        habilidad,
-      }))
-    )
-  );
+  const porHabilidad = Math.max(1, Math.min(10, Math.floor(30 / habilidades.length)));
+  return mezclar(habilidades.flatMap((habilidad) => preguntasDeExamen(habilidad, porHabilidad)));
 }
 
 // Habilidades que entran en el examen de ubicacion (operaciones basicas hasta raiz y algunas

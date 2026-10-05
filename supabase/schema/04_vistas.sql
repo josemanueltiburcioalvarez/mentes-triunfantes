@@ -94,7 +94,8 @@ with base as (
     count(i.id) as total_intentos,
     count(i.id) filter (where i.es_correcto) as correctos,
     round(avg(i.segundos), 2) as segundos_promedio,
-    count(i.id) filter (where i.segundos < umbral_segundos_intento(hi.nombre, i.dificultad::integer)) as respuestas_rapidas,
+    -- una pregunta saltada ("No sé" en un examen) es rapida por definicion: no cuenta como sospechosa
+    count(i.id) filter (where i.segundos < umbral_segundos_intento(hi.nombre, i.dificultad::integer) and coalesce(i.pasos ->> 'modo', '') <> 'saltada') as respuestas_rapidas,
     count(i.id) filter (where (i.pasos ->> 'requeria_marcas')::boolean) as requerian_marcas,
     count(i.id) filter (where (i.pasos ->> 'requeria_marcas')::boolean and not (i.pasos ->> 'uso_marcas')::boolean) as sin_marcas,
     n.nombre as nivel_nombre

@@ -15,16 +15,21 @@ import EnteroPotencia from "./entero-potencia";
 import EnteroRaiz from "./entero-raiz";
 import EcuacionPasos from "./ecuacion-pasos";
 import SistemaEcuacionesPasos from "./sistema-ecuaciones-pasos";
+import RespuestaDirecta from "./respuesta-directa";
 
 export type { RespuestaPregunta };
 
 interface Props extends PropsComunes {
   ejercicio: EjercicioGenerado;
+  // "directo" (examenes): solo se escribe el resultado; "guiado" (practica): paso a paso con casilleros
+  modo?: "guiado" | "directo";
 }
 
 export default function Pregunta(props: Props) {
-  const { ejercicio, ...comunes } = props;
+  const { ejercicio, modo, ...comunes } = props;
   const operandos = ejercicio.operandos;
+
+  if (modo === "directo") return <RespuestaDirecta ejercicio={ejercicio} {...comunes} />;
 
   if (ejercicio.operacion === "combinadas" && ejercicio.expresion) {
     return <CombinadasPaso {...comunes} expresion={ejercicio.expresion} />;

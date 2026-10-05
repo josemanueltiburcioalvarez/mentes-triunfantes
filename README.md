@@ -18,7 +18,7 @@ Construida con **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tail
 | **Habilidades** | Cada nivel tiene varias (suma, resta, tabla, multiplicación, división, potencia, raíz, operaciones combinadas, números con signo, ecuaciones, sistemas de ecuaciones…). Se desbloquean en orden. |
 | **Dígitos** | Cada habilidad tiene 5 grupos de dificultad (en suma y resta, el número de cifras). |
 | **Ejercicios** | Cada dígito tiene 3 ejercicios de 10 preguntas. Se aprueban con **80 %** y se desbloquean en secuencia. |
-| **Examen final** | 20 preguntas mezcladas de la habilidad, 80 % para aprobar. Solo se puede rendir con una autorización del administrador y un enlace de Meet. Desbloquea la siguiente habilidad. |
+| **Examen final** | 20 preguntas mezcladas de la habilidad (pocas del dígito 1, más de los dígitos 2 a 4), 80 % para aprobar. Se responde escribiendo solo el resultado (sin los casilleros de la práctica) y se puede pasar una pregunta con «No sé» (cuenta como incorrecta). Solo se puede rendir con una autorización del administrador y un enlace de Meet. Desbloquea la siguiente habilidad. |
 | **Evaluación de nivel** | Preguntas de todas las habilidades del nivel (unas 30 como máximo), también autorizada por el administrador. Abre el siguiente nivel. |
 
 Los ejercicios **se generan en la aplicación** (`src/lib/ejercicios/`), no se guardan en la base de datos.

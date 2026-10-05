@@ -64,6 +64,8 @@ export default function ExamenClient({
 
   const [correctos, setCorrectos] = useState(0);
   const [terminado, setTerminado] = useState(false);
+  // "No sé": pide confirmar antes de pasar la pregunta sin responder
+  const [confirmandoSalto, setConfirmandoSalto] = useState(false);
 
   const preguntaActual = preguntas[indice];
 
@@ -123,7 +125,37 @@ export default function ExamenClient({
     setRetroalimentacion({ correcto: esCorrecto, respuestaCorrecta: textoRespuesta(preguntaActual), detalle: r.detalle });
   }
 
+  // Pasa la pregunta sin responder: queda registrada como incorrecta y no cuenta como respuesta "rapida"
+  // sospechosa (pasos.modo = "saltada").
+  async function saltar() {
+    if (!sesionId || retroalimentacion || enviando) return;
+    const segundos = Math.max(0, (Date.now() - inicioPregunta) / 1000);
+
+    setEnviando(true);
+    setErrorGuardado(null);
+    const { error } = await supabase.from("intentos").insert({
+      sesion_id: sesionId,
+      estudiante_id: estudianteId,
+      habilidad_id: idsHabilidad[preguntaActual.habilidad],
+      dificultad: preguntaActual.digito,
+      enunciado: preguntaActual.enunciado,
+      respuesta_correcta: textoRespuesta(preguntaActual),
+      respuesta_dada: "(sin responder)",
+      es_correcto: false,
+      segundos,
+      pasos: { modo: "saltada" },
+    });
+    setEnviando(false);
+
+    if (error) {
+      setErrorGuardado("No se pudo pasar la pregunta. Revisa tu conexión y vuelve a intentarlo; si sigue fallando, avisa a tu profesor.");
+      return;
+    }
+    await siguiente();
+  }
+
   async function siguiente() {
+    setConfirmandoSalto(false);
     if (indice >= preguntas.length - 1) {
       if (sesionId) {
         setEnviando(true);
@@ -199,7 +231,8 @@ export default function ExamenClient({
         <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">{titulo}</h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           {preguntas.length} preguntas · {notaAprobacion}% para aprobar. Resuélvelas a mano, en papel, con la
-          cámara encendida en la reunión de Meet.
+          cámara encendida en la reunión de Meet, y escribe solo el resultado. Si no sabes alguna, puedes pasar a la
+          siguiente (cuenta como incorrecta).
         </p>
         <a
           href={meetUrl}
@@ -232,10 +265,50 @@ export default function ExamenClient({
         <Pregunta
           key={indice}
           ejercicio={preguntaActual}
+          modo="directo"
           bloqueado={retroalimentacion !== null}
           enviando={enviando}
           onResponder={manejarRespuesta}
         />
+
+        {!retroalimentacion && (
+          <div className="mt-6 flex w-full flex-col items-center gap-2 border-t border-zinc-100 pt-4 dark:border-zinc-800">
+            {!confirmandoSalto ? (
+              <button
+                type="button"
+                onClick={() => setConfirmandoSalto(true)}
+                disabled={enviando}
+                className="text-sm text-zinc-500 underline-offset-2 hover:underline disabled:opacity-50 dark:text-zinc-400"
+              >
+                {indice >= preguntas.length - 1 ? "No sé, terminar el examen" : "No sé, pasar a la siguiente"}
+              </button>
+            ) : (
+              <>
+                <p className="max-w-xs text-sm text-zinc-600 dark:text-zinc-300">
+                  Pasarás sin responder y esta pregunta contará como incorrecta.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={saltar}
+                    disabled={enviando}
+                    className="rounded-lg border border-zinc-300 px-4 py-1.5 text-sm font-medium text-zinc-800 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    {enviando ? "Guardando..." : "Sí, pasar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmandoSalto(false)}
+                    disabled={enviando}
+                    className="text-sm text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {errorGuardado && (
           <p role="alert" className="mt-4 max-w-xs text-sm text-red-600">
