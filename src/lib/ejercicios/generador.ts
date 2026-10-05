@@ -540,22 +540,21 @@ export function generarExamenNivel(habilidades: HabilidadPracticable[]): Ejercic
   return mezclar(habilidades.flatMap((habilidad) => preguntasDeExamen(habilidad, porHabilidad)));
 }
 
-// Habilidades que entran en el examen de ubicacion (operaciones basicas hasta raiz y algunas
-// combinadas; secundaria ademas suma ecuaciones y numeros con signo). Digitos 1 a 3: es diagnostico,
-// no tiene sentido empezar con los numeros mas dificiles de una habilidad que recien se va a evaluar.
+// Habilidades que entran en el examen de ubicacion: suma, resta, multiplicacion, division, potencia, raiz,
+// operaciones combinadas y ecuaciones; secundaria ademas los numeros con signo. (La tabla de multiplicar
+// se deja fuera: no ayuda a ubicar.)
 const HABILIDADES_UBICACION_PRIMARIA: HabilidadPracticable[] = [
   "suma",
   "resta",
-  "tabla_multiplicacion",
   "multiplicacion",
   "division",
   "potencia",
   "raiz",
   "operaciones_combinadas",
+  "ecuaciones",
 ];
 const HABILIDADES_UBICACION_SECUNDARIA: HabilidadPracticable[] = [
   ...HABILIDADES_UBICACION_PRIMARIA,
-  "ecuaciones",
   "suma_enteros",
   "resta_enteros",
   "multiplicacion_enteros",
@@ -565,21 +564,37 @@ const HABILIDADES_UBICACION_SECUNDARIA: HabilidadPracticable[] = [
   "combinadas_enteros",
 ];
 
-// Examen de ubicacion: 20 preguntas mezclando las habilidades de la modalidad, dando una vuelta
-// completa a la lista antes de subir de digito.
+// 20 preguntas en tres tramos de dificultad creciente (dentro de cada tramo el digito sale al azar):
+// 10 faciles (digitos 1 a 2), 5 intermedias (2 a 3) y 5 avanzadas (4 a 5). Asi el puntaje se lee solo:
+// 10 = domina lo facil, 15 = tambien lo intermedio, 20 = tambien lo avanzado.
+const TRAMOS_UBICACION: { cantidad: number; digitos: number[]; nivel: number }[] = [
+  { cantidad: 10, digitos: [1, 2], nivel: 1 },
+  { cantidad: 5, digitos: [2, 3], nivel: 2 },
+  { cantidad: 5, digitos: [4, 5], nivel: 2 },
+];
+
+// Examen de ubicacion: las habilidades salen de una baraja mezclada (todas aparecen antes de repetir)
+// y las preguntas van de lo facil a lo avanzado.
 export function generarExamenUbicacion(modalidad: "primaria" | "secundaria"): EjercicioConDigito[] {
   const habilidades = modalidad === "secundaria" ? HABILIDADES_UBICACION_SECUNDARIA : HABILIDADES_UBICACION_PRIMARIA;
-  const TOTAL = 20;
   const vistosPorHabilidad = new Map<HabilidadPracticable, Set<string>>();
+  let baraja: HabilidadPracticable[] = [];
   const preguntas: EjercicioConDigito[] = [];
-  for (let i = 0; i < TOTAL; i++) {
-    const habilidad = habilidades[i % habilidades.length];
-    const digito = Math.min(3, 1 + Math.floor(i / habilidades.length));
-    if (!vistosPorHabilidad.has(habilidad)) vistosPorHabilidad.set(habilidad, new Set());
-    const vistos = vistosPorHabilidad.get(habilidad)!;
-    preguntas.push({ ...generarEjercicioNuevo(habilidad, digito, vistos), digito, habilidad });
+
+  for (const tramo of TRAMOS_UBICACION) {
+    for (let i = 0; i < tramo.cantidad; i++) {
+      if (baraja.length === 0) baraja = mezclar([...habilidades]);
+      const habilidad = baraja.pop()!;
+      const digito = tramo.digitos[Math.floor(Math.random() * tramo.digitos.length)];
+      if (!vistosPorHabilidad.has(habilidad)) vistosPorHabilidad.set(habilidad, new Set());
+      preguntas.push({
+        ...generarEjercicioNuevo(habilidad, digito, vistosPorHabilidad.get(habilidad)!, tramo.nivel),
+        digito,
+        habilidad,
+      });
+    }
   }
-  return mezclar(preguntas);
+  return preguntas;
 }
 
 export const NOMBRES_HABILIDAD: Record<HabilidadPracticable, string> = {

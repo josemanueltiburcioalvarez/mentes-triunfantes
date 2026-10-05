@@ -13,7 +13,7 @@ Construida con **Next.js 16** (App Router), **React 19**, **TypeScript**, **Tail
 
 | Concepto | Detalle |
 |---|---|
-| **Modalidad** | Primaria o Secundaria, deducida del grado escolar que el estudiante elige al completar su perfil. Cada una tiene su propio currículo (mismas habilidades, agrupadas distinto en niveles) y su propio examen de ubicación de 20 preguntas que decide con qué nivel arranca. |
+| **Modalidad** | Primaria o Secundaria, deducida del grado escolar que el estudiante elige al completar su perfil. Cada una tiene su propio currículo (mismas habilidades, agrupadas distinto en niveles) y su propio examen de ubicación de 20 preguntas (10 fáciles de dígitos 1-2, 5 intermedias de 2-3 y 5 avanzadas de 4-5, de todas las habilidades básicas, combinadas y ecuaciones; solo el resultado, con «No sé») que decide con qué nivel arranca. |
 | **Niveles** | Básico, Intermedio, Avanzado y Experto, en las dos modalidades. Se pasa de nivel con una evaluación en vivo supervisada. |
 | **Habilidades** | Cada nivel tiene varias (suma, resta, tabla, multiplicación, división, potencia, raíz, operaciones combinadas, números con signo, ecuaciones, sistemas de ecuaciones…). Se desbloquean en orden. |
 | **Dígitos** | Cada habilidad tiene 5 grupos de dificultad (en suma y resta, el número de cifras). |
