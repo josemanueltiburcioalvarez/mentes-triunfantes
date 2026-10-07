@@ -20,7 +20,7 @@ export default function AnilloProgreso({
 
   return (
     <div className="relative shrink-0" style={{ width: tamano, height: tamano }} role="img" aria-label={etiqueta}>
-      <svg width={tamano} height={tamano} className="-rotate-90" aria-hidden>
+      <svg width={tamano} height={tamano} className="-rotate-90 overflow-visible" aria-hidden>
         <circle
           cx={tamano / 2}
           cy={tamano / 2}

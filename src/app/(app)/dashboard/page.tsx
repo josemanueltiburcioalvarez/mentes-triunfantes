@@ -8,8 +8,9 @@ import { ICONOS_HABILIDAD } from "@/lib/iconos-habilidad";
 import { nombreGrado } from "@/lib/grados";
 import AnilloProgreso from "@/components/anillo-progreso";
 import FondoEstudiante from "@/components/fondo-estudiante";
-import FormularioAccion from "@/components/formulario-accion";
-import { solicitarEvaluacionNivel } from "./acciones";
+import MapaNiveles, { type NivelMapa } from "@/components/mapa/mapa-niveles";
+import SelectorVista from "@/components/mapa/selector-vista";
+import BloqueEvaluacion from "./bloque-evaluacion";
 
 const ORDEN_HABILIDADES = [
   ...HABILIDADES_PRACTICABLES,
@@ -135,6 +136,234 @@ export default async function DashboardPage() {
     }
   }
 
+  const lista = (
+    <div className="flex flex-col gap-8">
+          {nivelesOrdenados.map((nivel) => {
+            const nivelFila = nivelesDeLaModalidad.find((n) => n.orden === nivel.orden);
+            const habilidadesDelNivel = (habilidadesTabla ?? []).filter((h) => h.nivel_id === nivelFila?.id);
+            const nivelListoParaEvaluar =
+              habilidadesDelNivel.length > 0 && habilidadesDelNivel.every((h) => esHabilidadPracticable(h.nombre));
+            const todosExamenesAprobados = habilidadesDelNivel.every((h) => idsExamenesAprobados.has(h.id));
+            const nivelAprobado = nivelFila ? idsNivelesAprobados.has(nivelFila.id) : false;
+            const autorizacion = (autorizacionesNivel ?? []).find((a) => a.nivel_id === nivelFila?.id);
+            const estilo = estiloNivel(nivel.orden);
+            const aprobadasDelNivel = habilidadesDelNivel.filter((h) => idsExamenesAprobados.has(h.id)).length;
+
+            return (
+              <section key={nivel.nombre}>
+                <div className="mb-3 flex items-center gap-2">
+                  <h2 className={`text-lg font-semibold ${estilo.textoTitulo}`}>{nivel.nombre}</h2>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${estilo.badge}`}>
+                    {aprobadasDelNivel}/{habilidadesDelNivel.length}
+                  </span>
+                </div>
+
+                {/* celular: lista compacta de accesos, una fila por habilidad */}
+                <div className="flex flex-col gap-2 sm:hidden">
+                  {nivel.habilidades.map((h) => {
+                    const nombreHabilidad = h.habilidad_nombre as NombreHabilidad;
+                    const dominio = Math.round(h.porcentaje_dominio ?? 0);
+                    const desbloqueada = h.desbloqueada ?? false;
+                    const tienePractica = esHabilidadPracticable(nombreHabilidad);
+                    const Icono = ICONOS_HABILIDAD[nombreHabilidad];
+                    const puedeEntrar = desbloqueada && tienePractica;
+                    const conMedalla = medallas.has(`${nivel.orden}-${nombreHabilidad}`);
+
+                    const fila = (
+                      <div
+                        className={`flex items-center gap-3 rounded-xl border p-3 backdrop-blur-sm transition-colors ${
+                          desbloqueada
+                            ? `${estilo.borde} ${estilo.fondoTarjeta} ${estilo.brillo} ${puedeEntrar ? "active:brightness-95" : ""}`
+                            : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                            desbloqueada
+                              ? `${estilo.iconoFondo} ${estilo.iconoColor}`
+                              : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                          }`}
+                        >
+                          {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                              {NOMBRES_LEGIBLES[nombreHabilidad]}
+                            </span>
+                            {conMedalla && <Award className="h-4 w-4 shrink-0 text-amber-500" aria-label="Examen aprobado" />}
+                          </div>
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div
+                              className={`h-full rounded-full ${
+                                desbloqueada ? `${estilo.barra} ${dominio > 0 ? estilo.barraBrillo : ""}` : "bg-zinc-300 dark:bg-zinc-700"
+                              }`}
+                              style={{ width: `${dominio}%` }}
+                            />
+                          </div>
+                        </div>
+                        {puedeEntrar ? (
+                          <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" />
+                        ) : (
+                          <span className="shrink-0 text-[10px] font-medium text-zinc-400">
+                            {desbloqueada ? "Pronto" : ""}
+                          </span>
+                        )}
+                      </div>
+                    );
+
+                    return puedeEntrar ? (
+                      <Link key={nombreHabilidad} href={`/practicar/${nombreHabilidad}`}>
+                        {fila}
+                      </Link>
+                    ) : (
+                      <div key={nombreHabilidad}>{fila}</div>
+                    );
+                  })}
+                </div>
+
+                {/* tablet/escritorio: tarjetas con la practica y la guia a la vista */}
+                <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+                  {nivel.habilidades.map((h) => {
+                    const nombreHabilidad = h.habilidad_nombre as NombreHabilidad;
+                    const dominio = Math.round(h.porcentaje_dominio ?? 0);
+                    const desbloqueada = h.desbloqueada ?? false;
+                    const tienePractica = esHabilidadPracticable(nombreHabilidad);
+                    const Icono = ICONOS_HABILIDAD[nombreHabilidad];
+                    const conMedalla = medallas.has(`${nivel.orden}-${nombreHabilidad}`);
+
+                    return (
+                      <div
+                        key={nombreHabilidad}
+                        className={`rounded-xl border p-4 backdrop-blur-sm transition-shadow ${
+                          desbloqueada
+                            ? `${estilo.borde} ${estilo.fondoTarjeta} ${estilo.brillo} hover:shadow-md`
+                            : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
+                        }`}
+                      >
+                        <div className="mb-3 flex items-center gap-2">
+                          <span
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                              desbloqueada
+                                ? `${estilo.iconoFondo} ${estilo.iconoColor}`
+                                : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+                            }`}
+                          >
+                            {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                          </span>
+                          <span className="min-w-0 flex-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                            {NOMBRES_LEGIBLES[nombreHabilidad]}
+                          </span>
+                          {conMedalla && <Award className="h-5 w-5 shrink-0 text-amber-500" aria-label="Examen aprobado" />}
+                        </div>
+
+                        <div className="mb-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                          <div
+                            className={`h-full rounded-full ${
+                              desbloqueada ? `${estilo.barra} ${dominio > 0 ? estilo.barraBrillo : ""}` : "bg-zinc-300 dark:bg-zinc-700"
+                            }`}
+                            style={{ width: `${dominio}%` }}
+                          />
+                        </div>
+                        <div className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">{dominio}% de dominio</div>
+
+                        {desbloqueada && tienePractica ? (
+                          <div className="flex items-center gap-3">
+                            <Link
+                              href={`/practicar/${nombreHabilidad}`}
+                              className="inline-block rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+                            >
+                              Practicar
+                            </Link>
+                            <Link
+                              href={`/guia/${nombreHabilidad}/1`}
+                              className="text-xs text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
+                            >
+                              Ver guía
+                            </Link>
+                          </div>
+                        ) : desbloqueada ? (
+                          <span className="text-xs text-zinc-400">Próximamente</span>
+                        ) : (
+                          <span className="text-xs text-zinc-400">Bloqueada</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {nivelListoParaEvaluar && nivelFila && (
+                  <BloqueEvaluacion
+                    nivelNombre={nivel.nombre}
+                    nivelOrden={nivel.orden}
+                    nivelId={nivelFila.id}
+                    estilo={estilo}
+                    nivelAprobado={nivelAprobado}
+                    todosExamenesAprobados={todosExamenesAprobados}
+                    autorizacion={autorizacion}
+                    esUltimoNivel={nivel.orden >= nivelesOrdenados[nivelesOrdenados.length - 1].orden}
+                    conMarco
+                  />
+                )}
+              </section>
+            );
+          })}
+    </div>
+  );
+
+  const datosMapa: NivelMapa[] = nivelesOrdenados.map((nivel) => {
+    const nivelFila = nivelesDeLaModalidad.find((n) => n.orden === nivel.orden);
+    const habilidadesDelNivel = (habilidadesTabla ?? []).filter((h) => h.nivel_id === nivelFila?.id);
+    const nivelListoParaEvaluar =
+      habilidadesDelNivel.length > 0 && habilidadesDelNivel.every((h) => esHabilidadPracticable(h.nombre));
+    const todosExamenesAprobados = habilidadesDelNivel.every((h) => idsExamenesAprobados.has(h.id));
+    const nivelAprobado = nivelFila ? idsNivelesAprobados.has(nivelFila.id) : false;
+    const autorizacion = (autorizacionesNivel ?? []).find((a) => a.nivel_id === nivelFila?.id);
+
+    const nodos = nivel.habilidades.map((h, i) => {
+      const slug = h.habilidad_nombre as NombreHabilidad;
+      const previa = i > 0 ? nivel.habilidades[i - 1] : null;
+      return {
+        slug,
+        nombre: NOMBRES_LEGIBLES[slug],
+        dominio: Math.round(h.porcentaje_dominio ?? 0),
+        desbloqueada: h.desbloqueada ?? false,
+        practicable: esHabilidadPracticable(slug),
+        medalla: medallas.has(`${nivel.orden}-${slug}`),
+        siguiente: siguiente?.nivelOrden === nivel.orden && siguiente.fila.habilidad_nombre === slug,
+        textoBloqueo: previa
+          ? `Aprueba el examen final de ${NOMBRES_LEGIBLES[previa.habilidad_nombre as NombreHabilidad]} para abrirla.`
+          : "Se abre al aprobar la evaluación del nivel anterior.",
+      };
+    });
+
+    return {
+      orden: nivel.orden,
+      nombre: nivel.nombre,
+      aprobadas: habilidadesDelNivel.filter((h) => idsExamenesAprobados.has(h.id)).length,
+      total: habilidadesDelNivel.length,
+      nivelAprobado,
+      abierto: nodos.some((n) => n.desbloqueada),
+      nodos,
+      estadoPortal: nivelAprobado ? "aprobado" : todosExamenesAprobados ? "listo" : "bloqueado",
+      portal:
+        nivelListoParaEvaluar && nivelFila ? (
+          <BloqueEvaluacion
+            nivelNombre={nivel.nombre}
+            nivelOrden={nivel.orden}
+            nivelId={nivelFila.id}
+            estilo={estiloNivel(nivel.orden)}
+            nivelAprobado={nivelAprobado}
+            todosExamenesAprobados={todosExamenesAprobados}
+            autorizacion={autorizacion}
+            esUltimoNivel={nivel.orden >= nivelesOrdenados[nivelesOrdenados.length - 1].orden}
+            conMarco={false}
+          />
+        ) : null,
+    };
+  });
+  const mapa = <MapaNiveles niveles={datosMapa} />;
+
   return (
     <div className="fondo-estudiante relative flex-1 overflow-x-clip">
       <FondoEstudiante />
@@ -189,226 +418,8 @@ export default async function DashboardPage() {
             )}
           </aside>
 
-          <div className="flex flex-col gap-8 lg:order-1">
-            {nivelesOrdenados.map((nivel) => {
-              const nivelFila = nivelesDeLaModalidad.find((n) => n.orden === nivel.orden);
-              const habilidadesDelNivel = (habilidadesTabla ?? []).filter((h) => h.nivel_id === nivelFila?.id);
-              const nivelListoParaEvaluar =
-                habilidadesDelNivel.length > 0 && habilidadesDelNivel.every((h) => esHabilidadPracticable(h.nombre));
-              const todosExamenesAprobados = habilidadesDelNivel.every((h) => idsExamenesAprobados.has(h.id));
-              const nivelAprobado = nivelFila ? idsNivelesAprobados.has(nivelFila.id) : false;
-              const autorizacion = (autorizacionesNivel ?? []).find((a) => a.nivel_id === nivelFila?.id);
-              const estilo = estiloNivel(nivel.orden);
-              const aprobadasDelNivel = habilidadesDelNivel.filter((h) => idsExamenesAprobados.has(h.id)).length;
-
-              return (
-                <section key={nivel.nombre}>
-                  <div className="mb-3 flex items-center gap-2">
-                    <h2 className={`text-lg font-semibold ${estilo.textoTitulo}`}>{nivel.nombre}</h2>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${estilo.badge}`}>
-                      {aprobadasDelNivel}/{habilidadesDelNivel.length}
-                    </span>
-                  </div>
-
-                  {/* celular: lista compacta de accesos, una fila por habilidad */}
-                  <div className="flex flex-col gap-2 sm:hidden">
-                    {nivel.habilidades.map((h) => {
-                      const nombreHabilidad = h.habilidad_nombre as NombreHabilidad;
-                      const dominio = Math.round(h.porcentaje_dominio ?? 0);
-                      const desbloqueada = h.desbloqueada ?? false;
-                      const tienePractica = esHabilidadPracticable(nombreHabilidad);
-                      const Icono = ICONOS_HABILIDAD[nombreHabilidad];
-                      const puedeEntrar = desbloqueada && tienePractica;
-                      const conMedalla = medallas.has(`${nivel.orden}-${nombreHabilidad}`);
-
-                      const fila = (
-                        <div
-                          className={`flex items-center gap-3 rounded-xl border p-3 backdrop-blur-sm transition-colors ${
-                            desbloqueada
-                              ? `${estilo.borde} ${estilo.fondoTarjeta} ${estilo.brillo} ${puedeEntrar ? "active:brightness-95" : ""}`
-                              : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
-                          }`}
-                        >
-                          <span
-                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                              desbloqueada
-                                ? `${estilo.iconoFondo} ${estilo.iconoColor}`
-                                : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
-                            }`}
-                          >
-                            {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <span className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                                {NOMBRES_LEGIBLES[nombreHabilidad]}
-                              </span>
-                              {conMedalla && <Award className="h-4 w-4 shrink-0 text-amber-500" aria-label="Examen aprobado" />}
-                            </div>
-                            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                              <div
-                                className={`h-full rounded-full ${
-                                  desbloqueada ? `${estilo.barra} ${dominio > 0 ? estilo.barraBrillo : ""}` : "bg-zinc-300 dark:bg-zinc-700"
-                                }`}
-                                style={{ width: `${dominio}%` }}
-                              />
-                            </div>
-                          </div>
-                          {puedeEntrar ? (
-                            <ChevronRight className="h-5 w-5 shrink-0 text-zinc-400" />
-                          ) : (
-                            <span className="shrink-0 text-[10px] font-medium text-zinc-400">
-                              {desbloqueada ? "Pronto" : ""}
-                            </span>
-                          )}
-                        </div>
-                      );
-
-                      return puedeEntrar ? (
-                        <Link key={nombreHabilidad} href={`/practicar/${nombreHabilidad}`}>
-                          {fila}
-                        </Link>
-                      ) : (
-                        <div key={nombreHabilidad}>{fila}</div>
-                      );
-                    })}
-                  </div>
-
-                  {/* tablet/escritorio: tarjetas con la practica y la guia a la vista */}
-                  <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-3">
-                    {nivel.habilidades.map((h) => {
-                      const nombreHabilidad = h.habilidad_nombre as NombreHabilidad;
-                      const dominio = Math.round(h.porcentaje_dominio ?? 0);
-                      const desbloqueada = h.desbloqueada ?? false;
-                      const tienePractica = esHabilidadPracticable(nombreHabilidad);
-                      const Icono = ICONOS_HABILIDAD[nombreHabilidad];
-                      const conMedalla = medallas.has(`${nivel.orden}-${nombreHabilidad}`);
-
-                      return (
-                        <div
-                          key={nombreHabilidad}
-                          className={`rounded-xl border p-4 backdrop-blur-sm transition-shadow ${
-                            desbloqueada
-                              ? `${estilo.borde} ${estilo.fondoTarjeta} ${estilo.brillo} hover:shadow-md`
-                              : "border-zinc-100 bg-zinc-100/60 dark:border-zinc-900 dark:bg-zinc-900/40"
-                          }`}
-                        >
-                          <div className="mb-3 flex items-center gap-2">
-                            <span
-                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                                desbloqueada
-                                  ? `${estilo.iconoFondo} ${estilo.iconoColor}`
-                                  : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
-                              }`}
-                            >
-                              {desbloqueada ? <Icono className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                            </span>
-                            <span className="min-w-0 flex-1 text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                              {NOMBRES_LEGIBLES[nombreHabilidad]}
-                            </span>
-                            {conMedalla && <Award className="h-5 w-5 shrink-0 text-amber-500" aria-label="Examen aprobado" />}
-                          </div>
-
-                          <div className="mb-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                            <div
-                              className={`h-full rounded-full ${
-                                desbloqueada ? `${estilo.barra} ${dominio > 0 ? estilo.barraBrillo : ""}` : "bg-zinc-300 dark:bg-zinc-700"
-                              }`}
-                              style={{ width: `${dominio}%` }}
-                            />
-                          </div>
-                          <div className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">{dominio}% de dominio</div>
-
-                          {desbloqueada && tienePractica ? (
-                            <div className="flex items-center gap-3">
-                              <Link
-                                href={`/practicar/${nombreHabilidad}`}
-                                className="inline-block rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                              >
-                                Practicar
-                              </Link>
-                              <Link
-                                href={`/guia/${nombreHabilidad}/1`}
-                                className="text-xs text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
-                              >
-                                Ver guía
-                              </Link>
-                            </div>
-                          ) : desbloqueada ? (
-                            <span className="text-xs text-zinc-400">Próximamente</span>
-                          ) : (
-                            <span className="text-xs text-zinc-400">Bloqueada</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {nivelListoParaEvaluar && nivelFila && (
-                    <div
-                      className={`mt-3 rounded-xl border p-4 text-center backdrop-blur-sm ${
-                        nivelAprobado
-                          ? "border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/40"
-                          : `${estilo.borde} ${estilo.fondoTarjeta}`
-                      }`}
-                    >
-                      <div className="mb-1 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
-                        Evaluación del nivel {nivel.nombre}
-                      </div>
-
-                      {nivelAprobado ? (
-                        <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                          ¡Nivel aprobado!
-                        </span>
-                      ) : !todosExamenesAprobados ? (
-                        <span className="text-xs text-zinc-400">
-                          Aprueba el examen final de todas las habilidades del nivel para poder solicitarla
-                        </span>
-                      ) : autorizacion?.estado === "autorizado" && autorizacion.meet_url ? (
-                        <div className="flex flex-col items-center gap-3">
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                            Tu profesor autorizó la evaluación. Entra a la reunión de Meet y luego comienza.
-                          </p>
-                          <a
-                            href={autorizacion.meet_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm font-medium text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
-                          >
-                            Abrir reunión de Meet
-                          </a>
-                          <Link
-                            href={`/nivel/${nivel.orden}/examen`}
-                            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                          >
-                            Ir a la evaluación
-                          </Link>
-                        </div>
-                      ) : autorizacion?.estado === "solicitado" ? (
-                        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                          Solicitud enviada. Tu profesor te enviará el link de Meet.
-                        </span>
-                      ) : (
-                        <FormularioAccion accion={solicitarEvaluacionNivel} className="flex flex-col items-center gap-2">
-                          <input type="hidden" name="nivel_id" value={nivelFila.id} />
-                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {nivel.orden >= nivelesOrdenados[nivelesOrdenados.length - 1].orden
-                              ? "Se rinde en vivo por Meet con tu profesor y cierra el programa."
-                              : "Se rinde en vivo por Meet con tu profesor y da acceso al siguiente nivel."}
-                          </p>
-                          <button
-                            type="submit"
-                            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-                          >
-                            Solicitar evaluación de nivel
-                          </button>
-                        </FormularioAccion>
-                      )}
-                    </div>
-                  )}
-                </section>
-              );
-            })}
+          <div className="lg:order-1">
+            <SelectorVista mapa={mapa} lista={lista} />
           </div>
         </div>
       </div>
