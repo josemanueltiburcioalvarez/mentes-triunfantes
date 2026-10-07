@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { verificarAcceso } from "@/lib/suscripcion";
+import PantallaPlanes from "@/components/pantalla-planes";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { esHabilidadPracticable, NOMBRES_HABILIDAD, usaNombreDigito } from "@/lib/ejercicios/generador";
 import { habilidadDelEstudiante } from "@/lib/habilidad-estudiante";
@@ -10,6 +12,9 @@ export default async function ExamenPage({
   params: Promise<{ habilidad: string }>;
 }) {
   const { habilidad } = await params;
+
+  const acceso = await verificarAcceso();
+  if (!acceso.permitido) return <PantallaPlanes acceso={acceso} />;
 
   if (!esHabilidadPracticable(habilidad)) {
     return <MensajeCentrado titulo="No disponible" mensaje="Esta habilidad no existe." habilidad={habilidad} />;

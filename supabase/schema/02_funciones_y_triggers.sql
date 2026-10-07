@@ -68,6 +68,13 @@ as $$
   end
 $$;
 
+-- Fecha de hoy en Peru. La base corre en UTC y alli el dia cambia a las 7 pm de Lima, asi que current_date
+-- haria vencer un plan (o contar un dia sin practicar) casi medio dia antes de lo que corresponde.
+create or replace function public.hoy_lima()
+returns date
+language sql stable set search_path to 'public'
+as $ select (now() at time zone 'America/Lima')::date $;
+
 -- ---------------------------------------------------------------- alta de usuarios
 -- SEGURIDAD: el rol NUNCA se toma de los metadatos del registro; todo usuario nuevo es estudiante.
 create or replace function public.manejar_nuevo_usuario()

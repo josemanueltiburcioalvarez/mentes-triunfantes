@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { verificarAcceso } from "@/lib/suscripcion";
+import PantallaPlanes from "@/components/pantalla-planes";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { esHabilidadPracticable, type HabilidadPracticable } from "@/lib/ejercicios/generador";
 import ExamenClient from "@/components/examen-client";
@@ -11,6 +13,9 @@ export default async function ExamenNivelPage({
   params: Promise<{ orden: string }>;
 }) {
   const { orden: ordenStr } = await params;
+
+  const acceso = await verificarAcceso();
+  if (!acceso.permitido) return <PantallaPlanes acceso={acceso} />;
   const orden = Number(ordenStr);
 
   if (!Number.isInteger(orden) || orden < 1 || orden > NIVEL_FINAL) {

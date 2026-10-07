@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { verificarAcceso } from "@/lib/suscripcion";
+import PantallaPlanes from "@/components/pantalla-planes";
 import { notFound } from "next/navigation";
 import { esHabilidadPracticable, NOMBRES_HABILIDAD } from "@/lib/ejercicios/generador";
 import { guiasDe } from "@/lib/guias/catalogo";
@@ -11,6 +13,9 @@ export default async function GuiaPage({
   params: Promise<{ habilidad: string; numero: string }>;
 }) {
   const { habilidad, numero } = await params;
+
+  const acceso = await verificarAcceso();
+  if (!acceso.permitido) return <PantallaPlanes acceso={acceso} />;
   if (!esHabilidadPracticable(habilidad)) notFound();
 
   const guias = guiasDe(habilidad);

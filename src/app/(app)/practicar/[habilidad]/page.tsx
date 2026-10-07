@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { verificarAcceso } from "@/lib/suscripcion";
+import PantallaPlanes from "@/components/pantalla-planes";
 import { CheckCircle2, Circle, Lock, XCircle } from "lucide-react";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
@@ -17,6 +19,9 @@ export default async function PracticarPage({
   params: Promise<{ habilidad: string }>;
 }) {
   const { habilidad } = await params;
+
+  const acceso = await verificarAcceso();
+  if (!acceso.permitido) return <PantallaPlanes acceso={acceso} />;
 
   if (!esHabilidadPracticable(habilidad)) {
     return (

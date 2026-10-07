@@ -57,10 +57,10 @@ group by prof.id, prof.nombre;
 
 create view public.vista_ingresos with (security_invoker = true) as
 select
-  count(*) filter (where estado = 'activa' and fecha_fin >= current_date) as activas,
-  count(*) filter (where estado = 'vencida' or (estado = 'activa' and fecha_fin < current_date)) as vencidas,
-  count(*) filter (where estado = 'activa' and fecha_fin >= current_date and fecha_fin <= current_date + interval '7 days') as por_vencer_7_dias,
-  coalesce(sum(monto) filter (where estado = 'activa' and fecha_fin >= current_date), 0::numeric) as ingreso_mensual_total
+  count(*) filter (where estado = 'activa' and fecha_fin >= public.hoy_lima()) as activas,
+  count(*) filter (where estado = 'vencida' or (estado = 'activa' and fecha_fin < public.hoy_lima())) as vencidas,
+  count(*) filter (where estado = 'activa' and fecha_fin >= public.hoy_lima() and fecha_fin <= public.hoy_lima() + interval '7 days') as por_vencer_7_dias,
+  coalesce(sum(monto) filter (where estado = 'activa' and fecha_fin >= public.hoy_lima()), 0::numeric) as ingreso_mensual_total
 from suscripciones;
 
 create view public.vista_retencion with (security_invoker = true) as
@@ -68,7 +68,7 @@ select p.id as estudiante_id,
   p.nombre,
   p.grado_escolar,
   pmax.ultima_practica,
-  case when pmax.ultima_practica is null then null::integer else current_date - pmax.ultima_practica::date end as dias_sin_practicar,
+  case when pmax.ultima_practica is null then null::integer else public.hoy_lima() - (pmax.ultima_practica at time zone 'America/Lima')::date end as dias_sin_practicar,
   (pmax.ultima_practica is null or pmax.ultima_practica < now() - interval '7 days') as inactivo_7_dias,
   (pmax.ultima_practica is null or pmax.ultima_practica < now() - interval '15 days') as inactivo_15_dias,
   (pmax.ultima_practica is null or pmax.ultima_practica < now() - interval '30 days') as inactivo_30_dias
@@ -236,10 +236,10 @@ select
   case
     when ultima.id is null then 'sin_pagos'
     when ultima.estado = 'cancelada' then 'cancelada'
-    when ultima.fecha_fin < current_date then 'vencida'
+    when ultima.fecha_fin < public.hoy_lima() then 'vencida'
     else 'activa'
   end as estado_actual,
-  case when ultima.fecha_fin is not null then (ultima.fecha_fin - current_date) end as dias_restantes
+  case when ultima.fecha_fin is not null then (ultima.fecha_fin - public.hoy_lima()) end as dias_restantes
 from public.perfiles p
 left join lateral (
   select *

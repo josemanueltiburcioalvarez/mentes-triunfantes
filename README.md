@@ -93,11 +93,12 @@ update public.perfiles set rol = 'admin' where email = 'tu-correo@ejemplo.com';
   habilidad funcione, es solo para enriquecerla con problemas curados.
 - **Exámenes**: solicitudes; se autorizan pegando el enlace de Meet.
 - **Alertas**: sesiones sospechosas, para marcar como revisadas o descartadas con una nota.
-- **Suscripciones**: no hay pasarela de pago; se registra cada cobro (efectivo, Yape/Plin, transferencia) a mano después de
-  recibirlo. El estado (activa, vencida, cancelada, sin pagos) se calcula por fecha, sin necesidad de un cron. Una suscripción
-  **vencida o cancelada le bloquea el acceso al estudiante** (cubre el día de vencimiento completo, recién al día siguiente
-  se bloquea); un estudiante que nunca tuvo un pago registrado ("sin pagos") no se bloquea, para no trabarlo antes de que el
-  admin le registre el primero.
+- **Suscripciones**: no hay pasarela de pago. El estudiante ve los planes (1 mes S/ 50; 3, 6 y 12 meses con descuento, ver
+  `src/lib/planes.ts`), paga por Yape/Plin y manda el comprobante por WhatsApp; el administrador registra el pago aquí y
+  recién entonces se activa. El estado (activa, vencida, cancelada, sin pagos) se calcula por fecha en **hora de Lima**,
+  sin necesidad de un cron, y el día de vencimiento cuenta completo. **Sin un plan activo** (nunca pagó, venció o se
+  canceló) el estudiante ve el panel con todos los niveles, pero la práctica, las guías, el examen de cada habilidad y la
+  evaluación de nivel muestran la pantalla de precios en lugar del contenido. Admin y profesor no necesitan plan.
 - **Reportes**: rendimiento por habilidad, actividad de 30 días, exportación a Excel (CSV) e informe imprimible por estudiante.
 - **Registro**: quién hizo qué en el panel.
 

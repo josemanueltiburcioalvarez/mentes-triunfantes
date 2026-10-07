@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { verificarAcceso } from "@/lib/suscripcion";
+import PantallaPlanes from "@/components/pantalla-planes";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { HabilidadPracticable } from "@/lib/ejercicios/generador";
 import { NOMBRES_HABILIDAD, descripcionDigito, esHabilidadPracticable } from "@/lib/ejercicios/generador";
@@ -12,6 +14,9 @@ export default async function SetPracticaPage({
   params: Promise<{ habilidad: string; digito: string; numero: string }>;
 }) {
   const { habilidad, digito: digitoStr, numero: numeroStr } = await params;
+
+  const acceso = await verificarAcceso();
+  if (!acceso.permitido) return <PantallaPlanes acceso={acceso} />;
   const digito = Number(digitoStr);
   const numero = Number(numeroStr);
 
