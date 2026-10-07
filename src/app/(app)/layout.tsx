@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { cerrarSesion } from "./acciones";
 import CompletarPerfilForm from "@/components/completar-perfil-form";
 import ExamenUbicacionClient from "@/components/examen-ubicacion-client";
+import Logo from "@/components/logo";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await crearClienteServidor();
@@ -37,9 +38,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <header className="print:hidden flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-4 dark:border-zinc-800 dark:bg-zinc-900">
-        <Link href={inicio} className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-          Mentes Triunfantes{esAdmin ? " · Admin" : esProfesor ? " · Profesor" : ""}
+      <header className="print:hidden flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3 dark:border-zinc-800 dark:bg-zinc-900">
+        <Link href={inicio} className="flex items-center gap-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+          <Logo variante="emblema" ancho={64} prioridad />
+          <span>
+            <span className="hidden sm:inline">Mentes Triunfantes</span>
+            {(esAdmin || esProfesor) && (
+              <>
+                <span className="hidden sm:inline"> · </span>
+                {esAdmin ? "Admin" : "Profesor"}
+              </>
+            )}
+          </span>
         </Link>
         <div className="flex items-center gap-4">
           {nombre && (
