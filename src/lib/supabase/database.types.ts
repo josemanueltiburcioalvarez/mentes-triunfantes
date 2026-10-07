@@ -713,6 +713,16 @@ export type Database = {
         }
         Relationships: []
       }
+      vista_racha_estudiante: {
+        Row: {
+          dias_recientes: string[] | null
+          estudiante_id: string | null
+          mejor_racha: number | null
+          practico_hoy: boolean | null
+          racha_actual: number | null
+        }
+        Relationships: []
+      }
       vista_resumen_estudiante: {
         Row: {
           desbloqueada: boolean | null

@@ -29,7 +29,7 @@ from perfiles p
     limit 1
   ) nivel_actual on true
   left join lateral (
-    select count(distinct i.created_at::date) as dias_activos
+    select count(distinct (i.created_at at time zone 'America/Lima')::date) as dias_activos
     from intentos i
     where i.estudiante_id = p.id
   ) actividad on true
@@ -220,6 +220,36 @@ group by 1;
 
 -- Estado de pago mas reciente de cada estudiante, con el estado calculado por fecha (una suscripcion
 -- 'activa' cuya fecha_fin ya paso se muestra como vencida sin necesidad de un cron que la actualice).
+-- Racha de dias del estudiante (para el panel y los logros), contada en hora de Lima. Un dia cuenta si respondio
+-- al menos una pregunta (las preguntas saltadas con "No sé" no cuentan). La racha sigue viva si su ultimo dia fue
+-- hoy o ayer. "dias_recientes" son los dias con actividad de los ultimos 7 (hoy incluido).
+create view public.vista_racha_estudiante with (security_invoker = true) as
+with dias as (
+  select distinct i.estudiante_id, (i.created_at at time zone 'America/Lima')::date as dia
+  from public.intentos i
+  where coalesce(i.pasos ->> 'modo', '') <> 'saltada'
+),
+numerados as (
+  select estudiante_id, dia, dia - (row_number() over (partition by estudiante_id order by dia))::int as grupo
+  from dias
+),
+rachas as (
+  select estudiante_id, grupo, count(*)::int as largo, max(dia) as ultimo
+  from numerados
+  group by estudiante_id, grupo
+)
+select r.estudiante_id,
+  coalesce(max(r.largo) filter (where r.ultimo >= public.hoy_lima() - 1), 0) as racha_actual,
+  max(r.largo) as mejor_racha,
+  bool_or(r.ultimo = public.hoy_lima()) as practico_hoy,
+  coalesce(
+    (select array_agg(d.dia order by d.dia) from dias d
+     where d.estudiante_id = r.estudiante_id and d.dia >= public.hoy_lima() - 6),
+    '{}'::date[]
+  ) as dias_recientes
+from rachas r
+group by r.estudiante_id;
+
 create view public.vista_suscripciones_admin with (security_invoker = true) as
 select
   p.id as estudiante_id,

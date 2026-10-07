@@ -166,10 +166,10 @@ npx tsc --noEmit # comprobación de tipos
   - Pendiente menor: la ficha de un estudiante (`ficha-estudiante.tsx`) agrupa el progreso por **nombre** de nivel,
     así que "Avanzado"/"Experto" de Primaria y de Secundaria aparecen mezclados bajo el mismo encabezado (no es un
     error de datos — el avance y los reportes ya están bien separados por modalidad — solo una mejora visual pendiente).
-- **Panel del estudiante tipo juego**: ya tiene el perfil con anillos, el fondo con luces y un **mapa** por niveles (camino con
-  nodos por habilidad: bloqueado, en progreso con anillo de dominio y medalla al aprobar el examen final; un portal por nivel
-  para la evaluación; selector Mapa/Lista). Falta: logros derivados del progreso, racha de días y, si se quiere, arte
-  ilustrado de fondo.
+- **Panel del estudiante tipo juego**: ya tiene el perfil con anillos, el fondo con luces, el **mapa** por niveles (nodos por
+  habilidad, portal de evaluación, selector Mapa/Lista) y una tarjeta de **racha de días** (hora de Lima) y **logros**
+  (17 medallas calculadas con el progreso existente, sin tablas nuevas; detalle en `/logros`). Falta, si se quiere: avisar
+  con un mensaje cuando se desbloquea un logro nuevo y arte ilustrado de fondo.
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

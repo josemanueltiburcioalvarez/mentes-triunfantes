@@ -10,6 +10,8 @@ import AnilloProgreso from "@/components/anillo-progreso";
 import FondoEstudiante from "@/components/fondo-estudiante";
 import MapaNiveles, { type NivelMapa } from "@/components/mapa/mapa-niveles";
 import SelectorVista from "@/components/mapa/selector-vista";
+import TarjetaRachaLogros from "@/components/logros/tarjeta-racha-logros";
+import { cargarLogros } from "@/lib/logros";
 import BloqueEvaluacion from "./bloque-evaluacion";
 
 const ORDEN_HABILIDADES = [
@@ -46,6 +48,7 @@ export default async function DashboardPage() {
     { data: examenesHabilidad },
     { data: evaluacionesNivel },
     { data: autorizacionesNivel },
+    { logros, racha },
   ] = await Promise.all([
     supabase.from("perfiles").select("rol, modalidad").eq("id", user.id).single(),
     supabase.from("vista_resumen_estudiante").select("*").eq("estudiante_id", user.id),
@@ -59,6 +62,7 @@ export default async function DashboardPage() {
       .eq("estudiante_id", user.id)
       .not("nivel_id", "is", null)
       .in("estado", ["solicitado", "autorizado"]),
+    cargarLogros(supabase, user.id),
   ]);
 
   if (perfil?.rol === "admin") redirect("/admin");
@@ -416,6 +420,8 @@ export default async function DashboardPage() {
                 nivelOrden={siguiente.nivelOrden}
               />
             )}
+
+            <TarjetaRachaLogros racha={racha} logros={logros} />
           </aside>
 
           <div className="lg:order-1">
