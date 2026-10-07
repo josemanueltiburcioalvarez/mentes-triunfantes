@@ -140,6 +140,15 @@ export default async function DashboardPage() {
     }
   }
 
+  const siguienteProps = siguiente
+    ? {
+        nombre: NOMBRES_LEGIBLES[siguiente.fila.habilidad_nombre as NombreHabilidad],
+        habilidad: siguiente.fila.habilidad_nombre as NombreHabilidad,
+        dominio: Math.round(siguiente.fila.porcentaje_dominio ?? 0),
+        nivelOrden: siguiente.nivelOrden,
+      }
+    : null;
+
   const lista = (
     <div key="lista" className="flex flex-col gap-8">
           {nivelesOrdenados.map((nivel) => {
@@ -376,7 +385,7 @@ export default async function DashboardPage() {
         <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Tu progreso</h1>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <aside className="flex flex-col gap-4 lg:order-2 lg:sticky lg:top-6 lg:self-start">
+          <aside className="order-2 flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
             <div className={`${TARJETA_PANEL} p-4`}>
               <h2 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">Tu perfil académico</h2>
               <div className="flex items-center justify-between gap-4">
@@ -412,23 +421,58 @@ export default async function DashboardPage() {
               {grado && <div className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">{nombreGrado(grado)}</div>}
             </div>
 
-            {siguiente && (
-              <SiguienteReto
-                nombre={NOMBRES_LEGIBLES[siguiente.fila.habilidad_nombre as NombreHabilidad]}
-                habilidad={siguiente.fila.habilidad_nombre as NombreHabilidad}
-                dominio={Math.round(siguiente.fila.porcentaje_dominio ?? 0)}
-                nivelOrden={siguiente.nivelOrden}
-              />
+            {siguienteProps && (
+              <div className="hidden lg:block">
+                <SiguienteReto {...siguienteProps} />
+              </div>
             )}
 
             <TarjetaRachaLogros racha={racha} logros={logros} />
           </aside>
 
-          <div className="lg:order-1">
+          <div className="order-1">
+            {siguienteProps && <SiguienteRetoCompacto {...siguienteProps} />}
             <SelectorVista mapa={mapa} lista={lista} />
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Version de una sola fila para celular: un toque para seguir con la habilidad que toca, sin bajar hasta el perfil.
+function SiguienteRetoCompacto({
+  nombre,
+  habilidad,
+  dominio,
+  nivelOrden,
+}: {
+  nombre: string;
+  habilidad: NombreHabilidad;
+  dominio: number;
+  nivelOrden: number;
+}) {
+  const estilo = estiloNivel(nivelOrden);
+  const Icono = ICONOS_HABILIDAD[habilidad];
+  return (
+    <div
+      className={`mb-4 flex items-center gap-3 rounded-2xl border p-3 backdrop-blur-sm lg:hidden ${estilo.borde} ${estilo.fondoTarjeta} ${estilo.brillo}`}
+    >
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${estilo.iconoFondo} ${estilo.iconoColor}`}>
+        <Icono className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Tu siguiente reto</div>
+        <div className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-50">
+          {nombre} <span className="font-semibold text-zinc-500 dark:text-zinc-400">· {dominio}%</span>
+        </div>
+      </div>
+      <Link
+        href={`/practicar/${habilidad}`}
+        className="shrink-0 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_14px_-2px_rgba(16,185,129,0.6)] hover:bg-emerald-400"
+      >
+        Practicar
+      </Link>
     </div>
   );
 }
