@@ -66,7 +66,7 @@ export default function SelectorVista({ mapa, lista }: { mapa: ReactNode; lista:
           {boton("lista", "Lista", <List className="h-3.5 w-3.5" />)}
         </div>
       </div>
-      {vista === "mapa" ? mapa : lista}
+      <div key={vista}>{vista === "mapa" ? mapa : lista}</div>
     </div>
   );
 }

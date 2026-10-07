@@ -137,7 +137,7 @@ export default async function DashboardPage() {
   }
 
   const lista = (
-    <div className="flex flex-col gap-8">
+    <div key="lista" className="flex flex-col gap-8">
           {nivelesOrdenados.map((nivel) => {
             const nivelFila = nivelesDeLaModalidad.find((n) => n.orden === nivel.orden);
             const habilidadesDelNivel = (habilidadesTabla ?? []).filter((h) => h.nivel_id === nivelFila?.id);
@@ -362,7 +362,7 @@ export default async function DashboardPage() {
         ) : null,
     };
   });
-  const mapa = <MapaNiveles niveles={datosMapa} />;
+  const mapa = <MapaNiveles key="mapa" niveles={datosMapa} />;
 
   return (
     <div className="fondo-estudiante relative flex-1 overflow-x-clip">

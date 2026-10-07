@@ -22,8 +22,8 @@ export default function Logo({
   const alto = Math.round((ancho * m.alto) / m.ancho);
   return (
     <>
-      <Image src={m.negro} alt="Mentes Triunfantes" width={ancho} height={alto} priority={prioridad} className={`dark:hidden ${className}`} />
-      <Image src={m.blanco} alt="" aria-hidden width={ancho} height={alto} priority={prioridad} className={`hidden dark:block ${className}`} />
+      <Image src={m.negro} alt="Mentes Triunfantes" width={ancho} height={alto} priority={prioridad} style={{ height: "auto" }} className={`dark:hidden ${className}`} />
+      <Image src={m.blanco} alt="" aria-hidden width={ancho} height={alto} priority={prioridad} style={{ height: "auto" }} className={`hidden dark:block ${className}`} />
     </>
   );
 }
