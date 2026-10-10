@@ -87,7 +87,7 @@ function problemaDigito3(): Problema {
     const costo = n * precio;
     const billete = costo <= 20 ? 20 : costo <= 50 ? 50 : 100;
     return {
-      enunciado: `Compraste ${n} ${plural} a ${precio} soles cada uno y pagaste con un billete de ${billete} soles. ¿Cuánto te devolvieron?`,
+      enunciado: `Compraste ${n} ${plural} a ${precio} soles la unidad y pagaste con un billete de ${billete} soles. ¿Cuánto te devolvieron?`,
       respuesta: billete - costo,
     };
   }
@@ -107,7 +107,7 @@ function problemaDigito4(): Problema {
     const t1 = entre(-5, 15);
     const delta = entre(3, 20);
     return {
-      enunciado: `La temperatura era de ${t1} °C en la mañana y bajó ${delta} °C durante la noche. ¿Cuál fue la temperatura final?`,
+      enunciado: `La temperatura era de ${t1 < 0 ? `−${-t1}` : t1} °C en la mañana y bajó ${delta} °C durante la noche. ¿Cuál fue la temperatura final?`,
       respuesta: t1 - delta,
     };
   }

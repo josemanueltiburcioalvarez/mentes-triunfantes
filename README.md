@@ -176,6 +176,11 @@ npx tsc --noEmit # comprobación de tipos
   Falta, si se quiere: un fondo ilustrado para el mapa.
 - Pruebas automáticas de pantallas y de la base de datos: hoy hay pruebas de la lógica pura (generadores de ejercicios
   y exámenes, llevadas/prestadas, sistemas de ecuaciones, logros, planes y grados; `npm test`), pero no de las páginas ni
-  de la seguridad por fila.
+  de la seguridad por fila. `src/lib/ejercicios/auditoria.test.ts` recalcula miles de ejercicios de las 19 habilidades con
+  un evaluador propio e independiente del generador (respuesta correcta, divisiones exactas, sin negativos en primaria,
+  ecuaciones y sistemas con solución única); córrelo después de tocar cualquier generador.
+- Límites conocidos (por diseño, no hay pasarela ni servidor de examen): en práctica y en el examen de ubicación el resultado
+  lo calcula el navegador y se manda a la base de datos, así que un estudiante que manipule la web podría falsearlo. La
+  validación real son las evaluaciones en vivo con profesor (Meet). La ubicación solo se puede rendir una vez por cuenta.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.
