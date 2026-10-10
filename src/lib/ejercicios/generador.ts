@@ -502,12 +502,13 @@ const PESOS_DIGITO_EXAMEN = [1, 5, 6, 5, 3];
 // Reparte "total" preguntas entre los digitos 1 a 5 segun los pesos de arriba (resultado[0] es el digito 1).
 export function repartoDigitos(total: number): number[] {
   const suma = PESOS_DIGITO_EXAMEN.reduce((a, b) => a + b, 0);
-  const cuotas = PESOS_DIGITO_EXAMEN.map((p) => (total * p) / suma);
-  const reparto = cuotas.map(Math.floor);
+  // con enteros (cuota = total·peso / suma, resto = total·peso % suma) los empates son exactos; con decimales
+  // 2.4 − 2 da 0.3999… y un empate se resolvia al reves.
+  const reparto = PESOS_DIGITO_EXAMEN.map((p) => Math.floor((total * p) / suma));
   const faltan = total - reparto.reduce((a, b) => a + b, 0);
-  const porResto = cuotas
-    .map((c, i) => ({ i, resto: c - reparto[i] }))
-    .sort((a, b) => b.resto - a.resto || PESOS_DIGITO_EXAMEN[b.i] - PESOS_DIGITO_EXAMEN[a.i]);
+  const porResto = PESOS_DIGITO_EXAMEN.map((p, i) => ({ i, resto: (total * p) % suma })).sort(
+    (a, b) => b.resto - a.resto || PESOS_DIGITO_EXAMEN[b.i] - PESOS_DIGITO_EXAMEN[a.i]
+  );
   for (let k = 0; k < faltan; k++) reparto[porResto[k].i]++;
   return reparto;
 }

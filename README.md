@@ -143,6 +143,7 @@ mínimo en `umbral_segundos_intento` y el tipo en `lib/supabase/database.types.t
 npm run dev      # desarrollo
 npm run build    # compilación de producción
 npm run lint     # ESLint
+npm test         # pruebas automaticas (Vitest)
 npx tsc --noEmit # comprobación de tipos
 ```
 
@@ -170,6 +171,8 @@ npx tsc --noEmit # comprobación de tipos
   habilidad, portal de evaluación, selector Mapa/Lista) y una tarjeta de **racha de días** (hora de Lima) y **logros**
   (17 medallas calculadas con el progreso existente, sin tablas nuevas; detalle en `/logros`). Al desbloquear un logro sale un aviso
   «¡Nuevo logro!» una sola vez (tabla `logros_vistos`). Falta, si se quiere: arte ilustrado de fondo.
-- Pruebas automáticas.
+- Pruebas automáticas de pantallas y de la base de datos: hoy hay pruebas de la lógica pura (generadores de ejercicios
+  y exámenes, llevadas/prestadas, sistemas de ecuaciones, logros, planes y grados; `npm test`), pero no de las páginas ni
+  de la seguridad por fila.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.
