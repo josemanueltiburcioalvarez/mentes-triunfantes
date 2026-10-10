@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import FondoEstudiante from "@/components/fondo-estudiante";
@@ -123,6 +124,14 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className={CAMPO}
               />
+              {modo === "iniciar_sesion" && (
+                <Link
+                  href="/olvide-contrasena"
+                  className="self-end text-xs text-zinc-500 underline-offset-2 hover:text-emerald-600 hover:underline dark:text-zinc-400 dark:hover:text-emerald-400"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              )}
             </div>
 
             {error && (

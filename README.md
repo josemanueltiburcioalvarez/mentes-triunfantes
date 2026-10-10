@@ -182,5 +182,11 @@ npx tsc --noEmit # comprobación de tipos
 - Límites conocidos (por diseño, no hay pasarela ni servidor de examen): en práctica y en el examen de ubicación el resultado
   lo calcula el navegador y se manda a la base de datos, así que un estudiante que manipule la web podría falsearlo. La
   validación real son las evaluaciones en vivo con profesor (Meet). La ubicación solo se puede rendir una vez por cuenta.
+- **Recuperar contraseña** (`/olvide-contrasena` → correo → `/auth/callback` → `/restablecer-contrasena`). Para que funcione en
+  producción hay que configurar en Supabase (Authentication → URL Configuration) la **Site URL** y agregar
+  `https://<tu-dominio>/auth/callback` en **Redirect URLs**. El correo por defecto de Supabase está limitado a muy pocos envíos por
+  hora: para uso real conviene un SMTP propio (Authentication → SMTP, p. ej. Resend). Para que el enlace también funcione si el
+  estudiante abre el correo en otro aparato, cambiar la plantilla «Reset Password» para que el enlace sea
+  `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/restablecer-contrasena`.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

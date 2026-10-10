@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const RUTAS_PUBLICAS = ["/login", "/registro"];
+// Pantallas para quien aun no entro: si ya hay sesion, se manda al panel.
+const RUTAS_PUBLICAS = ["/login", "/registro", "/olvide-contrasena"];
+// Se pueden abrir con o sin sesion (el enlace del correo de recuperacion llega aqui).
+const RUTAS_ABIERTAS = ["/auth/callback"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -34,6 +37,8 @@ export async function proxy(request: NextRequest) {
   const esRutaPublica = RUTAS_PUBLICAS.some((ruta) =>
     request.nextUrl.pathname.startsWith(ruta)
   );
+
+  if (RUTAS_ABIERTAS.some((ruta) => request.nextUrl.pathname.startsWith(ruta))) return response;
 
   if (!user && !esRutaPublica) {
     const url = request.nextUrl.clone();
