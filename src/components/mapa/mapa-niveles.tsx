@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Award, Castle, Check, Lock, X } from "lucide-react";
+import { Check, Lock, X } from "lucide-react";
 import AnilloProgreso from "@/components/anillo-progreso";
 import { estiloNivel } from "@/lib/estilos-nivel";
 import { ICONOS_HABILIDAD } from "@/lib/iconos-habilidad";
@@ -33,11 +34,31 @@ export interface NivelMapa {
   estadoPortal: EstadoPortal;
 }
 
-const ALTO_FILA = 116;
+const ALTO_FILA = 124;
 const SEPARACION_PORTAL = 28; // el portal es mas grande y su nombre del nodo anterior ocupa dos lineas
 const PRIMERA_FILA = 50;
-const TAMANO_NODO = 72;
-const TAMANO_PORTAL = 88;
+const TAMANO_NODO = 84;
+const TAMANO_PORTAL = 100;
+
+// En las imagenes (public/arte, ver scripts/procesar-arte.mjs) el disco ocupa ~88 % del lado y el resto es brillo.
+const PROPORCION_DISCO = 0.88;
+
+function ImagenArte({ src, disco, tono = "none" }: { src: string; disco: number; tono?: string }) {
+  const lado = Math.round(disco / PROPORCION_DISCO);
+  return (
+    <Image
+      src={src}
+      alt=""
+      aria-hidden
+      width={lado}
+      height={lado}
+      unoptimized
+      draggable={false}
+      className="pointer-events-none absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2 select-none"
+      style={{ width: lado, height: lado, filter: tono }}
+    />
+  );
+}
 
 // El camino zigzaguea: centro, derecha, centro, izquierda...
 const posicionX = (i: number) => 50 + 26 * Math.round(Math.sin((i * Math.PI) / 2));
@@ -239,11 +260,14 @@ function NodoHabilidad({
   const bloqueada = !nodo.desbloqueada;
 
   const colorAnillo = nodo.medalla ? "text-amber-400" : estilo.anillo;
-  const fondoIcono = bloqueada
-    ? "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
+  const imagen = bloqueada
+    ? "/arte/medalla-bloqueada.webp"
     : nodo.medalla
-      ? "bg-amber-100 text-amber-600 dark:bg-amber-900/60 dark:text-amber-300"
-      : `${estilo.iconoFondo} ${estilo.iconoColor}`;
+      ? "/arte/medalla-dominada.webp"
+      : "/arte/medalla-disponible.webp";
+  // las imagenes son verdes: solo la medalla "abierta" cambia de tono segun el nivel
+  const tono = bloqueada || nodo.medalla ? "none" : estilo.tono;
+  const colorIcono = bloqueada ? "text-zinc-500" : nodo.medalla ? "text-amber-300" : estilo.anillo;
 
   return (
     <>
@@ -253,33 +277,27 @@ function NodoHabilidad({
         style={{ left: `${punto.x}%`, top: punto.y, transform: "translate(-50%, -50%)" }}
       >
         {nodo.siguiente && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/30 motion-reduce:animate-none" aria-hidden />
+          <span className={`absolute inset-0 animate-ping rounded-full opacity-25 motion-reduce:animate-none ${estilo.barra}`} aria-hidden />
         )}
         <button
           type="button"
           onClick={() => alElegir(abierta ? null : clave)}
           aria-expanded={abierta}
           aria-label={`${nodo.nombre}: ${bloqueada ? "bloqueada" : `${nodo.dominio}% de dominio${nodo.medalla ? ", examen aprobado" : ""}`}`}
-          className={`relative block rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
-            bloqueada ? "" : estilo.brillo
-          }`}
+          className="relative block rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
+          style={{ width: TAMANO_NODO, height: TAMANO_NODO }}
         >
+          <ImagenArte src={imagen} disco={TAMANO_NODO - 14} tono={tono} />
           <AnilloProgreso
             valor={nodo.medalla ? 100 : bloqueada ? 0 : nodo.dominio}
             tamano={TAMANO_NODO}
-            grosor={6}
+            grosor={4}
             color={colorAnillo}
+            pista="text-white/10"
             etiqueta={`${nodo.nombre}: ${nodo.dominio}%`}
           >
-            <span className={`flex h-[50px] w-[50px] items-center justify-center rounded-full ${fondoIcono}`}>
-              {bloqueada ? <Lock className="h-5 w-5" /> : <Icono className="h-6 w-6" />}
-            </span>
+            {bloqueada ? <Lock className={`h-5 w-5 ${colorIcono}`} /> : <Icono className={`h-7 w-7 ${colorIcono}`} />}
           </AnilloProgreso>
-          {nodo.medalla && (
-            <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-white shadow">
-              <Award className="h-3.5 w-3.5" />
-            </span>
-          )}
         </button>
       </div>
 
@@ -361,12 +379,13 @@ function NodoPortal({
   const { estadoPortal } = nivel;
   const estilo = estiloNivel(nivel.orden);
 
-  const aspecto =
+  const imagen =
     estadoPortal === "aprobado"
-      ? "bg-amber-400 text-white shadow-[0_0_26px_-4px_rgba(251,191,36,0.8)]"
+      ? "/arte/medalla-dominada.webp"
       : estadoPortal === "listo"
-        ? "bg-emerald-500 text-white shadow-[0_0_28px_-4px_rgba(16,185,129,0.85)]"
-        : "bg-zinc-200 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600";
+        ? "/arte/portal-listo.webp"
+        : "/arte/medalla-bloqueada.webp";
+  const tono = estadoPortal === "listo" ? estilo.tono : "none";
   const texto =
     estadoPortal === "aprobado" ? "Nivel superado" : estadoPortal === "listo" ? "¡Evaluación lista!" : "Evaluación del nivel";
 
@@ -378,23 +397,22 @@ function NodoPortal({
         style={{ left: `${punto.x}%`, top: punto.y, transform: "translate(-50%, -50%)" }}
       >
         {estadoPortal === "listo" && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/30 motion-reduce:animate-none" aria-hidden />
+          <span className={`absolute inset-0 animate-ping rounded-full opacity-25 motion-reduce:animate-none ${estilo.barra}`} aria-hidden />
         )}
         <button
           type="button"
           onClick={() => alElegir(abierta ? null : clave)}
           aria-expanded={abierta}
           aria-label={`${texto} (${nivel.nombre})`}
-          className={`relative flex items-center justify-center rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${aspecto}`}
+          className="relative flex items-center justify-center rounded-full transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500"
           style={{ width: TAMANO_PORTAL, height: TAMANO_PORTAL }}
         >
+          <ImagenArte src={imagen} disco={TAMANO_PORTAL - 8} tono={tono} />
           {estadoPortal === "aprobado" ? (
-            <Check className="h-10 w-10" strokeWidth={3} />
+            <Check className="relative h-10 w-10 text-amber-300 drop-shadow" strokeWidth={3} />
           ) : estadoPortal === "bloqueado" ? (
-            <Lock className="h-8 w-8" />
-          ) : (
-            <Castle className="h-10 w-10" />
-          )}
+            <Lock className="relative h-8 w-8 text-zinc-500" />
+          ) : null}
         </button>
       </div>
 

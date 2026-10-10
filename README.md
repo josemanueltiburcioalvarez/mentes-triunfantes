@@ -170,7 +170,10 @@ npx tsc --noEmit # comprobación de tipos
 - **Panel del estudiante tipo juego**: ya tiene el perfil con anillos, el fondo con luces, el **mapa** por niveles (nodos por
   habilidad, portal de evaluación, selector Mapa/Lista) y una tarjeta de **racha de días** (hora de Lima) y **logros**
   (17 medallas calculadas con el progreso existente, sin tablas nuevas; detalle en `/logros`). Al desbloquear un logro sale un aviso
-  «¡Nuevo logro!» una sola vez (tabla `logros_vistos`). Falta, si se quiere: arte ilustrado de fondo.
+  «¡Nuevo logro!» una sola vez (tabla `logros_vistos`). Las medallas y el portal del mapa usan
+  imágenes ilustradas (`public/arte/`); si cambias el arte, genera los JPG con fondo negro y corre
+  `node scripts/procesar-arte.mjs "carpeta"` para convertirlos. Los otros niveles salen girando el tono de la medalla verde.
+  Falta, si se quiere: un fondo ilustrado para el mapa.
 - Pruebas automáticas de pantallas y de la base de datos: hoy hay pruebas de la lógica pura (generadores de ejercicios
   y exámenes, llevadas/prestadas, sistemas de ecuaciones, logros, planes y grados; `npm test`), pero no de las páginas ni
   de la seguridad por fila.

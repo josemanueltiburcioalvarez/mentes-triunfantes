@@ -12,6 +12,8 @@ export interface EstiloNivel {
   brillo: string;
   barraBrillo: string;
   anillo: string;
+  // filtro CSS que lleva la medalla de arte (verde) al color del nivel
+  tono: string;
 }
 
 const BASICO: EstiloNivel = {
@@ -25,6 +27,7 @@ const BASICO: EstiloNivel = {
   brillo: "dark:shadow-[0_0_26px_-10px_rgba(16,185,129,0.6)]",
   barraBrillo: "shadow-[0_0_10px_rgba(16,185,129,0.65)]",
   anillo: "text-emerald-500 dark:text-emerald-400",
+  tono: "none",
 };
 
 const INTERMEDIO: EstiloNivel = {
@@ -38,6 +41,7 @@ const INTERMEDIO: EstiloNivel = {
   brillo: "dark:shadow-[0_0_26px_-10px_rgba(59,130,246,0.6)]",
   barraBrillo: "shadow-[0_0_10px_rgba(59,130,246,0.65)]",
   anillo: "text-blue-500 dark:text-blue-400",
+  tono: "hue-rotate(60deg)",
 };
 
 const AVANZADO: EstiloNivel = {
@@ -51,6 +55,7 @@ const AVANZADO: EstiloNivel = {
   brillo: "dark:shadow-[0_0_26px_-10px_rgba(139,92,246,0.6)]",
   barraBrillo: "shadow-[0_0_10px_rgba(139,92,246,0.65)]",
   anillo: "text-violet-500 dark:text-violet-400",
+  tono: "hue-rotate(110deg)",
 };
 
 const EXPERTO: EstiloNivel = {
@@ -64,6 +69,7 @@ const EXPERTO: EstiloNivel = {
   brillo: "dark:shadow-[0_0_26px_-10px_rgba(245,158,11,0.6)]",
   barraBrillo: "shadow-[0_0_10px_rgba(245,158,11,0.65)]",
   anillo: "text-amber-500 dark:text-amber-400",
+  tono: "hue-rotate(-115deg)",
 };
 
 // por "orden" del nivel (1 a 4); si hay un quinto nivel algun dia, cae en el estilo de Experto.

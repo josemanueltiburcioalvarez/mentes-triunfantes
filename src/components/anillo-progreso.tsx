@@ -4,6 +4,7 @@ export default function AnilloProgreso({
   tamano = 112,
   grosor = 9,
   color = "text-emerald-500",
+  pista = "text-zinc-200 dark:text-zinc-800",
   etiqueta,
   children,
 }: {
@@ -11,6 +12,7 @@ export default function AnilloProgreso({
   tamano?: number;
   grosor?: number;
   color?: string;
+  pista?: string;
   etiqueta: string;
   children?: React.ReactNode;
 }) {
@@ -28,7 +30,7 @@ export default function AnilloProgreso({
           fill="none"
           stroke="currentColor"
           strokeWidth={grosor}
-          className="text-zinc-200 dark:text-zinc-800"
+          className={pista}
         />
         {v > 0 && (
           <circle
