@@ -11,7 +11,8 @@ import FondoEstudiante from "@/components/fondo-estudiante";
 import MapaNiveles, { type NivelMapa } from "@/components/mapa/mapa-niveles";
 import SelectorVista from "@/components/mapa/selector-vista";
 import TarjetaRachaLogros from "@/components/logros/tarjeta-racha-logros";
-import { cargarLogros } from "@/lib/logros";
+import AvisoLogros from "@/components/logros/aviso-logros";
+import { cargarLogros, logrosNuevos } from "@/lib/logros";
 import BloqueEvaluacion from "./bloque-evaluacion";
 
 const ORDEN_HABILIDADES = [
@@ -71,6 +72,8 @@ export default async function DashboardPage() {
   // hay un nivel con el mismo "orden" por modalidad: solo cuentan los de la modalidad del estudiante
   const modalidad = perfil?.modalidad ?? "primaria";
   const nivelesDeLaModalidad = (nivelesTabla ?? []).filter((n) => n.modalidad === modalidad);
+
+  const nuevosLogros = await logrosNuevos(supabase, user.id, logros);
 
   const idsExamenesAprobados = new Set((examenesHabilidad ?? []).map((e) => e.habilidad_id));
   const idsNivelesAprobados = new Set((evaluacionesNivel ?? []).map((e) => e.nivel_id));
@@ -380,6 +383,7 @@ export default async function DashboardPage() {
   return (
     <div className="fondo-estudiante relative flex-1 overflow-x-clip">
       <FondoEstudiante />
+      {nuevosLogros.length > 0 && <AvisoLogros key={nuevosLogros.join(",")} ids={nuevosLogros} />}
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
         <h1 className="mb-6 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Tu progreso</h1>

@@ -163,6 +163,14 @@ create table public.autorizaciones_examen (
   constraint autorizaciones_examen_habilidad_xor_nivel check ((habilidad_id is not null) <> (nivel_id is not null))
 );
 
+-- Logros que el estudiante ya vio (para avisar "¡Nuevo logro!" una sola vez); los logros en si se calculan, no se guardan.
+create table public.logros_vistos (
+  estudiante_id uuid not null references public.perfiles(id) on delete cascade,
+  logro_id text not null check (char_length(logro_id) between 1 and 60),
+  created_at timestamptz not null default now(),
+  primary key (estudiante_id, logro_id)
+);
+
 create table public.suscripciones (
   id uuid primary key default gen_random_uuid(),
   estudiante_id uuid not null references public.perfiles(id) on delete cascade,

@@ -168,8 +168,8 @@ npx tsc --noEmit # comprobación de tipos
     error de datos — el avance y los reportes ya están bien separados por modalidad — solo una mejora visual pendiente).
 - **Panel del estudiante tipo juego**: ya tiene el perfil con anillos, el fondo con luces, el **mapa** por niveles (nodos por
   habilidad, portal de evaluación, selector Mapa/Lista) y una tarjeta de **racha de días** (hora de Lima) y **logros**
-  (17 medallas calculadas con el progreso existente, sin tablas nuevas; detalle en `/logros`). Falta, si se quiere: avisar
-  con un mensaje cuando se desbloquea un logro nuevo y arte ilustrado de fondo.
+  (17 medallas calculadas con el progreso existente, sin tablas nuevas; detalle en `/logros`). Al desbloquear un logro sale un aviso
+  «¡Nuevo logro!» una sola vez (tabla `logros_vistos`). Falta, si se quiere: arte ilustrado de fondo.
 - Pruebas automáticas.
 - Activar **Leaked password protection** en Supabase (Auth → Passwords): queda anotado en la puesta en marcha, pero
   hay que activarlo a mano en cada proyecto nuevo.

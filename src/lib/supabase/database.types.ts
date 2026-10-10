@@ -407,6 +407,32 @@ export type Database = {
           },
         ]
       }
+      logros_vistos: {
+        Row: {
+          created_at: string
+          estudiante_id: string
+          logro_id: string
+        }
+        Insert: {
+          created_at?: string
+          estudiante_id: string
+          logro_id: string
+        }
+        Update: {
+          created_at?: string
+          estudiante_id?: string
+          logro_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logros_vistos_estudiante_id_fkey"
+            columns: ["estudiante_id"]
+            isOneToOne: false
+            referencedRelation: "perfiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       niveles: {
         Row: {
           id: string

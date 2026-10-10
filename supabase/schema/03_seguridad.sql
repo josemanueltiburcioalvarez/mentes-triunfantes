@@ -17,6 +17,7 @@ alter table public.suscripciones enable row level security;
 alter table public.acciones_admin enable row level security;
 alter table public.revisiones_alerta enable row level security;
 alter table public.evaluaciones_ubicacion enable row level security;
+alter table public.logros_vistos enable row level security;
 
 -- ---------------------------------------------------------------- perfiles
 create policy perfiles_select on public.perfiles for select to authenticated
@@ -167,6 +168,16 @@ create policy revisiones_alerta_delete on public.revisiones_alerta for delete to
 create policy evaluaciones_ubicacion_select on public.evaluaciones_ubicacion for select to authenticated
   using (estudiante_id = (select auth.uid()) or (select rol_actual()) = 'admin'
          or ((select rol_actual()) = 'profesor' and es_profesor_de(estudiante_id)));
+
+-- ---------------------------------------------------------------- logros vistos
+-- El estudiante solo anota lo suyo; no se edita ni se borra.
+create policy logros_vistos_select on public.logros_vistos for select to authenticated
+  using (estudiante_id = (select auth.uid()) or (select rol_actual()) = 'admin'
+         or ((select rol_actual()) = 'profesor' and es_profesor_de(estudiante_id)));
+
+-- el estudiante solo anota lo suyo; no se edita ni se borra (lo borra la cascada si se elimina la cuenta)
+create policy logros_vistos_insert on public.logros_vistos for insert to authenticated
+  with check (estudiante_id = (select auth.uid()));
 
 -- ---------------------------------------------------------------- privilegios minimos
 -- Sin sesion (anon) no se toca ninguna tabla. Ademas se quitan permisos que la aplicacion nunca usa.

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import { esGradoEscolarValido } from "@/lib/grados";
+import { esLogroConocido } from "@/lib/logros";
 import type { EstadoAccion } from "@/components/formulario-accion";
 
 export async function cerrarSesion() {
@@ -84,4 +85,22 @@ export async function registrarExamenUbicacion(
   }
   revalidatePath("/", "layout");
   return { nivelNombre: data[0].nivel_nombre };
+}
+
+// El estudiante cerro el aviso de "nuevo logro": se anota para no volver a mostrarlo.
+export async function marcarLogrosVistos(ids: string[]): Promise<void> {
+  const validos = ids.filter(esLogroConocido).slice(0, 30);
+  if (validos.length === 0) return;
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from("logros_vistos")
+    .upsert(validos.map((logro_id) => ({ estudiante_id: user.id, logro_id })), {
+      onConflict: "estudiante_id,logro_id",
+      ignoreDuplicates: true,
+    });
+  revalidatePath("/dashboard");
 }

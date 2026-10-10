@@ -113,6 +113,19 @@ export function evaluarLogros(datos: DatosLogros): LogroEvaluado[] {
   });
 }
 
+// Para el aviso de "nuevo logro" (componente cliente): el logro ya logrado, a partir de su id.
+export function infoLogro(id: string): LogroEvaluado | null {
+  const definicion = CATALOGO.find((l) => l.id === id);
+  if (!definicion) return null;
+  const { valor: _valor, ...logro } = definicion;
+  void _valor;
+  return { ...logro, actual: logro.meta, logrado: true };
+}
+
+export function esLogroConocido(id: string): boolean {
+  return CATALOGO.some((l) => l.id === id);
+}
+
 export interface Racha {
   actual: number;
   mejor: number;
@@ -160,4 +173,32 @@ export async function cargarLogros(
       diasRecientes: racha.data?.dias_recientes ?? [],
     },
   };
+}
+
+// Marca que sirve para saber que ya se hizo la primera revision de logros de un estudiante.
+const MARCA_INICIAL = "__inicio";
+
+// Ids de los logros ya logrados que el estudiante todavia no ha visto. La primera vez (sin ninguna fila) lo que ya
+// tenia logrado se da por visto: si no, un estudiante con historial recibiria todos los avisos de golpe.
+export async function logrosNuevos(
+  supabase: SupabaseClient<Database>,
+  estudianteId: string,
+  logros: LogroEvaluado[]
+): Promise<string[]> {
+  const logrados = logros.filter((l) => l.logrado).map((l) => l.id);
+  const { data, error } = await supabase.from("logros_vistos").select("logro_id").eq("estudiante_id", estudianteId);
+  if (error || !data) return [];
+
+  if (data.length === 0) {
+    await supabase
+      .from("logros_vistos")
+      .upsert(
+        [MARCA_INICIAL, ...logrados].map((logro_id) => ({ estudiante_id: estudianteId, logro_id })),
+        { onConflict: "estudiante_id,logro_id", ignoreDuplicates: true }
+      );
+    return [];
+  }
+
+  const vistos = new Set(data.map((d) => d.logro_id));
+  return logrados.filter((id) => !vistos.has(id));
 }
