@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { crearClienteServidor } from "@/lib/supabase/server";
 import type { EstadoAccion } from "@/components/formulario-accion";
 import { registrarAccion } from "@/lib/admin-log";
+import { DIAS_PRUEBA, METODO_PRUEBA, sumarDiasFecha } from "@/lib/planes";
+import { hoyLima } from "@/lib/logros";
 
 const FECHA_VALIDA = /^\d{4}-\d{2}-\d{2}$/;
 const METODOS_PAGO = ["Efectivo", "Yape/Plin", "Transferencia", "Otro"] as const;
@@ -59,6 +61,47 @@ export async function registrarPago(_previo: EstadoAccion, formData: FormData): 
     fecha_inicio: fechaInicio,
     fecha_fin: fechaFin,
   });
+  revalidatePath("/admin/suscripciones");
+  return null;
+}
+
+// Da la prueba gratuita (DIAS_PRUEBA dias, desde hoy en hora de Lima). Una sola vez por estudiante y solo si
+// ahora no tiene un plan activo (si ya paga, la prueba no aporta nada y taparia su plan).
+export async function darPruebaGratis(_previo: EstadoAccion, formData: FormData): Promise<EstadoAccion> {
+  const estudianteId = String(formData.get("estudiante_id") ?? "");
+  if (!estudianteId) return { error: "Datos no válidos." };
+
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Tu sesión expiró. Vuelve a iniciar sesión." };
+
+  const [{ data: previas }, { data: estado }] = await Promise.all([
+    supabase.from("suscripciones").select("id").eq("estudiante_id", estudianteId).eq("metodo_pago", METODO_PRUEBA).limit(1),
+    supabase.from("vista_suscripciones_admin").select("estado_actual").eq("estudiante_id", estudianteId).maybeSingle(),
+  ]);
+  if (!estado) return { error: "No se encontró al estudiante." };
+  if (previas && previas.length > 0) return { error: "Este estudiante ya usó su prueba gratuita." };
+  if (estado.estado_actual === "activa") return { error: "Ya tiene un plan activo." };
+
+  const inicio = hoyLima();
+  const fin = sumarDiasFecha(inicio, DIAS_PRUEBA);
+  const { data, error } = await supabase
+    .from("suscripciones")
+    .insert({
+      estudiante_id: estudianteId,
+      estado: "activa",
+      fecha_inicio: inicio,
+      fecha_fin: fin,
+      monto: 0,
+      metodo_pago: METODO_PRUEBA,
+      referencia_pago: `${DIAS_PRUEBA} días gratis`,
+    })
+    .select("id");
+  if (error || !data || data.length === 0) return { error: "No se pudo dar la prueba gratuita." };
+
+  await registrarAccion(supabase, user.id, "dar_prueba", estudianteId, { dias: DIAS_PRUEBA, fecha_inicio: inicio, fecha_fin: fin });
   revalidatePath("/admin/suscripciones");
   return null;
 }

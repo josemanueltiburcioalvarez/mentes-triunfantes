@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { esGradoEscolarValido, GRADOS_ESCOLARES, nombreGrado } from "./grados";
-import { ahorroDelPlan, enlaceWhatsApp, PLANES, PRECIO_MENSUAL, textoMeses } from "./planes";
+import { ahorroDelPlan, DIAS_PRUEBA, enlaceWhatsApp, PLANES, PRECIO_MENSUAL, sumarDiasFecha, textoMeses } from "./planes";
+
+describe("prueba gratuita", () => {
+  it("dura 7 dias y la fecha final cruza fin de mes y de año sin errores", () => {
+    expect(DIAS_PRUEBA).toBe(7);
+    expect(sumarDiasFecha("2026-10-10", DIAS_PRUEBA)).toBe("2026-10-17");
+    expect(sumarDiasFecha("2026-10-28", DIAS_PRUEBA)).toBe("2026-11-04");
+    expect(sumarDiasFecha("2026-12-29", DIAS_PRUEBA)).toBe("2027-01-05");
+    expect(sumarDiasFecha("2028-02-26", DIAS_PRUEBA)).toBe("2028-03-04"); // año bisiesto
+  });
+});
 
 describe("planes", () => {
   it("el plan de 1 mes cuesta el precio mensual y los demas descuentan mas cuanto mas largos son", () => {

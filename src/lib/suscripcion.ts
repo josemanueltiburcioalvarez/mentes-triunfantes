@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/supabase/server";
+import { METODO_PRUEBA } from "@/lib/planes";
 
 export type AccesoEstudiante =
   | { permitido: true }
@@ -7,6 +8,8 @@ export type AccesoEstudiante =
       permitido: false;
       estado: "sin_pagos" | "vencida" | "cancelada";
       fechaFin: string | null;
+      // la ultima suscripcion fue la prueba gratuita
+      eraPrueba: boolean;
       nombre: string;
       email: string;
     };
@@ -23,7 +26,7 @@ export const verificarAcceso = cache(async (): Promise<AccesoEstudiante> => {
 
   const [{ data: perfil }, { data: suscripcion }] = await Promise.all([
     supabase.from("perfiles").select("rol, nombre, email").eq("id", user.id).single(),
-    supabase.from("vista_suscripciones_admin").select("estado_actual, fecha_fin").eq("estudiante_id", user.id).maybeSingle(),
+    supabase.from("vista_suscripciones_admin").select("estado_actual, fecha_fin, metodo_pago").eq("estudiante_id", user.id).maybeSingle(),
   ]);
 
   if (perfil?.rol === "admin" || perfil?.rol === "profesor") return { permitido: true };
@@ -34,6 +37,7 @@ export const verificarAcceso = cache(async (): Promise<AccesoEstudiante> => {
     permitido: false,
     estado: estado === "vencida" || estado === "cancelada" ? estado : "sin_pagos",
     fechaFin: suscripcion?.fecha_fin ?? null,
+    eraPrueba: suscripcion?.metodo_pago === METODO_PRUEBA,
     nombre: perfil?.nombre ?? "",
     email: perfil?.email ?? user.email ?? "",
   };

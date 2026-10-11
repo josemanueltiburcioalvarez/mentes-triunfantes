@@ -5,7 +5,7 @@ import { formatearFecha, NOMBRES_HABILIDAD, TIPOS_SESION, tiempoRelativo } from 
 import { nombreGrado } from "@/lib/grados";
 import FormularioAccion from "@/components/formulario-accion";
 import Paginacion from "@/components/admin/paginacion";
-import { abrirHabilidad, cambiarEstadoEstudiante } from "@/app/(app)/admin/estudiantes/acciones";
+import { abrirHabilidad, abrirNiveles, cambiarEstadoEstudiante } from "@/app/(app)/admin/estudiantes/acciones";
 
 const SESIONES_POR_PAGINA = 10;
 const ORDEN_NIVELES = ["Básico", "Intermedio", "Avanzado", "Experto"];
@@ -43,7 +43,7 @@ export default async function FichaEstudiante({
     supabase
       .from("progreso_habilidad")
       .select(
-        "habilidad_id, porcentaje_dominio, desbloqueada, total_intentos, ultima_practica, habilidad:habilidades(nombre, orden, nivel:niveles(nombre, orden))"
+        "habilidad_id, porcentaje_dominio, desbloqueada, total_intentos, ultima_practica, habilidad:habilidades(nombre, orden, nivel:niveles(id, nombre, orden, modalidad))"
       )
       .eq("estudiante_id", id),
     supabase
@@ -90,13 +90,17 @@ export default async function FichaEstudiante({
     })
   );
 
-  // habilidades agrupadas por nivel
+  // habilidades agrupadas por nivel. Cada estudiante tiene progreso en las dos modalidades (para poder cambiar de una
+  // a otra), asi que solo se muestra la suya; si todavia no tiene modalidad se muestran todas.
   const porNivel = new Map<string, NonNullable<typeof progresoHab.data>>();
-  (progresoHab.data ?? []).forEach((ph) => {
-    const nivel = ph.habilidad?.nivel?.nombre ?? "—";
-    porNivel.set(nivel, [...(porNivel.get(nivel) ?? []), ph]);
-  });
+  (progresoHab.data ?? [])
+    .filter((ph) => !estudiante.modalidad || ph.habilidad?.nivel?.modalidad === estudiante.modalidad)
+    .forEach((ph) => {
+      const nivel = ph.habilidad?.nivel?.nombre ?? "—";
+      porNivel.set(nivel, [...(porNivel.get(nivel) ?? []), ph]);
+    });
   const niveles = ORDEN_NIVELES.filter((n) => porNivel.has(n));
+  const hayBloqueadas = [...porNivel.values()].some((lista) => lista.some((ph) => !ph.desbloqueada));
 
   const examenes = [
     ...(evalHab.data ?? []).map((e) => ({
@@ -211,7 +215,20 @@ export default async function FichaEstudiante({
 
       {/* Progreso por nivel y habilidad */}
       <section>
-        <h2 className="mb-1 text-lg font-medium text-zinc-800 dark:text-zinc-200">Progreso</h2>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-medium text-zinc-800 dark:text-zinc-200">Progreso</h2>
+          {!soloLectura && hayBloqueadas && (
+            <FormularioAccion accion={abrirNiveles} className="flex flex-col items-end gap-1">
+              <input type="hidden" name="estudiante_id" value={id} />
+              <button
+                type="submit"
+                className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+              >
+                Abrir todos los niveles
+              </button>
+            </FormularioAccion>
+          )}
+        </div>
         <p className="mb-3 text-xs text-zinc-500 dark:text-zinc-400">
           Cada cuadro es un ejercicio (5 niveles de dificultad × 3 ejercicios):{" "}
           <span className="inline-block h-3 w-3 rounded-sm bg-emerald-500 align-middle" /> aprobado ·{" "}
@@ -219,16 +236,33 @@ export default async function FichaEstudiante({
           <span className="inline-block h-3 w-3 rounded-sm bg-zinc-200 align-middle dark:bg-zinc-800" /> bloqueado.
         </p>
         <div className="flex flex-col gap-5">
-          {niveles.map((nivel) => (
+          {niveles.map((nivel) => {
+            const habilidadesNivel = porNivel.get(nivel) ?? [];
+            const nivelId = habilidadesNivel[0]?.habilidad?.nivel?.id;
+            const nivelBloqueado = habilidadesNivel.some((ph) => !ph.desbloqueada);
+            return (
             <div key={nivel}>
-              <h3 className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-300">{nivel}</h3>
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">{nivel}</h3>
+                {!soloLectura && nivelBloqueado && nivelId && (
+                  <FormularioAccion accion={abrirNiveles} className="flex flex-col items-end gap-1">
+                    <input type="hidden" name="estudiante_id" value={id} />
+                    <input type="hidden" name="nivel_id" value={nivelId} />
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-zinc-300 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                    >
+                      Abrir este nivel
+                    </button>
+                  </FormularioAccion>
+                )}
+              </div>
               <ul className="flex flex-col gap-2">
                 {(porNivel.get(nivel) ?? [])
                   .slice()
                   .sort((a, b) => (a.habilidad?.orden ?? 0) - (b.habilidad?.orden ?? 0))
                   .map((ph) => {
                     const nombre = NOMBRES_HABILIDAD[ph.habilidad?.nombre ?? ""] ?? ph.habilidad?.nombre ?? "—";
-                    const sinContenido = ph.habilidad?.nombre === "atajos" || ph.habilidad?.nombre === "razonamiento";
                     return (
                       <li
                         key={ph.habilidad_id}
@@ -267,7 +301,7 @@ export default async function FichaEstudiante({
                         </div>
                         {!soloLectura && (
                           <div className="ml-auto">
-                            {!ph.desbloqueada && !sinContenido && (
+                            {!ph.desbloqueada && (
                               <FormularioAccion accion={abrirHabilidad} className="flex flex-col items-end gap-1">
                                 <input type="hidden" name="estudiante_id" value={id} />
                                 <input type="hidden" name="habilidad_id" value={ph.habilidad_id} />
@@ -286,7 +320,8 @@ export default async function FichaEstudiante({
                   })}
               </ul>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

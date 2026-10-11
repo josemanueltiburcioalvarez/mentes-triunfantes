@@ -3,7 +3,9 @@ import { crearClienteServidor } from "@/lib/supabase/server";
 import { formatearSoloFecha } from "@/lib/admin";
 import FormularioAccion from "@/components/formulario-accion";
 import FormRegistrarPago from "@/components/admin/form-registrar-pago";
-import { cancelarSuscripcion } from "./acciones";
+import { hoyLima } from "@/lib/logros";
+import { DIAS_PRUEBA, METODO_PRUEBA } from "@/lib/planes";
+import { cancelarSuscripcion, darPruebaGratis } from "./acciones";
 
 const ETIQUETA_ESTADO: Record<string, { texto: string; clase: string }> = {
   activa: { texto: "Activa", clase: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" },
@@ -14,14 +16,18 @@ const ETIQUETA_ESTADO: Record<string, { texto: string; clase: string }> = {
 
 const ORDEN_ESTADO: Record<string, number> = { vencida: 0, sin_pagos: 1, activa: 2, cancelada: 3 };
 
-const hoy = () => new Date().toISOString().slice(0, 10);
+const hoy = hoyLima;
+const ETIQUETA_PRUEBA = { texto: "Prueba gratuita", clase: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300" };
 
 export default async function SuscripcionesPage() {
   const supabase = await crearClienteServidor();
-  const [ingresos, suscripciones] = await Promise.all([
+  const [ingresos, suscripciones, pruebas] = await Promise.all([
     supabase.from("vista_ingresos").select("*").maybeSingle(),
     supabase.from("vista_suscripciones_admin").select("*"),
+    supabase.from("suscripciones").select("estudiante_id").eq("metodo_pago", METODO_PRUEBA),
   ]);
+  // quienes ya usaron su prueba gratuita (solo se da una vez)
+  const yaUsaronPrueba = new Set((pruebas.data ?? []).map((p) => p.estudiante_id));
 
   const filas = (suscripciones.data ?? [])
     .slice()
@@ -58,7 +64,12 @@ export default async function SuscripcionesPage() {
       ) : (
         <ul className="flex flex-col gap-3">
           {filas.map((s) => {
-            const estado = ETIQUETA_ESTADO[s.estado_actual ?? "sin_pagos"] ?? ETIQUETA_ESTADO.sin_pagos;
+            const esPrueba = s.metodo_pago === METODO_PRUEBA;
+            const estado =
+              esPrueba && s.estado_actual === "activa"
+                ? ETIQUETA_PRUEBA
+                : (ETIQUETA_ESTADO[s.estado_actual ?? "sin_pagos"] ?? ETIQUETA_ESTADO.sin_pagos);
+            const puedeDarPrueba = s.estado_actual !== "activa" && !yaUsaronPrueba.has(s.estudiante_id ?? "");
             const siguienteInicio = s.fecha_fin && s.fecha_fin > hoy() ? s.fecha_fin : hoy();
             return (
               <li key={s.estudiante_id} className="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
@@ -76,13 +87,24 @@ export default async function SuscripcionesPage() {
                   <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-400">
                     {formatearSoloFecha(s.fecha_inicio)} a {formatearSoloFecha(s.fecha_fin)}
                     {s.estado_actual === "activa" && typeof s.dias_restantes === "number" && ` · ${s.dias_restantes} día${s.dias_restantes === 1 ? "" : "s"} restantes`}
-                    {" · S/ "}
-                    {Number(s.monto).toFixed(2)} · {s.metodo_pago}
-                    {s.referencia_pago ? ` (${s.referencia_pago})` : ""}
+                    {esPrueba
+                      ? " · Prueba gratuita"
+                      : ` · S/ ${Number(s.monto).toFixed(2)} · ${s.metodo_pago}${s.referencia_pago ? ` (${s.referencia_pago})` : ""}`}
                   </p>
                 )}
 
                 <div className="flex flex-wrap items-center gap-2">
+                  {puedeDarPrueba && (
+                    <FormularioAccion accion={darPruebaGratis}>
+                      <input type="hidden" name="estudiante_id" value={s.estudiante_id ?? ""} />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-blue-300 px-3 py-1 text-xs font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                      >
+                        Dar {DIAS_PRUEBA} días de prueba
+                      </button>
+                    </FormularioAccion>
+                  )}
                   <FormRegistrarPago estudianteId={s.estudiante_id ?? ""} siguienteInicio={siguienteInicio} />
                   {s.estado_actual === "activa" && s.suscripcion_id && (
                     <FormularioAccion accion={cancelarSuscripcion}>

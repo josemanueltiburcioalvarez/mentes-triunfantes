@@ -14,9 +14,12 @@ const TITULOS: Record<SinAcceso["estado"], string> = {
 
 // Se muestra en lugar de la practica, las guias y los examenes cuando el estudiante no tiene un plan activo.
 export default function PantallaPlanes({ acceso }: { acceso: SinAcceso }) {
+  const titulo = acceso.estado === "vencida" && acceso.eraPrueba ? "Tu prueba gratuita terminó" : TITULOS[acceso.estado];
   const subtitulo =
     acceso.estado === "vencida" && acceso.fechaFin
-      ? `Venció el ${formatearSoloFecha(acceso.fechaFin)}. Renueva para seguir practicando y viendo las guías.`
+      ? `${acceso.eraPrueba ? "Terminó" : "Venció"} el ${formatearSoloFecha(acceso.fechaFin)}. ${
+          acceso.eraPrueba ? "Elige un plan para seguir practicando y viendo las guías." : "Renueva para seguir practicando y viendo las guías."
+        }`
       : acceso.estado === "cancelada"
         ? "Elige un plan para volver a practicar y ver las guías."
         : "Con tu plan practicas todas las habilidades, ves las guías paso a paso y rindes tus evaluaciones en vivo con un profesor.";
@@ -25,7 +28,7 @@ export default function PantallaPlanes({ acceso }: { acceso: SinAcceso }) {
     <div className="fondo-estudiante relative flex-1 overflow-x-clip">
       <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl dark:text-zinc-50">{TITULOS[acceso.estado]}</h1>
+          <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl dark:text-zinc-50">{titulo}</h1>
           <p className="mx-auto mt-2 max-w-xl text-sm text-zinc-600 dark:text-zinc-400">{subtitulo}</p>
         </div>
 

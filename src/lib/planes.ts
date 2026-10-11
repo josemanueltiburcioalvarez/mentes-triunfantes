@@ -2,6 +2,17 @@
 // comprobante por WhatsApp; el admin registra el pago en /admin/suscripciones y recien ahi se activa el plan.
 export const PRECIO_MENSUAL = 50;
 
+// Prueba gratuita que el administrador puede dar una sola vez a cada estudiante: se guarda como una suscripcion
+// de S/ 0 con este metodo de pago, asi se reconoce en el listado y en el control de "una sola vez".
+export const DIAS_PRUEBA = 7;
+export const METODO_PRUEBA = "Prueba";
+
+// Suma dias de calendario a una fecha "AAAA-MM-DD" (sin depender de la zona horaria del servidor).
+export function sumarDiasFecha(fechaIso: string, dias: number): string {
+  const [y, m, d] = fechaIso.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + dias)).toISOString().slice(0, 10);
+}
+
 export interface Plan {
   meses: number;
   precio: number;

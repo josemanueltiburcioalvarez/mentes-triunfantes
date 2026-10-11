@@ -18,7 +18,7 @@ export default async function InformeEstudiante({ id, volverHref }: { id: string
   const [progreso, ejercicios, evalHab, evalNivel, sesiones] = await Promise.all([
     supabase
       .from("progreso_habilidad")
-      .select("habilidad_id, porcentaje_dominio, desbloqueada, total_intentos, habilidad:habilidades(nombre, orden, nivel:niveles(nombre, orden))")
+      .select("habilidad_id, porcentaje_dominio, desbloqueada, total_intentos, habilidad:habilidades(nombre, orden, nivel:niveles(nombre, orden, modalidad))")
       .eq("estudiante_id", id),
     supabase.from("progreso_ejercicio").select("habilidad_id, aprobado").eq("estudiante_id", id).eq("aprobado", true),
     supabase
@@ -38,7 +38,8 @@ export default async function InformeEstudiante({ id, volverHref }: { id: string
   (ejercicios.data ?? []).forEach((e) => aprobadosPor.set(e.habilidad_id, (aprobadosPor.get(e.habilidad_id) ?? 0) + 1));
 
   const habilidades = (progreso.data ?? [])
-    .filter((p) => p.habilidad?.nombre !== "atajos" && p.habilidad?.nombre !== "razonamiento")
+    // solo la modalidad del estudiante: tiene progreso en las dos para poder cambiar de una a otra
+    .filter((p) => !estudiante.modalidad || p.habilidad?.nivel?.modalidad === estudiante.modalidad)
     .sort(
       (a, b) =>
         ORDEN_NIVELES.indexOf(a.habilidad?.nivel?.nombre ?? "") - ORDEN_NIVELES.indexOf(b.habilidad?.nivel?.nombre ?? "") ||

@@ -12,7 +12,9 @@ export type TipoAccion =
   | "quitar_profesor"
   | "asignar_estudiante"
   | "desasignar_estudiante"
+  | "abrir_nivel"
   | "registrar_pago"
+  | "dar_prueba"
   | "cancelar_suscripcion"
   | "crear_ejercicio"
   | "eliminar_ejercicio";
@@ -28,7 +30,9 @@ export const ETIQUETAS_ACCION: Record<TipoAccion, string> = {
   quitar_profesor: "Quitó el rol de profesor",
   asignar_estudiante: "Asignó un estudiante a un profesor",
   desasignar_estudiante: "Quitó un estudiante de un profesor",
+  abrir_nivel: "Abrió niveles",
   registrar_pago: "Registró un pago",
+  dar_prueba: "Dio una prueba gratuita",
   cancelar_suscripcion: "Canceló una suscripción",
   crear_ejercicio: "Agregó un ejercicio de contenido",
   eliminar_ejercicio: "Eliminó un ejercicio de contenido",

@@ -182,6 +182,12 @@ npx tsc --noEmit # comprobación de tipos
 - Límites conocidos (por diseño, no hay pasarela ni servidor de examen): en práctica y en el examen de ubicación el resultado
   lo calcula el navegador y se manda a la base de datos, así que un estudiante que manipule la web podría falsearlo. La
   validación real son las evaluaciones en vivo con profesor (Meet). La ubicación solo se puede rendir una vez por cuenta.
+- **Admin: prueba gratuita y abrir niveles.** En `/admin/suscripciones`, «Dar 7 días de prueba» crea una suscripción de S/ 0
+  (método «Prueba») desde hoy en hora de Lima; solo una vez por estudiante y solo si no tiene un plan activo. Al vencer, el
+  estudiante ve «Tu prueba gratuita terminó» con los planes. En la ficha del estudiante, «Abrir este nivel» y «Abrir todos los
+  niveles» desbloquean las habilidades de su modalidad (más el primer ejercicio de cada una) sin tocar lo que ya avanzó; no hay
+  botón para volver a cerrarlos. Ambas acciones quedan en el registro de actividad. Un estudiante nuevo igual debe rendir antes el
+  examen de ubicación.
 - **Recuperar contraseña** (`/olvide-contrasena` → correo → `/auth/callback` → `/restablecer-contrasena`). Para que funcione en
   producción hay que configurar en Supabase (Authentication → URL Configuration) la **Site URL** y agregar
   `https://<tu-dominio>/auth/callback` en **Redirect URLs**. El correo por defecto de Supabase está limitado a muy pocos envíos por
