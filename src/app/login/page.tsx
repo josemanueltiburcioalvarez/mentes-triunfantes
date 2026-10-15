@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/client";
+import BotonInstalar from "@/components/boton-instalar";
 import FondoEstudiante from "@/components/fondo-estudiante";
 import Logo from "@/components/logo";
 
@@ -165,6 +166,8 @@ export default function LoginPage() {
             {modo === "iniciar_sesion" ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
           </button>
         </div>
+
+        <BotonInstalar className="mt-5" />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/server";
+import BotonInstalar from "@/components/boton-instalar";
 import EditarPerfilForm from "@/components/editar-perfil-form";
 
 // Edicion de perfil para el estudiante ya onboardeado: antes solo el admin podia corregir nombre,
@@ -30,6 +31,7 @@ export default async function PerfilPage() {
       <Link href="/dashboard" className="text-sm text-zinc-500 underline-offset-2 hover:underline dark:text-zinc-400">
         ← Volver
       </Link>
+      <BotonInstalar className="mt-2" />
     </div>
   );
 }

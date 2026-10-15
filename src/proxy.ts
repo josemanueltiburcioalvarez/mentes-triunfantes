@@ -56,5 +56,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // Se dejan fuera los archivos que el navegador pide sin sesion para instalar la app (manifiesto, service worker,
+  // pagina sin conexion) y la verificacion del APK de Android (.well-known/assetlinks.json).
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest\\.webmanifest|sw\\.js|offline\\.html|\\.well-known/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
