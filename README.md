@@ -182,6 +182,14 @@ npx tsc --noEmit # comprobación de tipos
 - Límites conocidos (por diseño, no hay pasarela ni servidor de examen): en práctica y en el examen de ubicación el resultado
   lo calcula el navegador y se manda a la base de datos, así que un estudiante que manipule la web podría falsearlo. La
   validación real son las evaluaciones en vivo con profesor (Meet). La ubicación solo se puede rendir una vez por cuenta.
+- **App instalable (PWA).** `src/app/manifest.ts`, iconos en `public/icons/` (se regeneran con `node scripts/generar-iconos.mjs`),
+  `public/sw.js` + `public/offline.html` (solo la pantalla «Sin conexión»; no guarda datos de la cuenta) y el botón «Instalar
+  app» en el login y en «Mi perfil». En Android (Chrome) se instala desde ese botón o desde el menú ⋮ → «Instalar aplicación»;
+  en iPhone, Safari → Compartir → «Añadir a pantalla de inicio». El proxy deja públicos el manifiesto, el service worker y
+  `/.well-known/`. **APK / Play Store (pendiente):** se puede envolver esta misma web como TWA con Bubblewrap o PWABuilder; el
+  APK queda atado al dominio, así que conviene hacerlo cuando el dominio sea el definitivo, y publicar
+  `/.well-known/assetlinks.json` con la huella de la clave de firma (guardar esa clave: sin ella no se pueden publicar
+  actualizaciones).
 - **Admin: prueba gratuita y abrir niveles.** En `/admin/suscripciones`, «Dar 7 días de prueba» crea una suscripción de S/ 0
   (método «Prueba») desde hoy en hora de Lima; solo una vez por estudiante y solo si no tiene un plan activo. Al vencer, el
   estudiante ve «Tu prueba gratuita terminó» con los planes. En la ficha del estudiante, «Abrir este nivel» y «Abrir todos los
